@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מנוע שכר — מנהלי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0c;
+  --s1:#141414;
+  --s2:#1e1e1e;
+  --s3:#272727;
+  --border:#2e2e2e;
+  --border2:#3a3a3a;
+  --text:#efefef;
+  --muted:#777;
+  --muted2:#555;
+  --accent:#c8f135;
+  --accent-t:rgba(200,241,53,.1);
+  --accent-t2:rgba(200,241,53,.05);
+  --green:#4ade80;
+  --green-t:rgba(74,222,128,.1);
+  --red:#f87171;
+  --red-t:rgba(248,113,113,.1);
+  --amber:#fbbf24;
+  --amber-t:rgba(251,191,36,.1);
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Heebo',sans-serif;
+  --r:8px;
+  --r2:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+header{
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;border-bottom:1px solid var(--border);
+  background:var(--bg);position:sticky;top:0;z-index:50;
+}
+.logo{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.status{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:20px;
+  background:var(--s2);color:var(--muted);border:1px solid var(--border);transition:all .3s}
+.status.ok{background:var(--green-t);color:var(--green);border-color:rgba(74,222,128,.2)}
+.status.err{background:var(--red-t);color:var(--red);border-color:rgba(248,113,113,.2)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 56px)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* LEFT PANEL */
+.left-panel{border-left:1px solid var(--border);background:var(--s1);overflow-y:auto;height:calc(100vh - 56px);position:sticky;top:56px}
+
+/* NAV TABS */
+.nav{display:flex;border-bottom:1px solid var(--border)}
+.nav-tab{flex:1;padding:14px 8px;background:transparent;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .15s;letter-spacing:.02em;margin-bottom:-1px}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-tab:hover:not(.active){color:var(--text)}
+
+.tab-pane{display:none;padding:1.5rem}
+.tab-pane.active{display:block}
+
+/* FORM */
+.section{margin-bottom:1.5rem}
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted2);margin-bottom:.875rem;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.field{margin-bottom:.875rem}
+label{display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
+input,select{
+  width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);
+  color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 11px;
+  outline:none;transition:border-color .15s;direction:ltr;
+}
+input:focus,select:focus{border-color:var(--accent)}
+select{cursor:pointer}
+select option{background:#1e1e1e}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+
+/* COMPONENTS */
+.comp-header{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:4px}
+.comp-header span{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2)}
+.comp-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center}
+.comp-row input{font-size:12px;padding:7px 9px}
+.rm-btn{width:30px;height:30px;background:transparent;border:1px solid var(--border2);
+  border-radius:6px;color:var(--muted);cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.rm-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-t)}
+.add-btn{width:100%;padding:8px;background:transparent;border:1px dashed var(--border2);
+  border-radius:var(--r);color:var(--muted);font-size:12px;cursor:pointer;
+  transition:all .15s;margin-top:2px}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-t2)}
+
+/* SUBMIT */
+.submit-btn{
+  width:100%;padding:13px;background:var(--accent);color:#0c0c0c;
+  border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;
+  font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:.5rem
+}
+.submit-btn:hover{opacity:.88}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+/* UPLOAD */
+.upload-zone{
+  border:1px dashed var(--border2);border-radius:var(--r2);padding:2.5rem 1.5rem;
+  text-align:center;cursor:pointer;transition:all .15s;position:relative;
+}
+.upload-zone.hover{border-color:var(--accent);background:var(--accent-t2)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:32px;color:var(--muted);margin-bottom:10px}
+.upload-label{font-size:13px;color:var(--muted)}
+.upload-label strong{color:var(--text);font-weight:500}
+.selected-file{margin-top:.75rem;padding:8px 12px;background:var(--s2);border-radius:var(--r);
+  font-size:12px;font-family:var(--mono);color:var(--accent);display:none}
+
+/* PROGRESS */
+.progress{height:2px;background:var(--border);border-radius:1px;overflow:hidden;
+  margin:.75rem 0;display:none}
+.progress-bar{height:100%;background:var(--accent);width:0;transition:width .4s;border-radius:1px}
+.progress.visible{display:block}
+
+/* ERROR */
+.error{background:var(--red-t);border:1px solid rgba(248,113,113,.25);border-radius:var(--r);
+  padding:.75rem 1rem;font-size:13px;color:var(--red);display:none;margin-bottom:.75rem}
+.error.visible{display:block}
+
+/* RIGHT PANEL */
+.right-panel{padding:2rem;overflow-y:auto}
+
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;min-height:400px;color:var(--muted);text-align:center}
+.empty-ring{width:80px;height:80px;border-radius:50%;border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:1.5rem;color:var(--muted2)}
+.empty p{font-size:14px}
+
+/* RESULT */
+.result-hidden{display:none}
+
+/* HERO */
+.hero{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);
+  padding:2rem;text-align:center;margin-bottom:1.5rem}
+.hero-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.hero-amount{font-family:var(--mono);font-size:56px;font-weight:500;color:var(--accent);
+  letter-spacing:-.02em;line-height:1}
+.hero-currency{font-size:24px;color:var(--muted);margin-left:4px}
+.hero-meta{margin-top:16px;display:flex;justify-content:center;gap:2rem}
+.hero-meta-item{text-align:center}
+.hero-meta-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.hero-meta-val{font-family:var(--mono);font-size:14px;font-weight:500}
+
+/* META GRID */
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);
+  border-radius:var(--r2);overflow:hidden;margin-bottom:1.5rem}
+.meta-cell{background:var(--s1);padding:1rem 1.25rem}
+.meta-cell-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.meta-cell-val{font-family:var(--mono);font-size:14px;font-weight:500}
+
+/* TABLE */
+.table-wrap{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.table-head{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.comp-count{font-family:var(--mono);font-size:11px;color:var(--muted2);background:var(--s2);padding:2px 8px;border-radius:20px}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);
+  padding:10px 16px;text-align:right;border-bottom:1px solid var(--border);font-weight:500}
+td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--s2)}
+.name-col{direction:rtl}
+.code-sub{font-family:var(--mono);font-size:10px;color:var(--muted);direction:ltr}
+.amount-col{font-family:var(--mono);font-size:13px;text-align:left;direction:ltr;white-space:nowrap}
+.diff-col{font-family:var(--mono);font-size:12px;text-align:left;direction:ltr}
+.badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;letter-spacing:.03em}
+.b-calc{background:var(--accent-t);color:var(--accent);border:1px solid rgba(200,241,53,.2)}
+.b-raw{background:var(--s3);color:var(--muted);border:1px solid var(--border2)}
+.b-pension{background:var(--green-t);color:var(--green)}
+.b-match{background:var(--green-t);color:var(--green)}
+.b-nomatch{background:var(--red-t);color:var(--red)}
+.total-row td{font-weight:500;background:var(--s2)!important}
+.c-green{color:var(--green)}
+.c-red{color:var(--red)}
+.c-muted{color:var(--muted)}
+.c-amber{color:var(--amber)}
+
+/* ACCURACY */
+.acc-hero{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);
+  padding:2rem;text-align:center;margin-bottom:1.5rem}
+.acc-pct{font-family:var(--mono);font-size:72px;font-weight:500;line-height:1}
+.acc-label{font-size:13px;color:var(--muted);margin-top:8px}
+.acc-bar-wrap{background:var(--s2);border-radius:4px;height:8px;margin:1.5rem 0;overflow:hidden}
+.acc-bar{height:100%;border-radius:4px;transition:width .6s ease;background:var(--green)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:500}
+
+/* MINISTRY TABLE */
+.min-table{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.min-table th{text-align:right}
+.match-bar-cell{width:120px}
+.match-bar-bg{background:var(--s2);border-radius:3px;height:6px;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="dot"></div>מנוע חישוב שכר</div>
+  <div class="status" id="status-el">מתחבר...</div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <div class="left-panel">
+    <nav class="nav">
+      <button class="nav-tab active" onclick="showTab('calc')">עובד בודד</button>
+      <button class="nav-tab" onclick="showTab('accuracy')">בדיקת דיוק</button>
+      <button class="nav-tab" onclick="showTab('batch')">יצוא CSV</button>
+    </nav>
+
+    <!-- CALC TAB -->
+    <div class="tab-pane active" id="tab-calc">
+      <div class="error" id="calc-err"></div>
+      <div class="progress" id="calc-prog"><div class="progress-bar" id="calc-bar"></div></div>
+
+      <div class="section">
+        <div class="section-title">פרטי עובד</div>
+        <div class="grid2">
+          <div class="field"><label>מסד (ת.ז.)</label><input type="number" id="f-worker" value="11021106"></div>
+          <div class="field"><label>קוד משרד</label><input type="number" id="f-ministry-code" value="170"></div>
+        </div>
+        <div class="field"><label>שם משרד</label><input type="text" id="f-ministry-name" value='מכס ומע"מ' style="direction:rtl"></div>
+        <div class="grid2">
+          <div class="field"><label>אחוז משרה</label><input type="number" id="f-job-pct" value="1.0" step="0.1" min="0" max="1"></div>
+          <div class="field"><label>אחוז גמלה</label><input type="number" id="f-pension-pct" value="0.4" step="0.05"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">דירוג ודרגה</div>
+        <div class="grid2">
+          <div class="field"><label>קוד דרגה</label><input type="number" id="f-kod-darga" value="202"></div>
+          <div class="field"><label>דרגה</label><input type="text" id="f-darga-label" value="18"></div>
+        </div>
+        <div class="field"><label>דירוג</label>
+          <select id="f-droog">
+            <option value="1">1 — מנהלי</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">ותק</div>
+        <div class="grid3">
+          <div class="field"><label>ותק חובה</label><input type="number" id="f-vatek-mandatory" value="0" step="0.25"></div>
+          <div class="field"><label>ותק רגיל</label><input type="number" id="f-vatek-regular" value="33.75" step="0.25"></div>
+          <div class="field"><label>ותק תואר ב'</label><input type="number" id="f-vatek-msc" value="0" step="0.25"></div>
+        </div>
+        <div class="field">
+          <label>ותק מחושב <span style="color:var(--accent);font-size:10px">★ משמש בנוסחה</span></label>
+          <input type="number" id="f-vatek-calc" value="33.75" step="0.25">
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">חודשי חישוב</div>
+        <div class="grid3">
+          <div class="field"><label>חודש חישוב</label><input type="number" id="f-calc-month" value="228"></div>
+          <div class="field"><label>חודש רטרו</label><input type="number" id="f-retro-month" value="204"></div>
+          <div class="field"><label>מס' חודשי רטרו</label><input type="number" id="f-retro-count" value="25"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">רכיבי שכר</div>
+        <div class="comp-header">
+          <span>שם רכיב</span><span>קוד</span><span>סכום</span><span></span>
+        </div>
+        <div id="comp-list"></div>
+        <button class="add-btn" onclick="addComp()">+ הוסף רכיב</button>
+      </div>
+
+      <button class="submit-btn" id="calc-btn" onclick="runCalc()">חשב שכר</button>
+    </div>
+
+    <!-- ACCURACY TAB -->
+    <div class="tab-pane" id="tab-accuracy">
+      <div class="error" id="acc-err"></div>
+      <div class="progress" id="acc-prog"><div class="progress-bar" id="acc-bar"></div></div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.7">
+        העלה קובץ גולמי Excel לבדיקת דיוק המנוע.<br>
+        התאמה נחשבת הפרש של עד <strong style="color:var(--accent);font-weight:500">±₪1</strong> בין המחושב לצפוי.
+      </p>
+
+      <div class="upload-zone" id="acc-zone">
+        <input type="file" id="acc-file" accept=".xlsx" onchange="runAccuracy(this)">
+        <div class="upload-icon">◎</div>
+        <div class="upload-label"><strong>גרור קובץ xlsx</strong> או לחץ לבחירה</div>
+        <div class="selected-file" id="acc-filename"></div>
+      </div>
+    </div>
+
+    <!-- BATCH TAB -->
+    <div class="tab-pane" id="tab-batch">
+      <div class="error" id="batch-err"></div>
+      <div class="progress" id="batch-prog"><div class="progress-bar" id="batch-bar"></div></div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.7">
+        העלה קובץ גולמי Excel לקבלת קובץ CSV עם תוצאות חישוב לכל העובדים.
+      </p>
+
+      <div class="upload-zone" id="batch-zone">
+        <input type="file" id="batch-file" accept=".xlsx" onchange="runBatch(this)">
+        <div class="upload-icon">⬆</div>
+        <div class="upload-label"><strong>גרור קובץ xlsx</strong> או לחץ לבחירה</div>
+        <div class="selected-file" id="batch-filename"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="right-panel">
+
+    <div class="empty" id="empty-state">
+      <div class="empty-ring">◈</div>
+      <p>מלא פרמטרים ולחץ חשב שכר<br>או העלה קובץ לבדיקת דיוק</p>
+    </div>
+
+    <!-- CALC RESULT -->
+    <div class="result-hidden" id="calc-result">
+      <div class="hero">
+        <div class="hero-label">שכר כולל מחושב</div>
+        <div class="hero-amount"><span class="hero-currency">₪</span><span id="r-total">0</span></div>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <div class="hero-meta-label">צפוי (גולמי)</div>
+            <div class="hero-meta-val" id="r-expected">—</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="hero-meta-label">הפרש</div>
+            <div class="hero-meta-val" id="r-diff">—</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="hero-meta-label">התאמה</div>
+            <div class="hero-meta-val" id="r-match">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-cell"><div class="meta-cell-label">דרגה</div><div class="meta-cell-val" id="m-grade">—</div></div>
+        <div class="meta-cell"><div class="meta-cell-label">שכר בסיס</div><div class="meta-cell-val" id="m-base">—</div></div>
+        <div class="meta-cell"><div class="meta-cell-label">ותק מחושב</div><div class="meta-cell-val" id="m-vatek">—</div></div>
+        <div class="meta-cell"><div class="meta-cell-label">מקדם ותק</div><div class="meta-cell-val" id="m-mult">—</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-title">פירוט רכיבים</span>
+          <span class="comp-count" id="r-comp-count">0 רכיבים</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>רכיב</th>
+              <th>סוג</th>
+              <th style="direction:ltr;text-align:left">סכום ₪</th>
+              <th style="direction:ltr;text-align:left">הפרש</th>
+            </tr>
+          </thead>
+          <tbody id="comp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCURACY RESULT -->
+    <div class="result-hidden" id="acc-result">
+      <div class="acc-hero">
+        <div class="hero-label">דיוק המנוע</div>
+        <div class="acc-pct" id="a-pct" style="color:var(--green)">—%</div>
+        <div class="acc-label" id="a-sub">—</div>
+        <div class="acc-bar-wrap"><div class="acc-bar" id="a-bar" style="width:0"></div></div>
+        <div style="font-size:12px;color:var(--muted)">סף התאמה: הפרש עד ±₪1 בין מחושב לצפוי</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-label">סה"כ עובדים</div>
+          <div class="stat-val" id="a-total">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">מותאמים</div>
+          <div class="stat-val c-green" id="a-matched">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">לא מותאמים</div>
+          <div class="stat-val c-red" id="a-unmatched">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">ממוצע הפרש</div>
+          <div class="stat-val" id="a-avg">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">מקסימום הפרש</div>
+          <div class="stat-val" id="a-max">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">זמן עיבוד</div>
+          <div class="stat-val" id="a-time">—</div>
+        </div>
+      </div>
+
+      <div class="min-table">
+        <div class="table-head">
+          <span class="table-title">פירוט לפי משרד</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>משרד</th>
+              <th>עובדים</th>
+              <th>מותאמים</th>
+              <th>דיוק</th>
+              <th class="match-bar-cell"></th>
+            </tr>
+          </thead>
+          <tbody id="ministry-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://salary-engine.onrender.com';
+let _csvBlob = null;
+
+async function checkStatus() {
+  const el = document.getElementById('status-el');
+  try {
+    const r = await fetch(API + '/api/info');
+    const d = await r.json();
+    el.textContent = `פעיל · ${d.grades_loaded} דרגות`;
+    el.className = 'status ok';
+  } catch {
+    el.textContent = 'לא מחובר';
+    el.className = 'status err';
+  }
+}
+
+function showTab(name) {
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    const names = ['calc','accuracy','batch'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach((p,i) => {
+    const names = ['tab-calc','tab-accuracy','tab-batch'];
+    p.classList.toggle('active', names[i] === 'tab-'+name);
+  });
+}
+
+function addComp(name='', code='', amount='') {
+  const list = document.getElementById('comp-list');
+  const d = document.createElement('div');
+  d.className = 'comp-row';
+  d.innerHTML = `
+    <input type="text" placeholder="שם רכיב" value="${name}" style="direction:rtl;font-family:var(--sans)">
+    <input type="number" placeholder="קוד" value="${code}">
+    <input type="number" placeholder="סכום" value="${amount}" step="0.01">
+    <button class="rm-btn" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(d);
+}
+
+function getComps() {
+  return Array.from(document.querySelectorAll('#comp-list .comp-row')).map(r => {
+    const i = r.querySelectorAll('input');
+    return {name:i[0].value||'',code:parseInt(i[1].value)||0,amount:parseFloat(i[2].value)||0,pensionable:'כן'};
+  }).filter(c => c.code > 0);
+}
+
+function fmt(n, dec=2) {
+  if(n==null) return '—';
+  return Number(n).toLocaleString('he-IL',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+
+function setProgress(id, pct) {
+  const bar = document.getElementById(id+'-prog');
+  const fill = document.getElementById(id+'-bar');
+  if(pct===null){bar.classList.remove('visible');fill.style.width='0';return;}
+  bar.classList.add('visible');
+  fill.style.width = pct+'%';
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id+'-err');
+  if(!msg){el.classList.remove('visible');return;}
+  el.textContent='שגיאה: '+msg;el.classList.add('visible');
+}
+
+function showPane(id) {
+  document.getElementById('empty-state').style.display = 'none';
+  ['calc-result','acc-result'].forEach(p => {
+    document.getElementById(p).classList.toggle('result-hidden', p !== id);
+    document.getElementById(p).style.display = (p===id)?'block':'none';
+  });
+}
+
+async function runCalc() {
+  const btn = document.getElementById('calc-btn');
+  showError('calc','');
+  setProgress('calc',20);
+  btn.disabled=true; btn.textContent='מחשב...';
+
+  const payload = {
+    worker_id: parseInt(document.getElementById('f-worker').value)||0,
+    ministry_code: parseInt(document.getElementById('f-ministry-code').value)||0,
+    ministry_name: document.getElementById('f-ministry-name').value,
+    droog: parseInt(document.getElementById('f-droog').value)||1,
+    job_pct: parseFloat(document.getElementById('f-job-pct').value)||1,
+    pension_pct: parseFloat(document.getElementById('f-pension-pct').value)||0,
+    kod_darga: parseInt(document.getElementById('f-kod-darga').value)||0,
+    darga_label: document.getElementById('f-darga-label').value,
+    vatek_mandatory: parseFloat(document.getElementById('f-vatek-mandatory').value)||0,
+    vatek_regular: parseFloat(document.getElementById('f-vatek-regular').value)||0,
+    vatek_msc: parseFloat(document.getElementById('f-vatek-msc').value)||0,
+    vatek_calculated: parseFloat(document.getElementById('f-vatek-calc').value)||0,
+    calc_month: parseInt(document.getElementById('f-calc-month').value)||228,
+    retro_month: parseInt(document.getElementById('f-retro-month').value)||0,
+    retro_count: parseInt(document.getElementById('f-retro-count').value)||1,
+    components: getComps(),
+  };
+
+  try {
+    setProgress('calc',60);
+    const r = await fetch(API+'/api/calculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    setProgress('calc',100);
+    if(!r.ok){const e=await r.json();throw new Error(e.detail||'שגיאת שרת');}
+    const data = await r.json();
+    renderCalcResult(data);
+  } catch(e) {
+    showError('calc', e.message);
+  } finally {
+    setTimeout(()=>setProgress('calc',null),500);
+    btn.disabled=false; btn.textContent='חשב שכר';
+  }
+}
+
+function renderCalcResult(d) {
+  showPane('calc-result');
+  document.getElementById('r-total').textContent = fmt(d.total);
+
+  const diff = d.total_diff;
+  document.getElementById('r-expected').textContent = d.expected_total!=null ? '₪'+fmt(d.expected_total) : '—';
+
+  const diffEl = document.getElementById('r-diff');
+  if(diff!=null){
+    diffEl.textContent = (diff>=0?'+':'')+fmt(diff);
+    diffEl.style.color = Math.abs(diff)<=1 ? 'var(--green)' : Math.abs(diff)<10 ? 'var(--amber)' : 'var(--red)';
+  }
+
+  const matchEl = document.getElementById('r-match');
+  if(d.total_match!=null){
+    matchEl.textContent = d.total_match ? '✓ מותאם' : '✗ לא מותאם';
+    matchEl.style.color = d.total_match ? 'var(--green)' : 'var(--red)';
+  }
+
+  document.getElementById('m-grade').textContent = d.darga_label || '—';
+  document.getElementById('m-base').textContent = d.grade_base!=null ? '₪'+fmt(d.grade_base) : '—';
+  document.getElementById('m-vatek').textContent = d.vatek_calculated!=null ? d.vatek_calculated+' שנים' : '—';
+  document.getElementById('m-mult').textContent = d.vatek_multiplier!=null ? Number(d.vatek_multiplier).toFixed(6) : '—';
+
+  const tbody = document.getElementById('comp-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('r-comp-count').textContent = d.components.length+' רכיבים';
+
+  d.components.forEach(c => {
+    const tr = document.createElement('tr');
+    let diffHtml = '<span class="c-muted">—</span>';
+    if(c.diff!=null){
+      const cls = Math.abs(c.diff)<=1 ? 'c-green' : Math.abs(c.diff)<10 ? 'c-amber' : 'c-red';
+      diffHtml = `<span class="${cls}">${c.diff>=0?'+':''}${fmt(c.diff)}</span>`;
+    }
+    tr.innerHTML = `
+      <td class="name-col">
+        <div>${c.name||'—'}</div>
+        <div class="code-sub">${c.code}</div>
+      </td>
+      <td>
+        <span class="badge ${c.calculated?'b-calc':'b-raw'}">${c.calculated?'מחושב':'גולמי'}</span>
+        ${c.pensionable?'<span class="badge b-pension" style="margin-right:4px">פנסיה</span>':''}
+      </td>
+      <td class="amount-col">₪${fmt(c.amount)}</td>
+      <td class="diff-col">${diffHtml}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const tr = document.createElement('tr');
+  tr.className = 'total-row';
+  tr.innerHTML = `<td colspan="2" style="color:var(--muted);font-size:13px">סה"כ</td>
+    <td class="amount-col" style="color:var(--accent)">₪${fmt(d.total)}</td><td></td>`;
+  tbody.appendChild(tr);
+}
+
+async function runAccuracy(input) {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('acc-filename').textContent = file.name;
+  document.getElementById('acc-filename').style.display = 'block';
+  showError('acc','');
+  setProgress('acc',15);
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    setProgress('acc',40);
+    const r = await fetch(API+'/api/accuracy',{method:'POST',body:form});
+    setProgress('acc',90);
+    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    const d = await r.json();
+    setProgress('acc',100);
+    renderAccuracy(d);
+  } catch(e) {
+    showError('acc',e.message);
+  } finally {
+    setTimeout(()=>setProgress('acc',null),500);
+  }
+}
+
+function renderAccuracy(d) {
+  showPane('acc-result');
+
+  const pct = d.accuracy_pct;
+  const color = pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
+  document.getElementById('a-pct').textContent = pct.toFixed(1)+'%';
+  document.getElementById('a-pct').style.color = color;
+  document.getElementById('a-sub').textContent = `${d.matched.toLocaleString()} מתוך ${d.total_workers.toLocaleString()} עובדים מותאמים`;
+  document.getElementById('a-bar').style.width = pct+'%';
+  document.getElementById('a-bar').style.background = color;
+
+  document.getElementById('a-total').textContent = d.total_workers.toLocaleString();
+  document.getElementById('a-matched').textContent = d.matched.toLocaleString();
+  document.getElementById('a-unmatched').textContent = d.unmatched.toLocaleString();
+  document.getElementById('a-avg').textContent = '₪'+fmt(d.avg_diff);
+  document.getElementById('a-max').textContent = '₪'+fmt(d.max_diff);
+  document.getElementById('a-time').textContent = d.elapsed_sec+'ש';
+
+  const tbody = document.getElementById('ministry-tbody');
+  tbody.innerHTML = '';
+  d.by_ministry.forEach(m => {
+    const pct2 = m.accuracy_pct;
+    const col = pct2>=90?'var(--green)':pct2>=70?'var(--amber)':'var(--red)';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="name-col" style="font-size:13px">${m.ministry_name||'—'}</td>
+      <td style="font-family:var(--mono);font-size:13px">${m.workers}</td>
+      <td style="font-family:var(--mono);font-size:13px;color:var(--green)">${m.matched}</td>
+      <td style="font-family:var(--mono);font-size:13px;color:${col}">${pct2.toFixed(1)}%</td>
+      <td class="match-bar-cell">
+        <div class="match-bar-bg">
+          <div class="match-bar-fill" style="width:${pct2}%;background:${col}"></div>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function runBatch(input) {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('batch-filename').textContent = file.name;
+  document.getElementById('batch-filename').style.display = 'block';
+  showError('batch','');
+  setProgress('batch',20);
+
+  try {
+    const form = new FormData();
+    form.append('file',file);
+    setProgress('batch',50);
+    const r = await fetch(API+'/api/batch',{method:'POST',body:form});
+    setProgress('batch',95);
+    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    _csvBlob = await r.blob();
+    const workers = r.headers.get('X-Workers');
+    const pct = r.headers.get('X-Match-Pct');
+    setProgress('batch',100);
+    setTimeout(()=>setProgress('batch',null),500);
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(_csvBlob);
+    a.download = 'salary_results.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    document.getElementById('batch-zone').style.borderColor = 'var(--green)';
+    document.getElementById('batch-filename').textContent = `✓ הורד — ${Number(workers).toLocaleString()} עובדים, דיוק ${pct}%`;
+    document.getElementById('batch-filename').style.color = 'var(--green)';
+  } catch(e) {
+    showError('batch',e.message);
+    setTimeout(()=>setProgress('batch',null),500);
+  }
+}
+
+document.querySelectorAll('.upload-zone').forEach(z => {
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('hover')});
+  z.addEventListener('dragleave',()=>z.classList.remove('hover'));
+  z.addEventListener('drop',e=>{
+    e.preventDefault();z.classList.remove('hover');
+    const f=e.dataTransfer.files[0];
+    if(!f) return;
+    const inp=z.querySelector('input[type=file]');
+    const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;
+    inp.dispatchEvent(new Event('change'));
+  });
+});
+
+addComp('שכר משולב',10002,4158.5);
+addComp('3.6% ת. שכר',4544,228.77);
+addComp('תוספת 2011',4994,165.29);
+
+checkStatus();
+</script>
+</body>
+</html>
