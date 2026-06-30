@@ -204,6 +204,60 @@ tbody tr:hover{background:var(--surface-2)}
 .match-bg{height:7px;background:var(--muted-bg);border-radius:999px;overflow:hidden}
 .match-fill{height:100%;border-radius:999px}
 footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px;border-top:1px solid var(--border)}
+
+/* ---- Logic / how-it-works ---- */
+.logic{max-width:760px;margin:0 auto}
+.logic .lead{font-size:15.5px;color:var(--fg);margin-bottom:18px}
+.formula{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:22px}
+.formula-line{font-size:16px;font-weight:600;color:var(--primary)}
+.formula-line sub{font-size:11px;color:var(--muted);font-weight:500}
+.formula .op{color:var(--secondary);margin:0 6px;font-weight:700}
+.formula-split{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-2);font-size:13.5px;color:var(--muted)}
+.steps{display:grid;gap:12px;margin-bottom:8px}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.step-n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.step h4{font-size:14.5px;font-weight:600;margin-bottom:2px}
+.step p{font-size:13.5px;color:var(--muted)}
+.logic-h{font-size:15px;font-weight:700;color:var(--fg);margin:26px 0 12px}
+.status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:620px){.status-grid{grid-template-columns:1fr}}
+.st-card{border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;position:relative;padding-right:30px}
+.st-card .st-dot{position:absolute;right:14px;top:17px;width:10px;height:10px;border-radius:50%}
+.st-card.valid{background:var(--green-bg)} .st-card.valid .st-dot{background:var(--green)}
+.st-card.invalid{background:var(--red-bg)} .st-card.invalid .st-dot{background:var(--red)}
+.st-card.info{background:var(--amber-bg)} .st-card.info .st-dot{background:var(--amber)}
+.st-card h4{font-size:14px;font-weight:700;margin-bottom:2px}
+.st-card p{font-size:12.5px;color:var(--muted)}
+.muted-p{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-radius:4px;font-size:12.5px}
+
+/* ---- Mismatch drill-down ---- */
+.mm-item{border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;overflow:hidden;background:var(--surface)}
+.mm-head{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;font-family:inherit;
+  cursor:pointer;padding:12px 14px;text-align:right;transition:background .15s}
+.mm-head:hover{background:var(--surface-2)}
+.mm-chev{color:var(--muted-2);transition:transform .2s;font-size:12px}
+.mm-item.open .mm-chev{transform:rotate(180deg)}
+.mm-id{font-weight:600;font-size:13.5px;color:var(--fg)}
+.mm-meta{font-size:13px;color:var(--muted);flex:1}
+.mm-diff{font-weight:700;font-size:13.5px}
+.mm-body{display:none;padding:14px 16px;border-top:1px solid var(--border);background:var(--surface-2)}
+.mm-item.open .mm-body{display:block;animation:fade .2s ease-out}
+.mm-formula{font-size:13px;color:var(--fg);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:12px}
+.mm-formula b{color:var(--primary)}
+.gap{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;margin-bottom:12px}
+.gap-name{grid-column:1/-1;font-size:12.5px;font-weight:600;color:var(--fg)}
+.gap-bars{display:flex;flex-direction:column;gap:5px}
+.gap-row{display:flex;align-items:center;gap:8px}
+.gap-lbl{font-size:11.5px;color:var(--muted);width:42px;flex:none}
+.gap-track{flex:1;height:14px;background:var(--muted-bg);border-radius:4px;overflow:hidden}
+.gap-fill{height:100%;border-radius:4px}
+.gap-fill.slip{background:var(--secondary)}
+.gap-fill.calc{background:var(--muted-2)}
+.gap-val{font-size:12px;width:88px;text-align:left;flex:none}
+.gap-diff{font-weight:700;font-size:13px;white-space:nowrap}
+.mm-why{font-size:13px;color:var(--fg);background:var(--amber-bg);border:1px solid #fde68a;border-radius:var(--r-sm);padding:10px 12px;margin-top:6px}
+.mm-why b{color:#92400e}
 </style>
 </head>
 <body>
@@ -237,6 +291,10 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px;border
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
       יצוא CSV
     </button>
+    <button class="tab" role="tab" onclick="showTab('logic')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+      איך זה עובד
+    </button>
   </div>
 </nav>
 
@@ -262,11 +320,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px;border
           <div class="section-label">דירוג ודרגה</div>
           <div class="row2">
             <div class="field"><label for="f-droog">דירוג (מסלול)</label>
-              <select id="f-droog"><option value="1">מינהלי</option></select></div>
+              <input id="f-droog" type="text" list="tracks-list" autocomplete="off" value="מח&quot;ר" placeholder="הקלד לחיפוש…">
+              <datalist id="tracks-list"></datalist></div>
             <div class="field"><label for="f-darga-label">דרגה <span class="req">*</span></label>
-              <input id="f-darga-label" type="text" value="42+"></div>
+              <input id="f-darga-label" type="text" value="42+" list="grades-list" autocomplete="off" placeholder="הקלד לחיפוש…">
+              <datalist id="grades-list"></datalist></div>
           </div>
-          <div class="helper">הדרגה נקבעת לפי התווית המדויקת (למשל ‎18, ‎42+‎).</div>
+          <div class="helper">בחר דרגה מהרשימה או הקלד לחיפוש (למשל ‎18, ‎42+‎).</div>
 
           <div class="section-label">ותק ומשרה</div>
           <div class="row2">
@@ -364,6 +424,10 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px;border
             <thead><tr><th>משרד / גוף</th><th>עובדים</th><th>תקינים</th><th>תקינות</th><th class="match-cell"></th></tr></thead>
             <tbody id="ministry-tbody"></tbody>
           </table>
+
+          <h3 class="logic-h" id="mm-title" style="display:none">תלושים שגויים לבדיקה</h3>
+          <p class="helper" id="mm-hint" style="display:none">לחץ על תלוש כדי לראות היכן נוצר הפער ומדוע.</p>
+          <div id="mismatch-list"></div>
         </div>
       </div>
     </div>
@@ -387,6 +451,52 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px;border
     </div>
   </section>
 
+  <!-- ============ TAB: logic / how it works ============ -->
+  <section class="pane" id="pane-logic">
+    <div class="logic">
+      <div class="card">
+        <div class="card-head"><h2>המוח של הסימולטור — איך מחושב השכר</h2></div>
+        <div class="card-body">
+          <p class="lead">הסימולטור מחשב מה <strong>אמור</strong> להיות שכר העובד לפי טבלאות השכר הרשמיות,
+             ומשווה לסכום שבתלוש. הפרש של עד ₪1 → <strong>תלוש תקין</strong>; הפרש גדול יותר → <strong>שגוי</strong>.</p>
+
+          <div class="formula">
+            <div class="formula-line">שכר משולב <span class="op">=</span> שכר יסוד<sub>(דרגה)</sub> <span class="op">×</span> מקדם ותק<sub>(דירוג, ותק)</sub> <span class="op">×</span> חלקיות</div>
+            <div class="formula-split">
+              <span>יסוד משולב <span class="op">=</span> שכר יסוד × חלקיות</span>
+              <span>תוספת ותק <span class="op">=</span> שכר יסוד × (מקדם − 1) × חלקיות</span>
+            </div>
+          </div>
+
+          <div class="steps">
+            <div class="step"><div class="step-n">1</div><div><h4>דרגה → שכר יסוד</h4>
+              <p>תווית הדרגה (כולל ‎+‎, למשל ‎42+‎) נקבעת לפי טבלת DARGA. נטענו <strong id="lg-grades">75</strong> דרגות.</p></div></div>
+            <div class="step"><div class="step-n">2</div><div><h4>דירוג + ותק → מקדם</h4>
+              <p>לכל מסלול דירוג טור מקדמים נפרד. הערך מחושב ב<strong>אינטרפולציה ליניארית</strong> בין נקודות הרשת
+                 (רזולוציית רבע שנה), מה שהעלה את הדיוק מ-78% ל-93%.</p></div></div>
+            <div class="step"><div class="step-n">3</div><div><h4>תקרת ותק לפי מסלול</h4>
+              <p>כשהוותק עובר את תקרת המסלול המקדם נעצר: מינהלי 37 שנים, מח"ר 40 שנים.</p></div></div>
+            <div class="step"><div class="step-n">4</div><div><h4>השוואה וסיווג</h4>
+              <p>סכום הרכיבים המחושב מושווה לתלוש ומסווג לאחד מארבעה מצבים (למטה).</p></div></div>
+          </div>
+
+          <h3 class="logic-h">ארבעת מצבי התלוש</h3>
+          <div class="status-grid">
+            <div class="st-card valid"><span class="st-dot"></span><h4>תקין</h4><p>הבסיס המחושב תואם את התלוש (±₪1).</p></div>
+            <div class="st-card invalid"><span class="st-dot"></span><h4>שגוי</h4><p>בסיס קיים אך אינו תואם — דורש בדיקה.</p></div>
+            <div class="st-card info"><span class="st-dot"></span><h4>ללא שכר בסיס פעיל</h4><p>אין בסיס פעיל (גמלאי/לא-פעיל).</p></div>
+            <div class="st-card info"><span class="st-dot"></span><h4>רטרו / רב-תקופתי</h4><p>יותר מתקופת שכר אחת בתלוש.</p></div>
+          </div>
+
+          <h3 class="logic-h">תוצאות אימות — קובץ 02.26 (מח"ר)</h3>
+          <p class="muted-p">2,646 עובדים, כל הדרגות נפתרו. שיעור תקינות על התלושים הפעילים: <strong>93.3%</strong>.
+             מדד התקינות מחושב על תלושים פעילים בלבד (תקין + שגוי), ואינו "נענש" על גמלאים או תלושים רב-תקופתיים.</p>
+          <p class="muted-p">פירוט מלא: ראו <code>ENGINE.md</code> במאגר.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>סימולטור שכר · מנוע מבוסס טבלאות Progim · בדיקת התאמת תלושים</footer>
@@ -403,19 +513,39 @@ async function checkStatus(){
   }catch{ el.innerHTML = '<span class="dot"></span>לא מחובר'; el.className='status err'; }
 }
 
+let _trackByName={};
 async function loadTracks(){
   try{
     const r = await fetch(API+'/api/tracks'); const d = await r.json();
     if(!d.tracks||!d.tracks.length) return;
-    const sel = document.getElementById('f-droog');
-    sel.innerHTML = d.tracks.map(t =>
-      `<option value="${t.code}"${t.code===11?' selected':''}>${t.name||('מסלול '+t.code)}${t.max_vatek?` · ותק עד ${t.max_vatek}`:''}</option>`
-    ).join('');
+    const dl=document.getElementById('tracks-list'); dl.innerHTML='';
+    d.tracks.forEach(t=>{
+      const name=t.name||('מסלול '+t.code);
+      _trackByName[name]=t.code;
+      const o=document.createElement('option'); o.value=name;
+      o.label=t.max_vatek?`קוד ${t.code} · ותק עד ${t.max_vatek}`:`קוד ${t.code}`;
+      dl.appendChild(o);
+    });
+  }catch{}
+}
+function resolveTrack(v){
+  if(v in _trackByName) return _trackByName[v];
+  const n=parseInt(v); return isNaN(n)?1:n;
+}
+async function loadGrades(){
+  try{
+    const r=await fetch(API+'/api/grades'); const d=await r.json();
+    const dl=document.getElementById('grades-list'); dl.innerHTML='';
+    (d.grades||[]).forEach(g=>{
+      const o=document.createElement('option'); o.value=g.darga_label;
+      o.label='₪'+Number(g.base_salary).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2});
+      dl.appendChild(o);
+    });
   }catch{}
 }
 
 function showTab(name){
-  const names=['calc','accuracy','batch'];
+  const names=['calc','accuracy','batch','logic'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='pane-'+name));
 }
@@ -462,7 +592,7 @@ async function runCalc(){
     worker_id:parseInt(document.getElementById('f-worker').value)||0,
     ministry_code:parseInt(document.getElementById('f-ministry-code').value)||0,
     ministry_name:document.getElementById('f-ministry-name').value,
-    droog:parseInt(document.getElementById('f-droog').value)||1,
+    droog:resolveTrack(document.getElementById('f-droog').value),
     job_pct:parseFloat(document.getElementById('f-job-pct').value)||1,
     pension_pct:0,
     kod_darga:0,
@@ -560,6 +690,56 @@ function renderAccuracy(d){
       <td class="match-cell"><div class="match-bg"><div class="match-fill" style="width:${p}%;background:${col}"></div></div></td>`;
     tbody.appendChild(tr);
   });
+  renderMismatches(d.mismatches||[]);
+}
+
+function renderMismatches(items){
+  const wrap=document.getElementById('mismatch-list'); wrap.innerHTML='';
+  const title=document.getElementById('mm-title'), hint=document.getElementById('mm-hint');
+  const show=items.length>0;
+  title.style.display=show?'':'none'; hint.style.display=show?'':'none';
+  items.forEach(m=>{
+    const diff=m.total_diff;
+    const item=document.createElement('div'); item.className='mm-item';
+    const head=document.createElement('button'); head.type='button'; head.className='mm-head';
+    head.setAttribute('aria-expanded','false');
+    head.innerHTML=`<span class="mm-chev" aria-hidden="true">▾</span>
+      <span class="mm-id num">${m.worker_id}</span>
+      <span class="mm-meta">דרגה ${m.darga_label} · ותק ${m.vatek}</span>
+      <span class="mm-diff num ${diff<0?'c-red':'c-amber'}">${diff>=0?'+':''}${fmt(diff)} ₪</span>`;
+    const body=document.createElement('div'); body.className='mm-body'; body.innerHTML=explainHTML(m);
+    head.addEventListener('click',()=>{
+      const open=item.classList.toggle('open');
+      head.setAttribute('aria-expanded',open?'true':'false');
+    });
+    item.appendChild(head); item.appendChild(body); wrap.appendChild(item);
+  });
+}
+
+function explainHTML(m){
+  let h='';
+  if(m.grade_base!=null && m.vatek_multiplier!=null){
+    h+=`<div class="mm-formula">מחושב = שכר יסוד <b>₪${fmt(m.grade_base)}</b> × מקדם ותק <b>${Number(m.vatek_multiplier).toFixed(4)}</b>`+
+       (m.job_pct&&m.job_pct!=1?` × חלקיות <b>${m.job_pct}</b>`:'')+`</div>`;
+  }
+  const comps=m.components||[];
+  const maxv=Math.max(1,...comps.map(c=>Math.max(Math.abs(c.slip),Math.abs(c.computed))));
+  comps.forEach(c=>{
+    const sW=Math.max(2,Math.abs(c.slip)/maxv*100), cW=Math.max(2,Math.abs(c.computed)/maxv*100);
+    const cls=Math.abs(c.diff)<=1?'c-green':'c-red';
+    h+=`<div class="gap">
+      <div class="gap-name">${c.name||c.code}</div>
+      <div class="gap-bars">
+        <div class="gap-row"><span class="gap-lbl">בתלוש</span><div class="gap-track"><div class="gap-fill slip" style="width:${sW}%"></div></div><span class="num gap-val">₪${fmt(c.slip)}</span></div>
+        <div class="gap-row"><span class="gap-lbl">מחושב</span><div class="gap-track"><div class="gap-fill calc" style="width:${cW}%"></div></div><span class="num gap-val">₪${fmt(c.computed)}</span></div>
+      </div>
+      <div class="gap-diff ${cls} num">${c.diff>=0?'+':''}${fmt(c.diff)}</div>
+    </div>`;
+  });
+  const td=m.total_diff, dir=td<0?'נמוך מהתלוש':'גבוה מהתלוש';
+  h+=`<div class="mm-why"><b>הפער:</b> החישוב ${dir} ב-<b>₪${fmt(Math.abs(td))}</b>.
+      סיבות אפשריות: שינוי דרגה באמצע החודש, תשלום רטרו, או ותק-לתשלום השונה מהוותק הרשום.</div>`;
+  return h;
 }
 
 async function runBatch(input){
@@ -593,6 +773,7 @@ addComp('יסוד משולב',1,4289.35);
 addComp('תוספת ותק',2,1940.58);
 checkStatus();
 loadTracks();
+loadGrades();
 </script>
 </body>
 </html>

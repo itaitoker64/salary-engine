@@ -421,7 +421,7 @@ class AccuracyResponse(BaseModel):
     active_total: int = 0; active_accuracy_pct: float = 0.0
     accuracy_pct: float; match_threshold: float
     avg_diff: float; max_diff: float
-    by_ministry: list[dict]; elapsed_sec: float
+    by_ministry: list[dict]; mismatches: list[dict] = []; elapsed_sec: float
 
 @app.get("/", include_in_schema=False)
 def root():
@@ -502,7 +502,7 @@ async def check_accuracy(file: UploadFile = File(...)):
         tmp.write(content); tmp_path = tmp.name
     try:
         t0 = time.time()
-        summary_df, _ = run_batch(tmp_path)
+        summary_df, detail_df = run_batch(tmp_path)
         elapsed = round(time.time() - t0, 1)
         total = len(summary_df)
         valid = int((summary_df["status"] == STATUS_VALID).sum())
@@ -527,13 +527,37 @@ async def check_accuracy(file: UploadFile = File(...)):
             .sort_values("workers", ascending=False).head(20)
             .to_dict(orient="records")
         )
+        # Per-worker gap detail for the invalid slips (largest gaps first), so the
+        # UI can explain each mismatch: which base components differ and by how much.
+        inv_df = (summary_df[summary_df["status"] == STATUS_INVALID]
+                  .assign(absdiff=lambda d: d["total_diff"].abs())
+                  .sort_values("absdiff", ascending=False).head(300))
+        calc_detail = detail_df[detail_df["calculated"]]
+        by_worker = {w: g for w, g in calc_detail.groupby("worker_id")}
+        mismatches = []
+        for _, r in inv_df.iterrows():
+            comps = []
+            for _, c in by_worker.get(r["worker_id"], pd.DataFrame()).iterrows():
+                comps.append({
+                    "code": int(c["comp_code"]), "name": c["comp_name"],
+                    "slip": round(float(c["expected"] or 0), 2),
+                    "computed": round(float(c["amount"] or 0), 2),
+                    "diff": round(float(c["diff"] or 0), 2),
+                })
+            mismatches.append({
+                "worker_id": int(r["worker_id"]), "ministry_name": r["ministry_name"],
+                "darga_label": r["darga_label"], "vatek": r["vatek"], "job_pct": r["job_pct"],
+                "grade_base": r["grade_base"], "vatek_multiplier": r["vatek_mult"],
+                "total_calculated": r["total_calculated"], "total_expected": r["total_expected"],
+                "total_diff": r["total_diff"], "components": comps,
+            })
         return AccuracyResponse(
             total_workers=total, matched=valid, unmatched=invalid,
             no_base=no_base, multi_period=multi,
             active_total=active_total, active_accuracy_pct=active_acc,
             accuracy_pct=active_acc, match_threshold=MATCH_THRESHOLD,
             avg_diff=avg_diff, max_diff=max_diff,
-            by_ministry=by_ministry, elapsed_sec=elapsed,
+            by_ministry=by_ministry, mismatches=mismatches, elapsed_sec=elapsed,
         )
     finally:
         os.unlink(tmp_path)
