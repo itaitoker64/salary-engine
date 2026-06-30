@@ -358,8 +358,17 @@ app = FastAPI(title="Salary Engine API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 LOOKUPS_FILE = Path(__file__).parent / "lookups.json"
+COMPONENTS_FILE = Path(__file__).parent / "components.json"
 FRONTEND_FILE = Path(__file__).parent / "index.html"
 _lookups: Optional[dict] = None
+_components: Optional[dict] = None
+
+def get_components() -> dict:
+    global _components
+    if _components is None:
+        _components = (json.loads(COMPONENTS_FILE.read_text(encoding="utf-8"))
+                       if COMPONENTS_FILE.exists() else {"categories": {}, "components": []})
+    return _components
 
 def get_lookups() -> dict:
     global _lookups
@@ -453,6 +462,12 @@ def list_tracks():
     return {"tracks": [{"code": k, "name": lk["tracks"].get(k, ""),
                         "max_vatek": lk["track_max"].get(k)}
                        for k in sorted(lk["vetek_by_track"])]}
+
+@app.get("/api/components")
+def list_components():
+    """Catalog of pay components: category, type, pensionable flag, and the
+    typical contribution each makes (from the reference גולמי file)."""
+    return get_components()
 
 @app.get("/api/vatek/{years}")
 def get_vatek(years: float, track: int = DEFAULT_TRACK):

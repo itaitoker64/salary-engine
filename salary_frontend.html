@@ -258,6 +258,26 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
 .gap-diff{font-weight:700;font-size:13px;white-space:nowrap}
 .mm-why{font-size:13px;color:var(--fg);background:var(--amber-bg);border:1px solid #fde68a;border-radius:var(--r-sm);padding:10px 12px;margin-top:6px}
 .mm-why b{color:#92400e}
+
+/* ---- Component catalog (what each component gives) ---- */
+.cat-block{margin-bottom:20px}
+.cat-head{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.cat-name{font-size:14.5px;font-weight:700;color:var(--primary)}
+.cat-pill{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--muted-bg);padding:1px 8px;border-radius:999px}
+.cat-desc{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.comp-row2{display:grid;grid-template-columns:minmax(190px,1fr) 1.2fr auto;gap:12px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.comp-row2:last-child{border-bottom:none}
+.comp-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.comp-name{font-size:13px;font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comp-badges{display:flex;gap:4px;flex-wrap:wrap}
+.cbadge{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px}
+.cbadge.pens{background:#f5f3ff;color:#6d28d9}
+.cbadge.typ{background:var(--muted-bg);color:var(--muted)}
+.comp-track{height:12px;background:var(--muted-bg);border-radius:4px;overflow:hidden}
+.comp-fill{height:100%;border-radius:4px;background:var(--secondary)}
+.comp-fill.neg{background:var(--red)}
+.comp-mean{font-size:12.5px;font-weight:600;color:var(--fg);width:90px;text-align:left}
+@media(max-width:620px){.comp-row2{grid-template-columns:1fr auto}.comp-track{display:none}}
 </style>
 </head>
 <body>
@@ -494,6 +514,14 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
           <p class="muted-p">פירוט מלא: ראו <code>ENGINE.md</code> במאגר.</p>
         </div>
       </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-head"><h2>מה כל רכיב שכר נותן</h2><span class="hint" id="comp-count"></span></div>
+        <div class="card-body">
+          <p class="muted-p">תלוש בנוי מעשרות רכיבים. להלן הסיווג שלהם, וה<strong>תרומה הטיפוסית</strong> של כל רכיב לשכר (ממוצע לפי קובץ 02.26). תג <b>פנסיוני</b> = הרכיב נכלל ב"משכורת קובעת" לחישוב הפנסיה.</p>
+          <div id="comp-cats"><p class="muted-p">טוען רכיבים…</p></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -532,6 +560,37 @@ function resolveTrack(v){
   if(v in _trackByName) return _trackByName[v];
   const n=parseInt(v); return isNaN(n)?1:n;
 }
+async function loadComponents(){
+  try{
+    const r=await fetch(API+'/api/components'); const d=await r.json();
+    const cats=d.categories||{}, comps=d.components||[];
+    document.getElementById('comp-count').textContent=comps.length+' רכיבים';
+    const maxAbs=Math.max(1,...comps.map(c=>Math.abs(c.mean)));
+    const wrap=document.getElementById('comp-cats'); wrap.innerHTML='';
+    Object.keys(cats).forEach(key=>{
+      const list=comps.filter(c=>c.category===key);
+      if(!list.length) return;
+      const label=cats[key][0], desc=cats[key][1];
+      const block=document.createElement('div'); block.className='cat-block';
+      block.innerHTML=`<div class="cat-head"><span class="cat-name">${label}</span><span class="cat-pill">${list.length}</span></div>
+        <div class="cat-desc">${desc}</div>`;
+      list.sort((a,b)=>Math.abs(b.mean)-Math.abs(a.mean));
+      list.forEach(c=>{
+        const w=Math.max(2,Math.abs(c.mean)/maxAbs*100), neg=c.mean<0;
+        const row=document.createElement('div'); row.className='comp-row2';
+        row.innerHTML=`<div class="comp-info">
+            <span class="comp-name">${c.name||('רכיב '+c.code)}</span>
+            <span class="comp-badges">${c.pensionable?'<span class="cbadge pens">פנסיוני</span>':''}<span class="cbadge typ">${c.type}</span></span>
+          </div>
+          <div class="comp-track"><div class="comp-fill ${neg?'neg':''}" style="width:${w}%"></div></div>
+          <div class="comp-mean num">${neg?'−':''}₪${fmt(Math.abs(c.mean))}</div>`;
+        block.appendChild(row);
+      });
+      wrap.appendChild(block);
+    });
+  }catch(e){ document.getElementById('comp-cats').innerHTML='<p class="muted-p">שגיאה בטעינת הרכיבים.</p>'; }
+}
+
 async function loadGrades(){
   try{
     const r=await fetch(API+'/api/grades'); const d=await r.json();
@@ -774,6 +833,7 @@ addComp('תוספת ותק',2,1940.58);
 checkStatus();
 loadTracks();
 loadGrades();
+loadComponents();
 </script>
 </body>
 </html>
