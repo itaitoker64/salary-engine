@@ -16,7 +16,7 @@ from openpyxl.comments import Comment
 import pandas as pd
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 
 MATCH_THRESHOLD = 1.0
@@ -606,6 +606,22 @@ def root():
     if FRONTEND_FILE.exists():
         return FileResponse(str(FRONTEND_FILE))
     return JSONResponse({"status": "ok", "service": "salary-engine", "version": "0.2.0"})
+
+# Inline SVG favicon — navy rounded square with a white validation check, matching
+# the frontend's <link rel="icon">. Served as a route so direct /favicon.ico hits
+# (and the Vercel catch-all rewrite) don't 404.
+FAVICON_SVG = (
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+    "<rect width='32' height='32' rx='7' fill='#1E3A5F'/>"
+    "<path d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='#fff' stroke-width='3.2' "
+    "stroke-linecap='round' stroke-linejoin='round'/></svg>"
+)
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon():
+    return Response(content=FAVICON_SVG, media_type="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 @app.get("/healthz")
 def health():
