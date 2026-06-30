@@ -138,9 +138,18 @@ class SalaryResult:
     expected_total: Optional[float] = None
     total_diff: Optional[float] = None
     total_match: Optional[bool] = None
+    status: str = "invalid"          # valid | invalid | no_base | multi_period
     grade_base: Optional[float] = None
     vatek_multiplier: Optional[float] = None
     errors: list = field(default_factory=list)
+
+# Pay-slip classification statuses (Hebrew labels live in the frontend).
+STATUS_VALID = "valid"            # תלוש תקין — computed base matches the slip
+STATUS_INVALID = "invalid"        # תלוש שגוי — base present but does not match
+STATUS_NO_BASE = "no_base"        # ללא שכר בסיס פעיל — no active base (pensioner/inactive)
+STATUS_MULTI = "multi_period"     # רטרו / רב-תקופתי — multiple base periods on one slip
+
+BASE_CODES = (CODE_COMBINED_BASE, CODE_YESOD, CODE_VETEK_TOSEFET)
 
 def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     errors = []
@@ -154,13 +163,31 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     if vatek_mult is None:
         errors.append(f"Unknown vatek/track: {worker.vatek_calculated}/{track}")
     job_pct = worker.job_pct or 1.0
+
+    # Pre-scan the base components to classify the slip before computing:
+    #  - raw base sum 0  → pensioner / inactive (no active base)
+    #  - a primary base code (1 or 10002) appearing >1× → multiple periods / retro,
+    #    which the single-period model cannot reconstruct from this file.
+    raw_base_sum = sum((a or 0.0) for c, _, a, _ in worker.components if c in BASE_CODES)
+    primary_base_count = max(
+        sum(1 for c, *_ in worker.components if c == CODE_YESOD),
+        sum(1 for c, *_ in worker.components if c == CODE_COMBINED_BASE),
+    )
+    if raw_base_sum <= MATCH_THRESHOLD:
+        status = STATUS_NO_BASE
+    elif primary_base_count > 1:
+        status = STATUS_MULTI
+    else:
+        status = None  # decided after computing (valid/invalid)
+    recompute = status is None  # only recompute base for active single-period slips
+
     for comp_code, comp_name, raw_amount, pensionable in worker.components:
         amount = raw_amount or 0.0
         calculated = False
         expected = raw_amount
         diff = None
         computed = None
-        if grade_base is not None and vatek_mult is not None:
+        if recompute and grade_base is not None and vatek_mult is not None:
             if comp_code == CODE_COMBINED_BASE:
                 # שכר משולב — full combined base
                 computed = round(grade_base * vatek_mult * job_pct, 2)
@@ -183,6 +210,11 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     expected_total = sum((c[2] or 0.0) for c in worker.components)
     total_diff = round(total - expected_total, 4)
     total_match = abs(total_diff) <= MATCH_THRESHOLD
+    if status is None:
+        status = STATUS_VALID if total_match else STATUS_INVALID
+    # total_match only carries meaning for active single-period slips.
+    if status in (STATUS_NO_BASE, STATUS_MULTI):
+        total_match = None
     return SalaryResult(
         worker_id=worker.worker_id, ministry_code=worker.ministry_code,
         ministry_name=worker.ministry_name, droog=worker.droog,
@@ -190,7 +222,7 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
         vatek_calculated=worker.vatek_calculated, job_pct=worker.job_pct,
         pension_pct=worker.pension_pct, components=component_results,
         total=round(total, 2), expected_total=round(expected_total, 2),
-        total_diff=total_diff, total_match=total_match,
+        total_diff=total_diff, total_match=total_match, status=status,
         grade_base=grade_base, vatek_multiplier=vatek_mult, errors=errors,
     )
 
@@ -309,6 +341,7 @@ def run_batch(excel_path: str, lookups: Optional[dict] = None) -> tuple:
             "grade_base": result.grade_base, "vatek_mult": result.vatek_multiplier,
             "total_calculated": result.total, "total_expected": result.expected_total,
             "total_diff": result.total_diff, "total_match": result.total_match,
+            "status": result.status,
             "n_components": len(result.components), "errors": "; ".join(result.errors),
         })
         for comp in result.components:
@@ -379,10 +412,13 @@ class CalculateResponse(BaseModel):
     job_pct: float; pension_pct: float; grade_base: Optional[float]
     vatek_multiplier: Optional[float]; components: list[ComponentOut]
     total: float; expected_total: Optional[float]
-    total_diff: Optional[float]; total_match: Optional[bool]; errors: list[str]
+    total_diff: Optional[float]; total_match: Optional[bool]
+    status: str; errors: list[str]
 
 class AccuracyResponse(BaseModel):
     total_workers: int; matched: int; unmatched: int
+    no_base: int = 0; multi_period: int = 0
+    active_total: int = 0; active_accuracy_pct: float = 0.0
     accuracy_pct: float; match_threshold: float
     avg_diff: float; max_diff: float
     by_ministry: list[dict]; elapsed_sec: float
@@ -453,7 +489,7 @@ def calculate_one(req: CalculateRequest):
             expected=c.expected, diff=c.diff) for c in result.components],
         total=result.total, expected_total=result.expected_total,
         total_diff=result.total_diff, total_match=result.total_match,
-        errors=result.errors,
+        status=result.status, errors=result.errors,
     )
 
 @app.post("/api/accuracy", response_model=AccuracyResponse)
@@ -469,21 +505,33 @@ async def check_accuracy(file: UploadFile = File(...)):
         summary_df, _ = run_batch(tmp_path)
         elapsed = round(time.time() - t0, 1)
         total = len(summary_df)
-        matched = int(summary_df["total_match"].sum())
-        accuracy = round(matched / total * 100, 2) if total > 0 else 0.0
-        avg_diff = round(float(summary_df["total_diff"].abs().mean()), 4)
-        max_diff = round(float(summary_df["total_diff"].abs().max()), 4)
+        valid = int((summary_df["status"] == STATUS_VALID).sum())
+        invalid = int((summary_df["status"] == STATUS_INVALID).sum())
+        no_base = int((summary_df["status"] == STATUS_NO_BASE).sum())
+        multi = int((summary_df["status"] == STATUS_MULTI).sum())
+        # "Accuracy" is measured over the active single-period slips the model
+        # actually validates (excluding pensioners and retro/multi-period rows).
+        active = summary_df[summary_df["status"].isin([STATUS_VALID, STATUS_INVALID])]
+        active_total = len(active)
+        active_acc = round(valid / active_total * 100, 2) if active_total else 0.0
+        overall_acc = round(valid / total * 100, 2) if total else 0.0
+        diffs = active["total_diff"].abs()
+        avg_diff = round(float(diffs.mean()), 4) if len(diffs) else 0.0
+        max_diff = round(float(diffs.max()), 4) if len(diffs) else 0.0
         by_ministry = (
-            summary_df.groupby("ministry_name")
-            .agg(workers=("worker_id", "count"), matched=("total_match", "sum"))
+            active.groupby("ministry_name")
+            .agg(workers=("worker_id", "count"),
+                 matched=("status", lambda s: int((s == STATUS_VALID).sum())))
             .reset_index()
             .assign(accuracy_pct=lambda d: (d["matched"] / d["workers"] * 100).round(2))
             .sort_values("workers", ascending=False).head(20)
             .to_dict(orient="records")
         )
         return AccuracyResponse(
-            total_workers=total, matched=matched, unmatched=total - matched,
-            accuracy_pct=accuracy, match_threshold=MATCH_THRESHOLD,
+            total_workers=total, matched=valid, unmatched=invalid,
+            no_base=no_base, multi_period=multi,
+            active_total=active_total, active_accuracy_pct=active_acc,
+            accuracy_pct=active_acc, match_threshold=MATCH_THRESHOLD,
             avg_diff=avg_diff, max_diff=max_diff,
             by_ministry=by_ministry, elapsed_sec=elapsed,
         )
