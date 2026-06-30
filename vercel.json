@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "*.{xlsx,html}",
+      "includeFiles": "*.{xlsx,html,json}",
       "maxDuration": 60,
       "memory": 1024
     }

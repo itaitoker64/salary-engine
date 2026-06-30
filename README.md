@@ -1,18 +1,28 @@
-# Salary Engine API
+# Salary Engine API — Pay Simulator
 
-REST API for Israeli civil service salary calculations (מנהלי grade type).
-Built with FastAPI. Deploys to Render in ~3 minutes.
+Multi-track salary simulator for Israeli civil-service pay (מנהלת הגמלאות).
+Given a worker's track (דירוג), grade (דרגה), seniority (ותק) and job %, it
+computes the expected salary from the official pay tables and flags each pay
+slip as **valid (תקין)** or **invalid (שגוי)**. Built with FastAPI.
+
+📖 **How the engine works:** see [`ENGINE.md`](ENGINE.md) — "the brain of the simulator".
+
+The pay tables (75 grades, 9 seniority tracks, per-track caps) are extracted
+from the Progim workbook into `lookups.json` via `tools/extract_lookups.py`.
 
 ## Live endpoints (once deployed)
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/` | GET | Health check |
-| `/api/info` | GET | Engine status and loaded data |
-| `/api/calculate` | POST | Calculate one worker's salary |
-| `/api/batch` | POST | Upload a גולמי .xlsx, get results CSV |
-| `/api/grades` | GET | All grade codes and base salaries |
-| `/api/vatek/{years}` | GET | Seniority multiplier for N years |
+| `/` | GET | Web UI (single-worker calculator + file validation) |
+| `/healthz` | GET | Health check |
+| `/api/info` | GET | Engine status: grades, tracks, seniority caps |
+| `/api/calculate` | POST | Calculate + validate one worker's salary |
+| `/api/accuracy` | POST | Upload a גולמי .xlsx → valid/invalid slip stats |
+| `/api/batch` | POST | Upload a גולמי .xlsx → per-worker results CSV |
+| `/api/grades` | GET | All grade labels and base salaries |
+| `/api/tracks` | GET | All seniority tracks and their ותק caps |
+| `/api/vatek/{years}?track=N` | GET | Seniority multiplier for a track |
 | `/docs` | GET | Interactive Swagger UI (try it in browser) |
 
 ---
