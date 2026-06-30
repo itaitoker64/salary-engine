@@ -808,6 +808,7 @@ function downloadBlob(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+function dateStamp(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
 
 async function runAccuracy(input){
   const file=input.files[0]; if(!file) return;
@@ -918,7 +919,7 @@ async function runBatch(input){
       for(const r of subset) ws.addRow(SalaryEngine.batchRow(r));
     }
     const buf=await wb.xlsx.writeBuffer(); setProgress('batch',95);
-    downloadBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'salary_results.xlsx');
+    downloadBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`תוצאות בדיקת שכר - תקין ולבדיקה ${dateStamp()}.xlsx`);
     setProgress('batch',100); setTimeout(()=>setProgress('batch',null),500);
     document.getElementById('batch-zone').style.borderColor='var(--green)';
     fn.textContent=`הקובץ הורד · תקין ${valid.length.toLocaleString()} · לבדיקה ${review.length.toLocaleString()}`; fn.style.color='var(--green)';
@@ -970,7 +971,7 @@ async function runExport(input){
     if(typeof ExcelJS==='undefined') throw new Error('ספריית כתיבת האקסל לא נטענה — בדוק את חיבור האינטרנט.');
     const {results}=await processFileLocally(file); setProgress('export',55);
     const out=await buildHighlightedWorkbook(SalaryEngine.buildPivot(results)); setProgress('export',95);
-    downloadBlob(out.blob,'golmi_highlighted.xlsx');
+    downloadBlob(out.blob,`גולמי מסומן - שגיאות בצהוב ${dateStamp()}.xlsx`);
     setProgress('export',100); setTimeout(()=>setProgress('export',null),500);
     document.getElementById('export-zone').style.borderColor='var(--green)';
     fn.textContent=`הקובץ הורד · ${out.nWorkers.toLocaleString()} עובדים · ${out.nInvalid.toLocaleString()} שגויים · ${out.nFlagged.toLocaleString()} תאים מסומנים`;

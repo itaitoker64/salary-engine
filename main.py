@@ -5,6 +5,7 @@ main.py — Salary Engine API v0.2 (self-contained, flat structure)
 import os, io, time, json, tempfile
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 from dataclasses import dataclass, field
 from collections import defaultdict
 
@@ -553,6 +554,13 @@ def build_highlighted_export(excel_path: str, lookups: Optional[dict] = None) ->
     return buf, len(per_worker), n_invalid, n_flagged
 
 
+def content_disposition(hebrew_name: str, ascii_fallback: str) -> str:
+    """Content-Disposition for a Hebrew download name. Browsers read the RFC-5987
+    filename* (UTF-8); the plain filename= is an ASCII fallback for old clients."""
+    return (f"attachment; filename=\"{ascii_fallback}\"; "
+            f"filename*=UTF-8''{quote(hebrew_name)}")
+
+
 app = FastAPI(title="Salary Engine API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -842,7 +850,8 @@ async def export_highlighted(file: UploadFile = File(...)):
             buf,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition": "attachment; filename=golmi_highlighted.xlsx",
+                "Content-Disposition": content_disposition(
+                    "גולמי מסומן - שגיאות בצהוב.xlsx", "golmi_marked.xlsx"),
                 "X-Workers": str(n_workers), "X-Invalid": str(n_invalid),
                 "X-Cells-Flagged": str(n_flagged), "X-Elapsed-Sec": str(elapsed),
             },
@@ -880,7 +889,8 @@ async def batch_calculate(file: UploadFile = File(...)):
             out,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition": "attachment; filename=salary_results.xlsx",
+                "Content-Disposition": content_disposition(
+                    "תוצאות בדיקת שכר - תקין ולבדיקה.xlsx", "salary_check_results.xlsx"),
                 "X-Workers": str(total), "X-Valid": str(valid),
                 "X-Review": str(total - valid), "X-Elapsed-Sec": str(elapsed),
             },
