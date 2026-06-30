@@ -332,10 +332,12 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
             <div class="field"><label for="f-worker">מספר עובד <span class="req">*</span></label>
               <input id="f-worker" type="number" value="11022957"></div>
             <div class="field"><label for="f-ministry-code">קוד משרד</label>
-              <input id="f-ministry-code" type="number" value="142"></div>
+              <input id="f-ministry-code" type="number" value="142" list="ministry-code-list" autocomplete="off">
+              <datalist id="ministry-code-list"></datalist></div>
           </div>
           <div class="field"><label for="f-ministry-name">שם משרד / גוף</label>
-            <input id="f-ministry-name" type="text" value="משרד התיירות"></div>
+            <input id="f-ministry-name" type="text" value="משרד התיירות" list="ministry-name-list" autocomplete="off" placeholder="בחר או הקלד לחיפוש…">
+            <datalist id="ministry-name-list"></datalist></div>
 
           <div class="section-label">דירוג ודרגה</div>
           <div class="row2">
@@ -560,6 +562,25 @@ function resolveTrack(v){
   if(v in _trackByName) return _trackByName[v];
   const n=parseInt(v); return isNaN(n)?1:n;
 }
+let _minByName={}, _minByCode={};
+async function loadMinistries(){
+  try{
+    const r=await fetch(API+'/api/ministries'); const d=await r.json();
+    const nameDl=document.getElementById('ministry-name-list');
+    const codeDl=document.getElementById('ministry-code-list');
+    nameDl.innerHTML=''; codeDl.innerHTML='';
+    (d.ministries||[]).forEach(m=>{
+      if(!m.name) return;
+      _minByName[m.name]=m.code; _minByCode[String(m.code)]=m.name;
+      const on=document.createElement('option'); on.value=m.name; on.label=`קוד ${m.code} · ${m.workers} עובדים`; nameDl.appendChild(on);
+      const oc=document.createElement('option'); oc.value=m.code; oc.label=m.name; codeDl.appendChild(oc);
+    });
+    const nameEl=document.getElementById('f-ministry-name'), codeEl=document.getElementById('f-ministry-code');
+    nameEl.addEventListener('change',()=>{ const c=_minByName[nameEl.value.trim()]; if(c!=null) codeEl.value=c; });
+    codeEl.addEventListener('change',()=>{ const n=_minByCode[codeEl.value.trim()]; if(n) nameEl.value=n; });
+  }catch{}
+}
+
 async function loadComponents(){
   try{
     const r=await fetch(API+'/api/components'); const d=await r.json();
@@ -834,6 +855,7 @@ checkStatus();
 loadTracks();
 loadGrades();
 loadComponents();
+loadMinistries();
 </script>
 </body>
 </html>

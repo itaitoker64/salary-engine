@@ -359,9 +359,11 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 LOOKUPS_FILE = Path(__file__).parent / "lookups.json"
 COMPONENTS_FILE = Path(__file__).parent / "components.json"
+MINISTRIES_FILE = Path(__file__).parent / "ministries.json"
 FRONTEND_FILE = Path(__file__).parent / "index.html"
 _lookups: Optional[dict] = None
 _components: Optional[dict] = None
+_ministries: Optional[dict] = None
 
 def get_components() -> dict:
     global _components
@@ -369,6 +371,13 @@ def get_components() -> dict:
         _components = (json.loads(COMPONENTS_FILE.read_text(encoding="utf-8"))
                        if COMPONENTS_FILE.exists() else {"categories": {}, "components": []})
     return _components
+
+def get_ministries() -> dict:
+    global _ministries
+    if _ministries is None:
+        _ministries = (json.loads(MINISTRIES_FILE.read_text(encoding="utf-8"))
+                       if MINISTRIES_FILE.exists() else {"ministries": []})
+    return _ministries
 
 def get_lookups() -> dict:
     global _lookups
@@ -462,6 +471,11 @@ def list_tracks():
     return {"tracks": [{"code": k, "name": lk["tracks"].get(k, ""),
                         "max_vatek": lk["track_max"].get(k)}
                        for k in sorted(lk["vetek_by_track"])]}
+
+@app.get("/api/ministries")
+def list_ministries():
+    """Ministries/units (code → name) that appear in the reference payroll data."""
+    return get_ministries()
 
 @app.get("/api/components")
 def list_components():
