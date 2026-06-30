@@ -662,6 +662,14 @@ def favicon():
     return Response(content=FAVICON_SVG, media_type="image/svg+xml",
                     headers={"Cache-Control": "public, max-age=86400"})
 
+ENGINE_JS_FILE = Path(__file__).parent / "engine.js"
+
+@app.get("/engine.js", include_in_schema=False)
+def engine_js():
+    """The validation engine, served to the browser so large גולמי files can be
+    checked entirely client-side (no upload)."""
+    return FileResponse(str(ENGINE_JS_FILE), media_type="application/javascript")
+
 @app.get("/healthz")
 def health():
     return {"status": "ok", "service": "salary-engine", "version": "0.2.0"}
@@ -673,6 +681,14 @@ def info():
             "tracks_loaded": len(lk["vetek_by_track"]),
             "track_caps": lk["track_max"],
             "match_threshold": MATCH_THRESHOLD, "version": "0.3.0"}
+
+@app.get("/api/lookups")
+def api_lookups():
+    """Full lookup tables (darga, vetek, track_max, tracks) as bundled in
+    lookups.json. Small (~40 KB), so the browser can fetch them once and run the
+    whole validation engine client-side — large גולמי files are then processed
+    locally and never uploaded, sidestepping serverless request-body limits."""
+    return json.loads(LOOKUPS_FILE.read_text(encoding="utf-8"))
 
 @app.get("/api/grades")
 def list_grades():

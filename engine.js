@@ -1,0 +1,316 @@
+/*
+ * engine.js — the salary validation engine, ported to JavaScript so the whole
+ * check can run **in the browser**. A גולמי file is parsed and validated locally
+ * and never uploaded, which sidesteps serverless request-body limits (a 12 MB
+ * file would otherwise be rejected). This is a faithful port of calculate() /
+ * load_golmi() in main.py — keep the two in sync.
+ *
+ * UMD: exposes `SalaryEngine` as a browser global and as a CommonJS module.
+ */
+(function (global) {
+  'use strict';
+
+  const MATCH_THRESHOLD = 1.0;
+  const DEFAULT_TRACK = 1;
+  const CODE_COMBINED_BASE = 10002; // שכר משולב
+  const CODE_YESOD = 1;             // יסוד משולב
+  const CODE_VETEK_TOSEFET = 2;     // תוספת ותק
+  const BASE_CODES = new Set([CODE_COMBINED_BASE, CODE_YESOD, CODE_VETEK_TOSEFET]);
+  // The גולמי "ותק לחישוב שכר" column is rounded to the nearest quarter-year,
+  // so a correct base recomputed off it can drift a shekel or two — validate the
+  // base against any seniority inside the ±0.125-yr rounding window.
+  const SENIORITY_ROUND = 0.125;
+  const STATUS = { VALID: 'valid', INVALID: 'invalid', NO_BASE: 'no_base', MULTI: 'multi_period' };
+
+  function round(x, n) {
+    const f = Math.pow(10, n);
+    return Math.round((x + Number.EPSILON) * f) / f;
+  }
+  const round2 = (x) => round(x, 2);
+
+  // Turn the raw lookups.json into fast lookup structures.
+  function prepLookups(raw) {
+    const labelToBase = {};
+    for (const k in raw.darga) labelToBase[String(k).trim()] = Number(raw.darga[k]);
+    const vetek = {};
+    for (const t in raw.vetek) {
+      const tn = parseInt(t, 10);
+      const pairs = Object.keys(raw.vetek[t])
+        .map((y) => [parseFloat(y), Number(raw.vetek[t][y])])
+        .sort((a, b) => a[0] - b[0]);
+      vetek[tn] = { pairs, map: new Map(pairs.map((p) => [p[0], p[1]])) };
+    }
+    const trackMax = {};
+    for (const t in (raw.track_max || {})) trackMax[parseInt(t, 10)] = Number(raw.track_max[t]);
+    const tracks = {};
+    for (const t in (raw.tracks || {})) tracks[parseInt(t, 10)] = String(raw.tracks[t]);
+    return { labelToBase, vetek, trackMax, tracks };
+  }
+
+  function getGradeBase(lk, darga) {
+    if (darga === null || darga === undefined || darga === '') return null;
+    const v = lk.labelToBase[String(darga).trim()];
+    return v === undefined ? null : v;
+  }
+
+  function getVatekMultiplier(lk, vatek, track) {
+    track = parseInt(track, 10) || DEFAULT_TRACK;
+    const t = lk.vetek[track] || lk.vetek[DEFAULT_TRACK];
+    if (!t) return null;
+    vatek = parseFloat(vatek);
+    const cap = lk.trackMax[track];
+    if (cap !== undefined) vatek = Math.min(vatek, cap);
+    if (t.map.has(vatek)) return t.map.get(vatek);
+    const keys = t.pairs;
+    let lo = null, hi = null;
+    for (let i = 0; i < keys.length; i++) {
+      if (keys[i][0] < vatek) lo = keys[i];
+      else { hi = keys[i]; break; }
+    }
+    if (!lo) return keys[0][1];
+    if (!hi) return keys[keys.length - 1][1];
+    return lo[1] + (hi[1] - lo[1]) * (vatek - lo[0]) / (hi[0] - lo[0]);
+  }
+
+  function baseWithinTolerance(lk, gradeBase, vatek, track, jobPct, slipBase) {
+    if (gradeBase === null) return null;
+    track = parseInt(track, 10) || DEFAULT_TRACK;
+    const cap = lk.trackMax[track];
+    let vlo = vatek - SENIORITY_ROUND, vhi = vatek + SENIORITY_ROUND;
+    if (cap !== undefined) { vlo = Math.min(vlo, cap); vhi = Math.min(vhi, cap); }
+    const mlo = getVatekMultiplier(lk, vlo, track);
+    const mhi = getVatekMultiplier(lk, vhi, track);
+    if (mlo === null || mhi === null) return null;
+    const j = jobPct || 1.0;
+    const lo = Math.min(mlo, mhi) * gradeBase * j;
+    const hi = Math.max(mlo, mhi) * gradeBase * j;
+    return (lo - MATCH_THRESHOLD) <= slipBase && slipBase <= (hi + MATCH_THRESHOLD);
+  }
+
+  // Map a גולמי column header to a canonical field name (port of _classify_header).
+  function classifyHeader(h) {
+    h = String(h).trim();
+    if (h.includes('מסד') || h.includes('מסב') || (h.includes('מספר') && h.includes('עובד'))) return 'worker_id';
+    if (h.includes('קוד משרד') || h.includes('קוד גוף') || (h.includes('קוד') && h.includes('משרד/גוף'))) return 'ministry_code';
+    if (h.includes('שם משרד') || h.includes('שם גוף') || h === 'משרד/גוף' || h === 'משרד' || h === 'גוף') return 'ministry_name';
+    if (h.includes('דרוג')) return 'droog';
+    if (h.includes('חלקיות')) return 'job_pct';
+    if (h.includes('קוד דרגה')) return 'kod_darga';
+    if (h.includes('קוד רכיב')) return 'comp_code';
+    if (h.includes('רכיב')) return 'comp_name';
+    if (h.includes('ותק')) return 'vatek';
+    if (h === 'דרגה' || (h.includes('דרגה') && !h.includes('קוד'))) return 'darga_label';
+    if (h.includes('פנסיו')) return 'pensionable';
+    if (h.includes('סכום') || h.includes('סך')) return 'amount';
+    return null;
+  }
+
+  // rows: array of arrays (sheet values). Returns Map<worker_id, component rows>.
+  function loadGolmi(rows) {
+    let headerMap = null, headerIdx = null, best = 0;
+    const scan = rows.slice(0, 8);
+    for (let i = 0; i < scan.length; i++) {
+      const m = {};
+      const row = scan[i] || [];
+      for (let ci = 0; ci < row.length; ci++) {
+        const cell = row[ci];
+        if (cell === null || cell === undefined || cell === '') continue;
+        const f = classifyHeader(cell);
+        if (f && !(f in m)) m[f] = ci;
+      }
+      const score = Object.keys(m).length;
+      if (score > best && 'worker_id' in m && 'comp_code' in m && 'amount' in m) {
+        best = score; headerMap = m; headerIdx = i;
+      }
+    }
+    if (!headerMap) throw new Error('לא נמצאה שורת כותרת מוכרת בגיליון הגולמי.');
+    const get = (row, key) => {
+      const idx = headerMap[key];
+      return (idx !== undefined && idx < row.length) ? row[idx] : null;
+    };
+    const workers = new Map();
+    for (let r = headerIdx + 1; r < rows.length; r++) {
+      const row = rows[r] || [];
+      const wid = get(row, 'worker_id');
+      if (wid === null || wid === undefined || wid === '') continue;
+      if (!workers.has(wid)) workers.set(wid, []);
+      const amt = get(row, 'amount');
+      workers.get(wid).push({
+        ministry_code: get(row, 'ministry_code'), ministry_name: get(row, 'ministry_name'),
+        droog: get(row, 'droog'), job_pct: get(row, 'job_pct'),
+        kod_darga: get(row, 'kod_darga'), darga_label: get(row, 'darga_label'), vatek: get(row, 'vatek'),
+        comp_code: get(row, 'comp_code'), comp_name: get(row, 'comp_name'),
+        pensionable: get(row, 'pensionable'), amount: Number(amt) || 0,
+      });
+    }
+    return workers;
+  }
+
+  function calculate(lk, rows, workerId) {
+    const first = rows[0];
+    const track = parseInt(first.droog, 10) || DEFAULT_TRACK;
+    const darga = first.darga_label;
+    const vatek = parseFloat(first.vatek) || 0;
+    const jobPct = (parseFloat(first.job_pct) || 0) || 1.0;
+    const gradeBase = getGradeBase(lk, darga);
+    const vatekMult = getVatekMultiplier(lk, vatek, track);
+
+    let rawBaseSum = 0, cYesod = 0, cComb = 0;
+    for (const r of rows) {
+      const code = Number(r.comp_code);
+      if (BASE_CODES.has(code)) rawBaseSum += (r.amount || 0);
+      if (code === CODE_YESOD) cYesod++;
+      if (code === CODE_COMBINED_BASE) cComb++;
+    }
+    const primary = Math.max(cYesod, cComb);
+    let status = null;
+    if (rawBaseSum <= MATCH_THRESHOLD) status = STATUS.NO_BASE;
+    else if (primary > 1) status = STATUS.MULTI;
+    const recompute = status === null;
+
+    let total = 0;
+    const comps = [];
+    for (const r of rows) {
+      const code = Number(r.comp_code);
+      const raw = r.amount || 0;
+      let amount = raw, calculated = false, diff = null, computed = null;
+      if (recompute && gradeBase !== null && vatekMult !== null) {
+        if (code === CODE_COMBINED_BASE) computed = round2(gradeBase * vatekMult * jobPct);
+        else if (code === CODE_YESOD) computed = round2(gradeBase * jobPct);
+        else if (code === CODE_VETEK_TOSEFET) computed = round2(gradeBase * (vatekMult - 1.0) * jobPct);
+      }
+      if (computed !== null) { diff = round(computed - raw, 4); amount = computed; calculated = true; }
+      total += amount;
+      comps.push({ code: code || 0, name: r.comp_name || '', amount, calculated, expected: raw, diff,
+                   pensionable: (r.pensionable === 'כן') });
+    }
+    let expectedTotal = 0;
+    for (const r of rows) expectedTotal += (r.amount || 0);
+    let totalDiff = round(total - expectedTotal, 4);
+    let totalMatch = Math.abs(totalDiff) <= MATCH_THRESHOLD;
+    if (status === null) {
+      const ok = baseWithinTolerance(lk, gradeBase, vatek, track, jobPct, rawBaseSum);
+      if (ok !== null) totalMatch = ok;
+      status = totalMatch ? STATUS.VALID : STATUS.INVALID;
+    }
+    if (status === STATUS.NO_BASE || status === STATUS.MULTI) totalMatch = null;
+    return {
+      worker_id: workerId, ministry_code: first.ministry_code || 0,
+      ministry_name: first.ministry_name || '', droog: track,
+      kod_darga: first.kod_darga || 0, darga_label: darga || '',
+      vatek, job_pct: jobPct, grade_base: gradeBase, vatek_mult: vatekMult,
+      components: comps, total: round2(total), expected_total: round2(expectedTotal),
+      total_diff: totalDiff, total_match: totalMatch, status,
+    };
+  }
+
+  function runEngine(lk, workers) {
+    const results = [];
+    for (const [wid, rows] of workers) results.push(calculate(lk, rows, wid));
+    return results;
+  }
+
+  function accuracyReport(results, elapsedSec) {
+    const total = results.length;
+    let valid = 0, invalid = 0, no_base = 0, multi = 0;
+    for (const r of results) {
+      if (r.status === STATUS.VALID) valid++;
+      else if (r.status === STATUS.INVALID) invalid++;
+      else if (r.status === STATUS.NO_BASE) no_base++;
+      else if (r.status === STATUS.MULTI) multi++;
+    }
+    const active = results.filter((r) => r.status === STATUS.VALID || r.status === STATUS.INVALID);
+    const activeTotal = active.length;
+    const acc = activeTotal ? round(valid / activeTotal * 100, 2) : 0;
+    const diffs = active.map((r) => Math.abs(r.total_diff));
+    const avgDiff = diffs.length ? round(diffs.reduce((a, b) => a + b, 0) / diffs.length, 4) : 0;
+    const maxDiff = diffs.length ? round(Math.max.apply(null, diffs), 4) : 0;
+    const byMin = new Map();
+    for (const r of active) {
+      const k = r.ministry_name || '';
+      if (!byMin.has(k)) byMin.set(k, { ministry_name: k, workers: 0, matched: 0 });
+      const o = byMin.get(k); o.workers++; if (r.status === STATUS.VALID) o.matched++;
+    }
+    const by_ministry = Array.from(byMin.values())
+      .map((o) => ({ ministry_name: o.ministry_name, workers: o.workers, matched: o.matched,
+                     accuracy_pct: round(o.matched / o.workers * 100, 2) }))
+      .sort((a, b) => b.workers - a.workers).slice(0, 20);
+    const inv = active.filter((r) => r.status === STATUS.INVALID)
+      .sort((a, b) => Math.abs(b.total_diff) - Math.abs(a.total_diff)).slice(0, 300);
+    const mismatches = inv.map((r) => ({
+      worker_id: r.worker_id, ministry_name: r.ministry_name, darga_label: r.darga_label,
+      vatek: r.vatek, job_pct: r.job_pct, grade_base: r.grade_base, vatek_multiplier: r.vatek_mult,
+      total_calculated: r.total, total_expected: r.expected_total, total_diff: r.total_diff,
+      components: r.components.filter((c) => c.calculated).map((c) => ({
+        code: c.code, name: c.name, slip: round2(c.expected || 0),
+        computed: round2(c.amount || 0), diff: round2(c.diff || 0),
+      })),
+    }));
+    return {
+      total_workers: total, matched: valid, unmatched: invalid, no_base, multi_period: multi,
+      active_total: activeTotal, active_accuracy_pct: acc, accuracy_pct: acc,
+      match_threshold: MATCH_THRESHOLD, avg_diff: avgDiff, max_diff: maxDiff,
+      by_ministry, mismatches, elapsed_sec: elapsedSec,
+    };
+  }
+
+  function batchCSV(results) {
+    const cols = ['worker_id', 'ministry_code', 'ministry_name', 'droog', 'kod_darga', 'darga_label',
+      'vatek', 'job_pct', 'grade_base', 'vatek_mult', 'total_calculated', 'total_expected',
+      'total_diff', 'total_match', 'status', 'n_components', 'errors'];
+    const esc = (v) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lines = [cols.join(',')];
+    for (const r of results) {
+      lines.push([r.worker_id, r.ministry_code, r.ministry_name, r.droog, r.kod_darga, r.darga_label,
+        r.vatek, r.job_pct, r.grade_base, r.vatek_mult, r.total, r.expected_total, r.total_diff,
+        r.total_match, r.status, r.components.length, ''].map(esc).join(','));
+    }
+    return '﻿' + lines.join('\n');
+  }
+
+  // Pivot data for the highlighted "גולמי מעודכן" export (the ExcelJS writing,
+  // which needs the browser library, lives in the page).
+  function buildPivot(results) {
+    const codeNames = {};
+    const allCodes = new Set();
+    const rows = [];
+    for (const r of results) {
+      const slipByCode = new Map();
+      for (const c of r.components) {
+        const code = c.code;
+        if (!code) continue;
+        slipByCode.set(code, (slipByCode.get(code) || 0) + (c.expected || 0));
+        if (!(code in codeNames)) codeNames[code] = c.name || String(code);
+        allCodes.add(code);
+      }
+      const invalidCodes = new Map();
+      if (r.status === STATUS.INVALID) {
+        for (const c of r.components) {
+          if (c.calculated && c.diff !== null && Math.abs(c.diff) > MATCH_THRESHOLD) {
+            invalidCodes.set(c.code, { computed: c.amount, slip: c.expected, diff: (c.expected || 0) - c.amount });
+          }
+        }
+      }
+      rows.push({
+        meta: [r.worker_id, r.ministry_code, r.ministry_name, r.job_pct, r.kod_darga, r.darga_label, r.vatek],
+        slipByCode, slipTotal: r.expected_total, correctedTotal: r.total,
+        invalidCodes, totalInvalid: r.status === STATUS.INVALID,
+      });
+    }
+    const codesSorted = Array.from(allCodes).sort((a, b) => a - b);
+    return { codesSorted, codeNames, rows };
+  }
+
+  const api = {
+    MATCH_THRESHOLD, STATUS, round2,
+    prepLookups, getGradeBase, getVatekMultiplier, baseWithinTolerance,
+    classifyHeader, loadGolmi, calculate, runEngine,
+    accuracyReport, batchCSV, buildPivot,
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else global.SalaryEngine = api;
+})(typeof window !== 'undefined' ? window : globalThis);
