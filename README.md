@@ -17,6 +17,39 @@ Built with FastAPI. Deploys to Render in ~3 minutes.
 
 ---
 
+## Deploy to Vercel (free)
+
+The repo is Vercel-ready: `api/index.py` exposes the FastAPI app as a serverless
+function, `vercel.json` rewrites every route to it (so the frontend at `/`, the
+API under `/api/...`, and `/docs` all work), and the reference data
+(`golmi.xlsx`) is bundled via `includeFiles`.
+
+### Option A — Dashboard
+
+1. Push this repo to GitHub.
+2. Go to [vercel.com](https://vercel.com) → **Add New → Project** → import the repo.
+3. Leave all build settings at their defaults (Vercel auto-detects the Python
+   function and `requirements.txt`) and click **Deploy**.
+
+Your app will be live at `https://<project>.vercel.app`:
+- `/` — the interactive frontend (calls the API on the same origin)
+- `/docs` — Swagger UI
+- `/api/info`, `/api/calculate`, `/api/accuracy`, `/api/batch`, ...
+
+### Option B — CLI
+
+```bash
+npm i -g vercel
+vercel        # preview deploy
+vercel --prod # production deploy
+```
+
+> Note: the batch/accuracy endpoints parse the full Excel file in-memory. On
+> Vercel's Hobby plan the function timeout caps at 60s (`maxDuration` in
+> `vercel.json`); very large uploads may need a paid plan.
+
+---
+
 ## Deploy to Render (free, ~3 minutes)
 
 ### Step 1 — Push to GitHub

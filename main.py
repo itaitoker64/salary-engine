@@ -12,7 +12,7 @@ import openpyxl
 import pandas as pd
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 MATCH_THRESHOLD = 1.0
@@ -207,6 +207,7 @@ app = FastAPI(title="Salary Engine API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 DATA_FILE = Path(__file__).parent / "golmi.xlsx"
+FRONTEND_FILE = Path(__file__).parent / "index.html"
 _lookups: Optional[dict] = None
 
 def get_lookups() -> dict:
@@ -267,7 +268,13 @@ class AccuracyResponse(BaseModel):
     avg_diff: float; max_diff: float
     by_ministry: list[dict]; elapsed_sec: float
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
+def root():
+    if FRONTEND_FILE.exists():
+        return FileResponse(str(FRONTEND_FILE))
+    return JSONResponse({"status": "ok", "service": "salary-engine", "version": "0.2.0"})
+
+@app.get("/healthz")
 def health():
     return {"status": "ok", "service": "salary-engine", "version": "0.2.0"}
 
