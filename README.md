@@ -20,6 +20,7 @@ from the Progim workbook into `lookups.json` via `tools/extract_lookups.py`.
 | `/api/calculate` | POST | Calculate + validate one worker's salary |
 | `/api/accuracy` | POST | Upload a גולמי .xlsx → valid/invalid slip stats |
 | `/api/batch` | POST | Upload a גולמי .xlsx → per-worker results CSV |
+| `/api/export-highlighted` | POST | Upload a גולמי .xlsx → the same גולמי-מעודכן pivot back, with every invalid pay code and wrong total marked **yellow** |
 | `/api/grades` | GET | All grade labels and base salaries |
 | `/api/tracks` | GET | All seniority tracks and their ותק caps |
 | `/api/vatek/{years}?track=N` | GET | Seniority multiplier for a track |

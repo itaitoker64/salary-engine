@@ -9,6 +9,10 @@ from dataclasses import dataclass, field
 from collections import defaultdict
 
 import openpyxl
+from openpyxl import Workbook
+from openpyxl.cell import WriteOnlyCell
+from openpyxl.styles import PatternFill, Font
+from openpyxl.comments import Comment
 import pandas as pd
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -354,6 +358,162 @@ def run_batch(excel_path: str, lookups: Optional[dict] = None) -> tuple:
             })
     return pd.DataFrame(summary_rows), pd.DataFrame(detail_rows)
 
+
+# ---------------------------------------------------------------------------
+# Highlighted export — "גולמי מעודכן" pivot with the invalid cells in yellow.
+#
+# The output keeps the exact layout of the מנהלת הגמלאות "גולמי מעודכן" sheet:
+#   row 1–2  blank
+#   row 3    component names (row label header in col A: "סכום של סכום")
+#   row 4    field labels (קוד משרד … ותק) + the pay-code numbers + "סכום כולל"
+#   row 5+   one row per worker — a column per pay code, plus the total in the
+#            last column ("סכום כולל", i.e. column CO in the reference file).
+#
+# Only what is *not* valid is marked: every pay-code cell whose amount the engine
+# could prove wrong is filled yellow, and the total cell is filled yellow when
+# the slip's total is consequently off. Each highlighted cell carries a note with
+# the value the engine expected, so the reviewer sees not only *that* it is wrong
+# but *what it should be*. Valid slips, pensioners (no active base) and retro /
+# multi-period slips are left untouched — the engine does not flag what it cannot
+# prove, so a yellow cell always means a real, explainable gap.
+# ---------------------------------------------------------------------------
+YELLOW_FILL = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+META_LABELS = ["תוויות שורה", "קוד משרד", "שם משרד", "חלקיות משרה",
+               "קוד דרגה", "דרגה", "ותק"]
+
+
+def _num(v):
+    """Coerce a raw cell to float, or None for blanks/non-numerics."""
+    if v is None or v == "":
+        return None
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def build_highlighted_export(excel_path: str, lookups: Optional[dict] = None) -> io.BytesIO:
+    """Rebuild the גולמי-מעודכן pivot and highlight only the invalid cells.
+
+    Returns an in-memory .xlsx (BytesIO) ready to stream to the client.
+    """
+    if lookups is None:
+        lookups = get_lookups()
+    workers_raw = load_golmi(excel_path)
+
+    per_worker = []        # rendered rows, in input order
+    code_names = {}        # pay code -> display name (first one seen)
+    all_codes = set()      # every pay code that appears anywhere in the file
+
+    for worker_id, rows in workers_raw.items():
+        first = rows[0]
+        ministry_code, ministry_name, droog, job_pct, kod_darga, darga_label, vatek = first[:7]
+        components = [(r[7], r[8], r[10], r[9]) for r in rows]   # code, name, amount, pensionable
+        worker = WorkerInput(
+            worker_id=worker_id, ministry_code=ministry_code or 0,
+            ministry_name=ministry_name or "", droog=droog or 1,
+            job_pct=job_pct or 1.0, pension_pct=0.0,
+            kod_darga=kod_darga or 0, darga_label=darga_label or "",
+            vatek_mandatory=0.0, vatek_regular=float(vatek or 0),
+            vatek_msc=0.0, vatek_calculated=float(vatek or 0),
+            calc_month=0, retro_month=0, retro_count=0, components=components,
+        )
+        result = calculate(worker, lookups)
+
+        # Pivot the slip: one summed amount per pay code (a code may repeat).
+        slip_by_code = defaultdict(float)
+        for code, name, amount, _pens in components:
+            if code is None:
+                continue
+            code = int(code)
+            slip_by_code[code] += (_num(amount) or 0.0)
+            code_names.setdefault(code, name or str(code))
+            all_codes.add(code)
+
+        # Which pay codes are provably wrong, and what each one should have been.
+        invalid_codes = {}
+        if result.status == STATUS_INVALID:
+            for comp in result.components:
+                if comp.calculated and comp.diff is not None and abs(comp.diff) > MATCH_THRESHOLD:
+                    invalid_codes[comp.code] = comp  # comp.amount = correct, comp.expected = slip
+
+        per_worker.append({
+            "meta": [worker_id, ministry_code, ministry_name, job_pct,
+                     kod_darga, darga_label, vatek],
+            "slip_by_code": slip_by_code,
+            "slip_total": result.expected_total,
+            "corrected_total": result.total,
+            "invalid_codes": invalid_codes,
+            "total_invalid": result.status == STATUS_INVALID,
+        })
+
+    codes_sorted = sorted(all_codes)
+    code_col = {code: len(META_LABELS) + i for i, code in enumerate(codes_sorted)}  # 0-based
+    total_col = len(META_LABELS) + len(codes_sorted)
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet("גולמי מעודכן")
+    ws.sheet_view.rightToLeft = True
+    bold = Font(bold=True)
+
+    # rows 1–2 blank (mirrors the reference file's two empty header rows)
+    ws.append([])
+    ws.append([])
+
+    # row 3 — component names (col A carries the pivot's "סכום של סכום" label)
+    row3 = ["סכום של סכום"] + [None] * (len(META_LABELS) - 1)
+    row3 += [code_names.get(c, str(c)) for c in codes_sorted]
+    row3 += [None]
+    ws.append(row3)
+
+    # row 4 — field labels + pay-code numbers + total label
+    row4 = list(META_LABELS) + list(codes_sorted) + ["סכום כולל"]
+    cells4 = []
+    for v in row4:
+        c = WriteOnlyCell(ws, value=v)
+        c.font = bold
+        cells4.append(c)
+    ws.append(cells4)
+
+    # rows 5+ — one per worker, invalid cells filled yellow with an expected-value note
+    n_flagged = 0
+    for w in per_worker:
+        line = [None] * (total_col + 1)
+        line[:len(META_LABELS)] = w["meta"]
+        for code, amount in w["slip_by_code"].items():
+            line[code_col[code]] = round(amount, 2)
+        line[total_col] = round(w["slip_total"], 2) if w["slip_total"] is not None else None
+
+        out = list(line)
+        for code, comp in w["invalid_codes"].items():
+            ci = code_col[code]
+            cell = WriteOnlyCell(ws, value=line[ci])
+            cell.fill = YELLOW_FILL
+            cell.comment = Comment(
+                f"ערך תקני מחושב: {round(comp.amount, 2)}\n"
+                f"בתלוש: {round(comp.expected or 0, 2)}\n"
+                f"הפרש: {round((comp.expected or 0) - comp.amount, 2)}",
+                "מנוע השכר")
+            out[ci] = cell
+            n_flagged += 1
+        if w["total_invalid"]:
+            cell = WriteOnlyCell(ws, value=line[total_col])
+            cell.fill = YELLOW_FILL
+            cell.comment = Comment(
+                f"סכום כולל מתוקן צפוי: {round(w['corrected_total'], 2)}\n"
+                f"הפרש מהתלוש: {round(w['corrected_total'] - (w['slip_total'] or 0), 2)}",
+                "מנוע השכר")
+            out[total_col] = cell
+            n_flagged += 1
+        ws.append(out)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    n_invalid = sum(1 for w in per_worker if w["total_invalid"])
+    return buf, len(per_worker), n_invalid, n_flagged
+
+
 app = FastAPI(title="Salary Engine API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -587,6 +747,31 @@ async def check_accuracy(file: UploadFile = File(...)):
             accuracy_pct=active_acc, match_threshold=MATCH_THRESHOLD,
             avg_diff=avg_diff, max_diff=max_diff,
             by_ministry=by_ministry, mismatches=mismatches, elapsed_sec=elapsed,
+        )
+    finally:
+        os.unlink(tmp_path)
+
+@app.post("/api/export-highlighted")
+async def export_highlighted(file: UploadFile = File(...)):
+    """Upload a גולמי Excel file → download the same גולמי-מעודכן pivot back,
+    with every invalid pay-code amount and every wrong total marked in yellow."""
+    if not file.filename.endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="File must be .xlsx")
+    content = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        tmp.write(content); tmp_path = tmp.name
+    try:
+        t0 = time.time()
+        buf, n_workers, n_invalid, n_flagged = build_highlighted_export(tmp_path)
+        elapsed = round(time.time() - t0, 1)
+        return StreamingResponse(
+            buf,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": "attachment; filename=golmi_highlighted.xlsx",
+                "X-Workers": str(n_workers), "X-Invalid": str(n_invalid),
+                "X-Cells-Flagged": str(n_flagged), "X-Elapsed-Sec": str(elapsed),
+            },
         )
     finally:
         os.unlink(tmp_path)

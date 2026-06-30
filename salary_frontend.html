@@ -307,6 +307,10 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       בדיקת קובץ
     </button>
+    <button class="tab" role="tab" onclick="showTab('export')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      גולמי מסומן
+    </button>
     <button class="tab" role="tab" onclick="showTab('batch')">
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
       יצוא CSV
@@ -451,6 +455,27 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
           <p class="helper" id="mm-hint" style="display:none">לחץ על תלוש כדי לראות היכן נוצר הפער ומדוע.</p>
           <div id="mismatch-list"></div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: highlighted גולמי export ============ -->
+  <section class="pane" id="pane-export">
+    <div class="card" style="max-width:560px;margin:0 auto">
+      <div class="card-head"><h2>ייצוא גולמי מעודכן מסומן</h2></div>
+      <div class="card-body">
+        <p class="muted-p">מחזיר את הקובץ ב<strong>אותו מבנה של "גולמי מעודכן"</strong>, ומסמן ב<span style="background:#FFFF00;padding:0 4px;border-radius:3px">צהוב</span>
+           רק את מה שאינו תקין: סמלי השכר שסכומם שגוי, ואת הסכום הכולל השגוי (עמודה CO).
+           על כל תא מסומן יש הערה עם הערך התקני שהמנוע חישב.</p>
+        <label class="upload" id="export-zone">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <h3>בחר קובץ ‎.xlsx</h3>
+          <p>מחזיר קובץ ‎.xlsx‎ עם התאים השגויים מסומנים בצהוב</p>
+          <input type="file" accept=".xlsx" onchange="runExport(this)">
+        </label>
+        <div class="filename" id="export-filename"></div>
+        <div class="progress" id="export-prog"><div class="fill" id="export-bar"></div></div>
+        <div class="alert" id="export-err" role="alert"></div>
       </div>
     </div>
   </section>
@@ -625,7 +650,7 @@ async function loadGrades(){
 }
 
 function showTab(name){
-  const names=['calc','accuracy','batch','logic'];
+  const names=['calc','accuracy','export','batch','logic'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='pane-'+name));
 }
@@ -837,6 +862,24 @@ async function runBatch(input){
     document.getElementById('batch-zone').style.borderColor='var(--green)';
     fn.textContent=`הקובץ הורד · ${Number(workers).toLocaleString()} עובדים · תקינות ${pct}%`; fn.style.color='var(--green)';
   }catch(e){ showError('batch',e.message); setTimeout(()=>setProgress('batch',null),500); }
+}
+
+async function runExport(input){
+  const file=input.files[0]; if(!file) return;
+  const fn=document.getElementById('export-filename'); fn.textContent=file.name; fn.style.display='block'; fn.style.color='';
+  showError('export',''); setProgress('export',20);
+  try{
+    const form=new FormData(); form.append('file',file); setProgress('export',50);
+    const r=await fetch(API+'/api/export-highlighted',{method:'POST',body:form}); setProgress('export',95);
+    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    const blob=await r.blob();
+    const workers=r.headers.get('X-Workers'), invalid=r.headers.get('X-Invalid'), flagged=r.headers.get('X-Cells-Flagged');
+    setProgress('export',100); setTimeout(()=>setProgress('export',null),500);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='golmi_highlighted.xlsx'; a.click(); URL.revokeObjectURL(a.href);
+    document.getElementById('export-zone').style.borderColor='var(--green)';
+    fn.textContent=`הקובץ הורד · ${Number(workers).toLocaleString()} עובדים · ${Number(invalid).toLocaleString()} שגויים · ${Number(flagged).toLocaleString()} תאים מסומנים`;
+    fn.style.color='var(--green)';
+  }catch(e){ showError('export',e.message); setTimeout(()=>setProgress('export',null),500); }
 }
 
 document.querySelectorAll('.upload').forEach(z=>{
