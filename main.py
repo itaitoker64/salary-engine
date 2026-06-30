@@ -852,7 +852,9 @@ async def export_highlighted(file: UploadFile = File(...)):
 
 @app.post("/api/batch")
 async def batch_calculate(file: UploadFile = File(...)):
-    """Upload a גולמי Excel file, download full results as CSV."""
+    """Upload a גולמי Excel file → download an .xlsx with two tabs: "תקין" (the
+    valid slips) and "לבדיקה" (everything else — שגוי / ללא בסיס / רטרו, told
+    apart by the status column)."""
     if not file.filename.endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="File must be .xlsx")
     content = await file.read()
@@ -862,17 +864,25 @@ async def batch_calculate(file: UploadFile = File(...)):
         t0 = time.time()
         summary_df, _ = run_batch(tmp_path)
         elapsed = round(time.time() - t0, 1)
-        buf = io.StringIO()
-        summary_df.to_csv(buf, index=False, encoding="utf-8-sig")
-        buf.seek(0)
-        total = len(summary_df); matched = int(summary_df["total_match"].sum())
+        valid_df = summary_df[summary_df["status"] == STATUS_VALID]
+        review_df = summary_df[summary_df["status"] != STATUS_VALID]
+        wb = Workbook(write_only=True)
+        for sheet_name, df in (("תקין", valid_df), ("לבדיקה", review_df)):
+            ws = wb.create_sheet(sheet_name)
+            ws.sheet_view.rightToLeft = True
+            ws.append(list(summary_df.columns))
+            clean = df.where(pd.notnull(df), None)
+            for row in clean.itertuples(index=False):
+                ws.append([v.item() if hasattr(v, "item") else v for v in row])
+        out = io.BytesIO(); wb.save(out); out.seek(0)
+        total = len(summary_df); valid = len(valid_df)
         return StreamingResponse(
-            io.BytesIO(buf.getvalue().encode("utf-8-sig")),
-            media_type="text/csv",
+            out,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition": "attachment; filename=salary_results.csv",
-                "X-Workers": str(total), "X-Matched": str(matched),
-                "X-Match-Pct": f"{matched/total*100:.1f}", "X-Elapsed-Sec": str(elapsed),
+                "Content-Disposition": "attachment; filename=salary_results.xlsx",
+                "X-Workers": str(total), "X-Valid": str(valid),
+                "X-Review": str(total - valid), "X-Elapsed-Sec": str(elapsed),
             },
         )
     finally:
