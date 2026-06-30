@@ -2,7 +2,7 @@
 main.py — Salary Engine API v0.2 (self-contained, flat structure)
 """
 
-import os, io, time, tempfile
+import os, io, time, json, tempfile
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass, field
@@ -17,44 +17,73 @@ from pydantic import BaseModel, Field
 
 MATCH_THRESHOLD = 1.0
 
-def load_lookups(excel_path: str) -> dict:
-    wb = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)
-    ws_darga = wb["דרגה"]
-    label_to_base: dict[str, float] = {}
-    for row in ws_darga.iter_rows(min_row=1, values_only=True):
-        label, base = row[1], row[3]
-        if label is not None and base is not None:
-            label_to_base[str(label)] = float(base)
-    ws_golmi = wb["גולמי"]
-    kod_to_label: dict[int, str] = {}
-    for row in ws_golmi.iter_rows(min_row=2, values_only=True):
-        if row[0] is None:
-            break
-        if row[8] == 10002 and row[5] is not None and row[6] is not None:
-            kod = int(row[5])
-            if kod not in kod_to_label:
-                kod_to_label[kod] = str(row[6])
-    grade_lookup: dict[int, float] = {}
-    for kod, label in kod_to_label.items():
-        use_plus = (kod % 10 != 0)
-        lookup_label = (label + '+') if use_plus else label
-        base = label_to_base.get(lookup_label) or label_to_base.get(label)
-        if base is not None:
-            grade_lookup[kod] = base
-    ws_vatek = wb["ותק"]
-    vatek_lookup: dict[float, float] = {}
-    for row in ws_vatek.iter_rows(min_row=3, values_only=True):
-        vatek, _, mult = row[0], row[1], row[2]
-        if vatek is not None and mult is not None:
-            vatek_lookup[float(vatek)] = float(mult)
-    wb.close()
-    return {"grade": grade_lookup, "vatek": vatek_lookup, "label_to_base": label_to_base}
+# Default seniority track (קוד דרוג): 1 = מינהלי.
+DEFAULT_TRACK = 1
 
-def get_grade_base(lookups, kod_darga):
-    return lookups["grade"].get(int(kod_darga))
+# Base-salary component codes seen in the raw payroll dumps.
+#   10002 = שכר משולב   — the combined base (base × seniority-multiplier × job%)
+#       1 = יסוד משולב  — base at seniority 0 (× job%)
+#       2 = תוספת ותק   — the seniority increment, base × (multiplier - 1) × job%
+# The first form appears in older מנהלי files; the 1+2 split is used by the
+# מנהלת הגמלאות (Pension Authority) dumps. Both reconstruct to base × mult × job%.
+CODE_COMBINED_BASE = 10002
+CODE_YESOD = 1
+CODE_VETEK_TOSEFET = 2
 
-def get_vatek_multiplier(lookups, vatek):
-    return lookups["vatek"].get(float(vatek))
+
+def load_lookups(json_path: str) -> dict:
+    """Load the multi-track lookup tables from lookups.json (built from Progim).
+
+    Returns:
+      - label_to_base:  {grade_label -> base salary at seniority 0}
+      - vetek_by_track: {track_code -> {seniority_years -> multiplier}}
+      - track_max:      {track_code -> max seniority years (cap)}
+      - tracks:         {track_code -> track name}
+    """
+    raw = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    label_to_base = {str(k): float(v) for k, v in raw["darga"].items()}
+    vetek_by_track = {
+        int(track): {float(y): float(m) for y, m in table.items()}
+        for track, table in raw["vetek"].items()
+    }
+    track_max = {int(k): float(v) for k, v in raw.get("track_max", {}).items()}
+    tracks = {int(k): str(v) for k, v in raw.get("tracks", {}).items()}
+    return {
+        "label_to_base": label_to_base,
+        "vetek_by_track": vetek_by_track,
+        "track_max": track_max,
+        "tracks": tracks,
+    }
+
+
+def get_grade_base(lookups, darga_label):
+    """Base salary (seniority 0) for a grade label, e.g. '18', '42+'."""
+    if darga_label is None:
+        return None
+    return lookups["label_to_base"].get(str(darga_label).strip())
+
+
+def get_vatek_multiplier(lookups, vatek, track=DEFAULT_TRACK):
+    """Seniority multiplier for a given track and seniority (years).
+
+    The multiplier is capped at the track's maximum seniority (e.g. מינהלי
+    caps at 37 yrs, מח"ר at 40); beyond that the cap value is reused. For
+    off-grid seniority values the nearest lower table key is used.
+    """
+    track = int(track)
+    table = lookups["vetek_by_track"].get(track) or lookups["vetek_by_track"].get(DEFAULT_TRACK)
+    if not table:
+        return None
+    vatek = float(vatek)
+    cap = lookups["track_max"].get(track)
+    if cap is not None:
+        vatek = min(vatek, cap)
+    if vatek in table:
+        return table[vatek]
+    lower = [k for k in table if k <= vatek]
+    if lower:
+        return table[max(lower)]
+    return table[min(table)]
 
 @dataclass
 class WorkerInput:
@@ -109,26 +138,37 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     errors = []
     component_results = []
     total = 0.0
-    grade_base = get_grade_base(lookups, worker.kod_darga)
+    track = int(worker.droog or DEFAULT_TRACK)
+    grade_base = get_grade_base(lookups, worker.darga_label)
     if grade_base is None:
-        errors.append(f"Unknown kod_darga: {worker.kod_darga}")
-    vatek_mult = get_vatek_multiplier(lookups, worker.vatek_calculated)
+        errors.append(f"Unknown grade label: {worker.darga_label!r} (kod_darga {worker.kod_darga})")
+    vatek_mult = get_vatek_multiplier(lookups, worker.vatek_calculated, track)
     if vatek_mult is None:
-        errors.append(f"Unknown vatek: {worker.vatek_calculated}")
+        errors.append(f"Unknown vatek/track: {worker.vatek_calculated}/{track}")
+    job_pct = worker.job_pct or 1.0
     for comp_code, comp_name, raw_amount, pensionable in worker.components:
         amount = raw_amount or 0.0
         calculated = False
         expected = raw_amount
         diff = None
-        if comp_code == 10002:
-            if grade_base is not None and vatek_mult is not None:
-                computed = round(grade_base * vatek_mult * (worker.job_pct or 1.0), 2)
-                diff = round(computed - (raw_amount or 0.0), 4)
-                amount = computed
-                calculated = True
+        computed = None
+        if grade_base is not None and vatek_mult is not None:
+            if comp_code == CODE_COMBINED_BASE:
+                # שכר משולב — full combined base
+                computed = round(grade_base * vatek_mult * job_pct, 2)
+            elif comp_code == CODE_YESOD:
+                # יסוד משולב — base at seniority 0
+                computed = round(grade_base * job_pct, 2)
+            elif comp_code == CODE_VETEK_TOSEFET:
+                # תוספת ותק — the seniority increment on top of יסוד
+                computed = round(grade_base * (vatek_mult - 1.0) * job_pct, 2)
+        if computed is not None:
+            diff = round(computed - (raw_amount or 0.0), 4)
+            amount = computed
+            calculated = True
         total += amount
         component_results.append(ComponentResult(
-            code=int(comp_code), name=comp_name or "", amount=amount,
+            code=int(comp_code) if comp_code is not None else 0, name=comp_name or "", amount=amount,
             pensionable=(pensionable == "כן"), calculated=calculated,
             expected=expected, diff=diff,
         ))
@@ -146,26 +186,96 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
         grade_base=grade_base, vatek_multiplier=vatek_mult, errors=errors,
     )
 
+# Maps a גולמי column header to a canonical field name. Matching is by Hebrew
+# keyword (substring), so it is robust to column reordering and to the layout
+# differences between the older מנהלי dumps and the מנהלת הגמלאות dumps (which
+# carry two blank header rows and a different column order). Order matters:
+# more specific patterns are checked first (e.g. "קוד דרגה" before "דרגה").
+def _classify_header(h: str) -> Optional[str]:
+    h = str(h).strip()
+    if "מסד" in h or "מסב" in h or ("מספר" in h and "עובד" in h):
+        return "worker_id"
+    if "קוד משרד" in h or "קוד גוף" in h or ("קוד" in h and "משרד/גוף" in h):
+        return "ministry_code"
+    if "שם משרד" in h or "שם גוף" in h or h in ("משרד/גוף", "משרד", "גוף"):
+        return "ministry_name"
+    if "דרוג" in h:
+        return "droog"
+    if "חלקיות" in h:
+        return "job_pct"
+    if "קוד דרגה" in h:
+        return "kod_darga"
+    if "קוד רכיב" in h:
+        return "comp_code"
+    if "רכיב" in h:
+        return "comp_name"
+    if "ותק" in h:
+        return "vatek"
+    if h == "דרגה" or ("דרגה" in h and "קוד" not in h):
+        return "darga_label"
+    if "פנסיו" in h:
+        return "pensionable"
+    if "סכום" in h or "סך" in h:
+        return "amount"
+    return None
+
+
 def load_golmi(excel_path: str) -> dict:
+    """Read a גולמי sheet, locate its header row, and group rows by worker.
+
+    Columns are mapped by Hebrew header name rather than fixed position, so the
+    same code reads both the old מנהלי layout (header on row 1) and the Pension
+    Authority layout (two blank rows, header on row 3, different column order,
+    base split into יסוד משולב + תוספת ותק).
+    """
     wb = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)
-    ws = wb["גולמי"]
+    ws = wb["גולמי"] if "גולמי" in wb.sheetnames else wb[wb.sheetnames[0]]
+
+    # Find the header row within the first few rows: the one that classifies the
+    # most known fields (and at minimum has worker_id, a component and an amount).
+    header_map, header_idx = None, None
+    scan = list(ws.iter_rows(min_row=1, max_row=8, values_only=True))
+    best_score = 0
+    for i, row in enumerate(scan):
+        mapping = {}
+        for ci, cell in enumerate(row):
+            if cell is None:
+                continue
+            field_name = _classify_header(cell)
+            if field_name and field_name not in mapping:
+                mapping[field_name] = ci
+        score = len(mapping)
+        if score > best_score and {"worker_id", "comp_code", "amount"} <= set(mapping):
+            best_score, header_map, header_idx = score, mapping, i
+    if header_map is None:
+        wb.close()
+        raise HTTPException(status_code=400,
+                            detail="Could not find a recognizable גולמי header row in the file.")
+
+    def cell(row, key):
+        idx = header_map.get(key)
+        return row[idx] if idx is not None and idx < len(row) else None
+
     workers = defaultdict(list)
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        if row[0] is None:
-            break
-        (worker_id, ministry_code, ministry_name, droog, job_pct,
-         kod_darga, darga_label, vatek,
-         comp_code, comp_name, pensionable, amount) = row[:12]
-        workers[worker_id].append((
-            ministry_code, ministry_name, droog, job_pct,
-            kod_darga, darga_label, vatek,
-            comp_code, comp_name, pensionable, amount or 0.0,
+    for row in ws.iter_rows(min_row=header_idx + 2, values_only=True):
+        wid = cell(row, "worker_id")
+        if wid is None:
+            continue
+        workers[wid].append((
+            cell(row, "ministry_code"), cell(row, "ministry_name"),
+            cell(row, "droog"), cell(row, "job_pct"),
+            cell(row, "kod_darga"), cell(row, "darga_label"), cell(row, "vatek"),
+            cell(row, "comp_code"), cell(row, "comp_name"),
+            cell(row, "pensionable"), cell(row, "amount") or 0.0,
         ))
     wb.close()
     return dict(workers)
 
-def run_batch(excel_path: str) -> tuple:
-    lookups = load_lookups(excel_path)
+def run_batch(excel_path: str, lookups: Optional[dict] = None) -> tuple:
+    # Lookups come from the bundled engine data (lookups.json), not the uploaded
+    # file — the Pension Authority dumps contain only raw rows, no lookup tables.
+    if lookups is None:
+        lookups = get_lookups()
     workers_raw = load_golmi(excel_path)
     summary_rows, detail_rows = [], []
     for worker_id, rows in workers_raw.items():
@@ -206,23 +316,24 @@ def run_batch(excel_path: str) -> tuple:
 app = FastAPI(title="Salary Engine API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-DATA_FILE = Path(__file__).parent / "golmi.xlsx"
+LOOKUPS_FILE = Path(__file__).parent / "lookups.json"
 FRONTEND_FILE = Path(__file__).parent / "index.html"
 _lookups: Optional[dict] = None
 
 def get_lookups() -> dict:
     global _lookups
     if _lookups is None:
-        if not DATA_FILE.exists():
-            raise RuntimeError(f"Reference data file not found: {DATA_FILE}")
-        _lookups = load_lookups(str(DATA_FILE))
+        if not LOOKUPS_FILE.exists():
+            raise RuntimeError(f"Lookup data file not found: {LOOKUPS_FILE}")
+        _lookups = load_lookups(str(LOOKUPS_FILE))
     return _lookups
 
 @app.on_event("startup")
 async def startup():
     try:
         lk = get_lookups()
-        print(f"Lookups loaded — grades: {len(lk['grade'])}, vatek: {len(lk['vatek'])}")
+        print(f"Lookups loaded — grades: {len(lk['label_to_base'])}, "
+              f"tracks: {len(lk['vetek_by_track'])}")
     except Exception as e:
         print(f"Failed to load lookups: {e}")
 
@@ -281,21 +392,31 @@ def health():
 @app.get("/api/info")
 def info():
     lk = get_lookups()
-    return {"status": "ok", "grades_loaded": len(lk["grade"]),
-            "vatek_entries": len(lk["vatek"]), "match_threshold": MATCH_THRESHOLD, "version": "0.2.0"}
+    return {"status": "ok", "grades_loaded": len(lk["label_to_base"]),
+            "tracks_loaded": len(lk["vetek_by_track"]),
+            "track_caps": lk["track_max"],
+            "match_threshold": MATCH_THRESHOLD, "version": "0.3.0"}
 
 @app.get("/api/grades")
 def list_grades():
     lk = get_lookups()
-    return {"grades": [{"kod_darga": k, "base_salary": v} for k, v in sorted(lk["grade"].items())]}
+    return {"grades": [{"darga_label": k, "base_salary": v}
+                       for k, v in sorted(lk["label_to_base"].items())]}
+
+@app.get("/api/tracks")
+def list_tracks():
+    lk = get_lookups()
+    return {"tracks": [{"code": k, "name": lk["tracks"].get(k, ""),
+                        "max_vatek": lk["track_max"].get(k)}
+                       for k in sorted(lk["vetek_by_track"])]}
 
 @app.get("/api/vatek/{years}")
-def get_vatek(years: float):
+def get_vatek(years: float, track: int = DEFAULT_TRACK):
     lk = get_lookups()
-    mult = get_vatek_multiplier(lk, years)
+    mult = get_vatek_multiplier(lk, years, track)
     if mult is None:
-        raise HTTPException(status_code=404, detail=f"No vatek entry for {years} years")
-    return {"vatek": years, "multiplier": mult}
+        raise HTTPException(status_code=404, detail=f"No vatek entry for {years} years (track {track})")
+    return {"vatek": years, "track": track, "multiplier": mult}
 
 @app.post("/api/calculate", response_model=CalculateResponse)
 def calculate_one(req: CalculateRequest):
