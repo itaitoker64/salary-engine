@@ -155,6 +155,38 @@ STATUS_MULTI = "multi_period"     # רטרו / רב-תקופתי — multiple ba
 
 BASE_CODES = (CODE_COMBINED_BASE, CODE_YESOD, CODE_VETEK_TOSEFET)
 
+# The גולמי "ותק לחישוב שכר" column is a *rounded* seniority (to the nearest
+# quarter-year, the resolution of the pay table), while the payroll engine used
+# the exact, unrounded seniority. So a slip's base can legitimately differ from a
+# recomputation off the rounded value by a couple of shekels. We therefore accept
+# a base as correct when it is consistent with *any* seniority inside the rounding
+# window (±0.125 yr) — this clears the ±₪1–2 precision artifacts without masking
+# the real gaps, whose implied seniority is half a year or more off the stated ותק.
+SENIORITY_ROUND = 0.125
+
+
+def base_within_tolerance(grade_base, vatek, track, job_pct, slip_base, lookups):
+    """Is slip_base consistent with the grade/track/job for some seniority within
+    the ±0.125-yr rounding window of the stated ותק (with ±MATCH_THRESHOLD slack)?
+
+    Returns True/False, or None when the multiplier can't be resolved (caller then
+    falls back to the exact point comparison).
+    """
+    if grade_base is None:
+        return None
+    cap = lookups["track_max"].get(int(track))
+    vlo, vhi = vatek - SENIORITY_ROUND, vatek + SENIORITY_ROUND
+    if cap is not None:
+        vlo, vhi = min(vlo, cap), min(vhi, cap)
+    m_lo = get_vatek_multiplier(lookups, vlo, track)
+    m_hi = get_vatek_multiplier(lookups, vhi, track)
+    if m_lo is None or m_hi is None:
+        return None
+    lo = min(m_lo, m_hi) * grade_base * (job_pct or 1.0)
+    hi = max(m_lo, m_hi) * grade_base * (job_pct or 1.0)
+    return (lo - MATCH_THRESHOLD) <= slip_base <= (hi + MATCH_THRESHOLD)
+
+
 def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     errors = []
     component_results = []
@@ -215,6 +247,13 @@ def calculate(worker: WorkerInput, lookups: dict) -> SalaryResult:
     total_diff = round(total - expected_total, 4)
     total_match = abs(total_diff) <= MATCH_THRESHOLD
     if status is None:
+        # Active single-period slip: judge the base against the seniority-rounding
+        # window rather than the single rounded ותק value, so the ±₪1–2 artifacts
+        # caused by the rounded ותק column aren't flagged as real errors.
+        base_ok = base_within_tolerance(
+            grade_base, worker.vatek_calculated, track, job_pct, raw_base_sum, lookups)
+        if base_ok is not None:
+            total_match = base_ok
         status = STATUS_VALID if total_match else STATUS_INVALID
     # total_match only carries meaning for active single-period slips.
     if status in (STATUS_NO_BASE, STATUS_MULTI):
@@ -737,7 +776,10 @@ async def check_accuracy(file: UploadFile = File(...)):
         inv_df = (summary_df[summary_df["status"] == STATUS_INVALID]
                   .assign(absdiff=lambda d: d["total_diff"].abs())
                   .sort_values("absdiff", ascending=False).head(300))
-        calc_detail = detail_df[detail_df["calculated"]]
+        # Only the (≤300) invalid workers need per-component detail — grouping the
+        # full 90k-row detail frame for every worker is needless time and memory.
+        inv_ids = set(inv_df["worker_id"])
+        calc_detail = detail_df[detail_df["calculated"] & detail_df["worker_id"].isin(inv_ids)]
         by_worker = {w: g for w, g in calc_detail.groupby("worker_id")}
         mismatches = []
         for _, r in inv_df.iterrows():

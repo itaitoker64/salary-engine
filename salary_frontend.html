@@ -681,6 +681,21 @@ function showError(id,msg){
   const el=document.getElementById(id+'-err');
   if(!msg){el.classList.remove('visible');return;} el.textContent='שגיאה: '+msg;el.classList.add('visible');
 }
+// Turn a failed fetch Response into a precise, Hebrew, actionable message — so a
+// large-file rejection or a server timeout isn't hidden behind a generic error.
+async function describeHttpError(r,file){
+  const mb=file?(file.size/1048576):0;
+  let detail='';
+  try{ const t=(await r.text()).trim();
+       try{ detail=JSON.parse(t).detail||''; }catch{ detail=t.slice(0,200); } }catch{}
+  if(r.status===413 || (r.status===0 && mb>4))
+    return `הקובץ גדול מדי לשרת (${mb.toFixed(1)}MB). פלטפורמות serverless (כמו Vercel) חוסמות העלאות מעל ~4.5MB. פצל את הקובץ או הרץ את השרת ב-Render/מקומית.`;
+  if(r.status===504 || r.status===408)
+    return `העיבוד ארך זמן רב מדי (פסק זמן). נסה קובץ קטן יותר או הגדל את ה-timeout בשרת.`;
+  if(r.status===502 || r.status===503)
+    return `השרת אינו זמין כרגע (${r.status}). ייתכן שנגמר לו הזיכרון על קובץ גדול — נסה שוב או הרץ מקומית.`;
+  return `שגיאה בעיבוד הקובץ (סטטוס ${r.status})${detail?': '+detail:''}`;
+}
 const CHECK='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7"/></svg>';
 const CROSS='<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const INFO='<svg viewBox="0 0 24 24" fill="none"><path d="M12 8h.01M11 12h1v4h1"/><circle cx="12" cy="12" r="9"/></svg>';
@@ -764,7 +779,7 @@ async function runAccuracy(input){
   try{
     const form=new FormData(); form.append('file',file); setProgress('acc',40);
     const r=await fetch(API+'/api/accuracy',{method:'POST',body:form}); setProgress('acc',90);
-    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    if(!r.ok) throw new Error(await describeHttpError(r,file));
     setProgress('acc',100); renderAccuracy(await r.json());
   }catch(e){ showError('acc',e.message); }
   finally{ setTimeout(()=>setProgress('acc',null),500); }
@@ -855,7 +870,7 @@ async function runBatch(input){
   try{
     const form=new FormData(); form.append('file',file); setProgress('batch',50);
     const r=await fetch(API+'/api/batch',{method:'POST',body:form}); setProgress('batch',95);
-    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    if(!r.ok) throw new Error(await describeHttpError(r,file));
     const blob=await r.blob();
     const workers=r.headers.get('X-Workers'), pct=r.headers.get('X-Match-Pct');
     setProgress('batch',100); setTimeout(()=>setProgress('batch',null),500);
@@ -872,7 +887,7 @@ async function runExport(input){
   try{
     const form=new FormData(); form.append('file',file); setProgress('export',50);
     const r=await fetch(API+'/api/export-highlighted',{method:'POST',body:form}); setProgress('export',95);
-    if(!r.ok) throw new Error('שגיאה בעיבוד הקובץ');
+    if(!r.ok) throw new Error(await describeHttpError(r,file));
     const blob=await r.blob();
     const workers=r.headers.get('X-Workers'), invalid=r.headers.get('X-Invalid'), flagged=r.headers.get('X-Cells-Flagged');
     setProgress('export',100); setTimeout(()=>setProgress('export',null),500);
