@@ -19,7 +19,7 @@ from the Progim workbook into `lookups.json` via `tools/extract_lookups.py`.
 | `/api/info` | GET | Engine status: grades, tracks, seniority caps |
 | `/api/calculate` | POST | Calculate + validate one worker's salary |
 | `/api/accuracy` | POST | Upload a גולמי .xlsx → valid/invalid slip stats |
-| `/api/batch` | POST | Upload a גולמי .xlsx → per-worker results CSV |
+| `/api/batch` | POST | Upload a גולמי .xlsx → results .xlsx with two tabs: **תקין** (valid) and **לבדיקה** (everything else) |
 | `/api/export-highlighted` | POST | Upload a גולמי .xlsx → the same גולמי-מעודכן pivot back, with every invalid pay code and wrong total marked **yellow** |
 | `/api/lookups` | GET | Full lookup tables (darga/vetek/caps) — lets the web UI run the engine **in the browser** |
 

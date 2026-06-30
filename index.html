@@ -314,7 +314,7 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
     </button>
     <button class="tab" role="tab" onclick="showTab('batch')">
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-      יצוא CSV
+      יצוא תוצאות
     </button>
     <button class="tab" role="tab" onclick="showTab('logic')">
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -485,12 +485,12 @@ code{font-family:var(--mono);background:var(--muted-bg);padding:1px 6px;border-r
   <!-- ============ TAB: batch CSV ============ -->
   <section class="pane" id="pane-batch">
     <div class="card" style="max-width:560px;margin:0 auto">
-      <div class="card-head"><h2>יצוא תוצאות מלא (CSV)</h2></div>
+      <div class="card-head"><h2>יצוא תוצאות — תקין / לבדיקה</h2></div>
       <div class="card-body">
         <label class="upload" id="batch-zone">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
           <h3>בחר קובץ ‎.xlsx</h3>
-          <p>מחזיר קובץ CSV עם תוצאה לכל עובד</p>
+          <p>מחזיר קובץ Excel עם שתי לשוניות: <strong>תקין</strong> ו<strong>לבדיקה</strong></p>
           <input type="file" accept=".xlsx" onchange="runBatch(this)">
         </label>
         <div class="filename" id="batch-filename"></div>
@@ -903,17 +903,25 @@ function explainHTML(m){
 async function runBatch(input){
   const file=input.files[0]; if(!file) return;
   const fn=document.getElementById('batch-filename'); fn.textContent=file.name; fn.style.display='block'; fn.style.color='';
-  showError('batch',''); setProgress('batch',20);
+  showError('batch',''); setProgress('batch',15);
   try{
-    const {results}=await processFileLocally(file); setProgress('batch',80);
-    const csv=SalaryEngine.batchCSV(results);
-    downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'salary_results.csv');
-    const active=results.filter(r=>r.status==='valid'||r.status==='invalid').length;
-    const valid=results.filter(r=>r.status==='valid').length;
-    const pct=active?(valid/active*100).toFixed(1):'0.0';
+    if(typeof ExcelJS==='undefined') throw new Error('ספריית כתיבת האקסל לא נטענה — בדוק את חיבור האינטרנט.');
+    const {results}=await processFileLocally(file); setProgress('batch',60);
+    // Two tabs: 'תקין' (valid) and 'לבדיקה' (everything else — the status column
+    // distinguishes שגוי / ללא בסיס / רטרו within it).
+    const valid=results.filter(r=>r.status==='valid');
+    const review=results.filter(r=>r.status!=='valid');
+    const wb=new ExcelJS.Workbook();
+    for(const [name,subset] of [['תקין',valid],['לבדיקה',review]]){
+      const ws=wb.addWorksheet(name,{views:[{rightToLeft:true}]});
+      ws.addRow(SalaryEngine.BATCH_COLUMNS).font={bold:true};
+      for(const r of subset) ws.addRow(SalaryEngine.batchRow(r));
+    }
+    const buf=await wb.xlsx.writeBuffer(); setProgress('batch',95);
+    downloadBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'salary_results.xlsx');
     setProgress('batch',100); setTimeout(()=>setProgress('batch',null),500);
     document.getElementById('batch-zone').style.borderColor='var(--green)';
-    fn.textContent=`הקובץ הורד · ${results.length.toLocaleString()} עובדים · תקינות ${pct}%`; fn.style.color='var(--green)';
+    fn.textContent=`הקובץ הורד · תקין ${valid.length.toLocaleString()} · לבדיקה ${review.length.toLocaleString()}`; fn.style.color='var(--green)';
   }catch(e){ showError('batch',e.message||String(e)); setTimeout(()=>setProgress('batch',null),500); }
 }
 

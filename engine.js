@@ -254,21 +254,24 @@
     };
   }
 
+  const BATCH_COLUMNS = ['worker_id', 'ministry_code', 'ministry_name', 'droog', 'kod_darga',
+    'darga_label', 'vatek', 'job_pct', 'grade_base', 'vatek_mult', 'total_calculated',
+    'total_expected', 'total_diff', 'total_match', 'status', 'n_components', 'errors'];
+
+  function batchRow(r) {
+    return [r.worker_id, r.ministry_code, r.ministry_name, r.droog, r.kod_darga, r.darga_label,
+      r.vatek, r.job_pct, r.grade_base, r.vatek_mult, r.total, r.expected_total, r.total_diff,
+      r.total_match, r.status, r.components.length, ''];
+  }
+
   function batchCSV(results) {
-    const cols = ['worker_id', 'ministry_code', 'ministry_name', 'droog', 'kod_darga', 'darga_label',
-      'vatek', 'job_pct', 'grade_base', 'vatek_mult', 'total_calculated', 'total_expected',
-      'total_diff', 'total_match', 'status', 'n_components', 'errors'];
     const esc = (v) => {
       if (v === null || v === undefined) return '';
       const s = String(v);
       return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
     };
-    const lines = [cols.join(',')];
-    for (const r of results) {
-      lines.push([r.worker_id, r.ministry_code, r.ministry_name, r.droog, r.kod_darga, r.darga_label,
-        r.vatek, r.job_pct, r.grade_base, r.vatek_mult, r.total, r.expected_total, r.total_diff,
-        r.total_match, r.status, r.components.length, ''].map(esc).join(','));
-    }
+    const lines = [BATCH_COLUMNS.join(',')];
+    for (const r of results) lines.push(batchRow(r).map(esc).join(','));
     return '﻿' + lines.join('\n');
   }
 
@@ -309,7 +312,7 @@
     MATCH_THRESHOLD, STATUS, round2,
     prepLookups, getGradeBase, getVatekMultiplier, baseWithinTolerance,
     classifyHeader, loadGolmi, calculate, runEngine,
-    accuracyReport, batchCSV, buildPivot,
+    accuracyReport, batchCSV, BATCH_COLUMNS, batchRow, buildPivot,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.SalaryEngine = api;
