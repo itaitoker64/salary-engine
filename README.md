@@ -21,6 +21,13 @@ from the Progim workbook into `lookups.json` via `tools/extract_lookups.py`.
 | `/api/accuracy` | POST | Upload a גולמי .xlsx → valid/invalid slip stats |
 | `/api/batch` | POST | Upload a גולמי .xlsx → per-worker results CSV |
 | `/api/export-highlighted` | POST | Upload a גולמי .xlsx → the same גולמי-מעודכן pivot back, with every invalid pay code and wrong total marked **yellow** |
+| `/api/lookups` | GET | Full lookup tables (darga/vetek/caps) — lets the web UI run the engine **in the browser** |
+
+> **Browser-side file checking:** the web UI parses and validates גולמי files
+> **locally in the browser** (SheetJS + `engine.js`, the same logic as the API),
+> so large files are never uploaded — this sidesteps serverless request-body
+> limits (e.g. Vercel rejects bodies over ~4.5 MB). The `/api/accuracy`,
+> `/api/batch` and `/api/export-highlighted` endpoints remain for API clients.
 | `/api/grades` | GET | All grade labels and base salaries |
 | `/api/tracks` | GET | All seniority tracks and their ותק caps |
 | `/api/vatek/{years}?track=N` | GET | Seniority multiplier for a track |
