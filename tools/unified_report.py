@@ -228,6 +228,12 @@ def collect(paths, pure=False):
             # cause, neutralized first (before the base bucket it would land in).
             has_student = any(cp.code == 5527 and (cp.amount or 0) != 0
                               for cp in r.components)
+            # ותק קטוע: the file's 2-decimal ותק is not on the quarter grid, so
+            # the base recompute rests on a restored (+0.005) value — when the
+            # slip still mismatches, the truncated source data is the known
+            # cause, not a real pay error.
+            vatek_trunc = abs((r.vatek_calculated or 0)
+                              - float(raw_first[6] or 0)) > 1e-9
             # Error category, deduplicated by priority: a worker with several
             # gaps counts once, under the first bucket in this order — so
             # neutralizing each known cause leaves only the true unknowns.
@@ -235,6 +241,8 @@ def collect(paths, pure=False):
             if r.status == "invalid":
                 if has_student:
                     err_cat = "student"
+                elif vatek_trunc:
+                    err_cat = "vatek"
                 elif base_diff is not None and abs(base_diff) > 1.0:
                     err_cat = "base"
                 elif 667 in flags or 897 in flags:
@@ -285,14 +293,15 @@ def collect(paths, pure=False):
         s["part_time"] = len(rows_f) - len(ft)
         s["ft"] = len(ft)
         s["ft_valid"] = sum(1 for x in ft if x["status"] == "valid")
-        for cat, key in (("student", "inv_student"), ("base", "inv_base"),
-                         ("gmul", "inv_gmul"), ("brich", "inv_brich"),
-                         ("mnhal", "inv_mnhal"), ("real", "inv_real")):
+        for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
+                         ("base", "inv_base"), ("gmul", "inv_gmul"),
+                         ("brich", "inv_brich"), ("mnhal", "inv_mnhal"),
+                         ("real", "inv_real")):
             s[key] = sum(1 for x in ft
                          if x["status"] == "invalid" and x["err_cat"] == cat)
         ft_active = s["ft_valid"] + sum(
-            s[k] for k in ("inv_student", "inv_base", "inv_gmul", "inv_brich",
-                           "inv_mnhal", "inv_real"))
+            s[k] for k in ("inv_student", "inv_vatek", "inv_base", "inv_gmul",
+                           "inv_brich", "inv_mnhal", "inv_real"))
         s["real_pct"] = round(s["inv_real"] / ft_active * 100, 2) if ft_active else 0.0
     code_gap_list = sorted(
         ({"code": code, "name": g["name"], "count": g["count"],
@@ -408,17 +417,18 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     ws.title = "לוח בקרה"
     ws.sheet_view.rightToLeft = True
     ws.sheet_view.showGridLines = False
-    ws.merge_cells("A1:O1")
+    ws.merge_cells("A1:P1")
     t = ws["A1"]
     t.value = "בדיקת התאמת תלושים — דוח מאוחד"
     t.font = Font(size=16, bold=True, color=NAVY)
-    ws.merge_cells("A2:O2")
+    ws.merge_cells("A2:P2")
     s = ws["A2"]
     s.value = (f"{len(summary)} קבצים · הופק "
                f"{datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-               "מנטרל: משרה חלקית ← ותק סטודנט ← בסיס ← גמול השתלמות ← "
-               "דריכות בי\"ח ← גמול מנהל. הנותר = שגיאה אמיתית לתיקון. "
-               "(רטרו רב-תקופתי = מחוץ לשרשרת)")
+               "מנטרל: משרה חלקית ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול "
+               "השתלמות ← דריכות בי\"ח ← גמול מנהל. הנותר = שגיאה אמיתית. "
+               "% מחושב מתוך 'מלאות פעילות' = תקין + כל דלי השגויים; "
+               "ללא-בסיס ורטרו נספרים על כלל העובדים ואינם בשרשרת.")
     s.font = Font(size=10, color=MUTED)
 
     tot = Counter()
@@ -429,12 +439,12 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     acc = round(tot["valid"] / active * 100, 2) if active else 0.0
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
-    for k in ("part_time", "ft", "ft_valid", "inv_student", "inv_base",
-              "inv_gmul", "inv_brich", "inv_mnhal", "inv_real"):
+    for k in ("part_time", "ft", "ft_valid", "inv_student", "inv_vatek",
+              "inv_base", "inv_gmul", "inv_brich", "inv_mnhal", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
-    _ft_active = (tot["ft_valid"] + tot["inv_student"] + tot["inv_base"]
-                  + tot["inv_gmul"] + tot["inv_brich"] + tot["inv_mnhal"]
-                  + tot["inv_real"])
+    _ft_active = (tot["ft_valid"] + tot["inv_student"] + tot["inv_vatek"]
+                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_brich"]
+                  + tot["inv_mnhal"] + tot["inv_real"])
     _real_pct = (tot["inv_real"] / _ft_active) if _ft_active else 0.0
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
     _kpi(ws, 4, 4, 1, "% שגויים אמיתיים", _real_pct,
@@ -449,49 +459,50 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     # רטרו/רב-תקופתי is a SEPARATE class (base code appears twice — the slip
     # merges two pay periods), not part of the chain, shown for reference only.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "משרה מלאה", "תקין (מלאה)",
-              "שגויי ותק סטודנט", "שגויי בסיס", "שגויי גמול", "שגויי דריכות",
-              "שגויי גמול מנהל", "שגויים אמיתיים", "ללא בסיס", "רטרו רב-תקופתי",
-              "% שגויים אמיתיים"]
+              "שגויי ותק סטודנט", "שגויי ותק קטוע", "שגויי בסיס", "שגויי גמול",
+              "שגויי דריכות", "שגויי גמול מנהל", "שגויים אמיתיים", "ללא בסיס",
+              "רטרו רב-תקופתי", "% שגויים אמיתיים"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 11, 11, 10, 10, 10, 11, 12, 9, 11, 13])
+                [11, 18, 10, 10, 10, 11, 11, 10, 10, 10, 10, 11, 12, 9, 11, 13])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("ft", 0), r.get("ft_valid", 0), r.get("inv_student", 0),
-                r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_brich", 0),
-                r.get("inv_mnhal", 0), r.get("inv_real", 0), r["no_base"],
-                r["multi"], r.get("real_pct", 0.0) / 100]
+                r.get("inv_vatek", 0), r.get("inv_base", 0), r.get("inv_gmul", 0),
+                r.get("inv_brich", 0), r.get("inv_mnhal", 0), r.get("inv_real", 0),
+                r["no_base"], r["multi"], r.get("real_pct", 0.0) / 100]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 14:
+            if 3 <= c_i <= 15:
                 cell.number_format = INT
             if c_i == 6:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11) and v:
+            if c_i in (7, 8, 9, 10, 11, 12) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 12 and v:
+            if c_i == 13 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 15:
+            if c_i == 16:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
     tot_active = _ft_active
     real_pct_tot = _real_pct
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["ft"],
-             tot["ft_valid"], tot["inv_student"], tot["inv_base"], tot["inv_gmul"],
-             tot["inv_brich"], tot["inv_mnhal"], tot["inv_real"], tot["no_base"],
+             tot["ft_valid"], tot["inv_student"], tot["inv_vatek"],
+             tot["inv_base"], tot["inv_gmul"], tot["inv_brich"],
+             tot["inv_mnhal"], tot["inv_real"], tot["no_base"],
              tot["multi"], real_pct_tot]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 14:
+        if 3 <= c_i <= 15:
             cell.number_format = INT
-        if c_i == 15:
+        if c_i == 16:
             cell.number_format = "0.00%"
-        if c_i == 12:
+        if c_i == 13:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"O{head_r + 1}:O{last}"    # % שגויים אמיתיים
+    rng = f"P{head_r + 1}:P{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -506,13 +517,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"L{head_r + 1}:L{last}",          # שגויים אמיתיים
+        f"M{head_r + 1}:M{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
     # ---- פערים לפי סמל שכר (a second table, to the right of the per-file one) ---
     if code_gaps:
-        cbase = 17   # column Q (leaves a gap after the 15-column per-file table)
+        cbase = 18   # column R (leaves a gap after the 16-column per-file table)
         heads = ["סמל", "שם רכיב", "כמות פערים", "שווי ₪", "הסיבה לפער"]
         widths = [9, 22, 12, 13, 40]
         for j, (h, w) in enumerate(zip(heads, widths)):
