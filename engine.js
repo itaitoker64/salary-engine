@@ -335,7 +335,13 @@
   // Map a גולמי column header to a canonical field name (port of _classify_header).
   function classifyHeader(h) {
     h = String(h).trim();
-    if (h.includes('מסד') || h.includes('מסב') || h.includes('מזהה') || (h.includes('מספר') && h.includes('עובד'))) return 'worker_id';
+    // worker id — dumps label it מסד / מסב / מזהה, and newer exports use the
+    // ID number instead ('תעודת זהות', 'ת.ז.', 'ת"ז', 'מספר זהות').
+    const hz = h.replace(/["'. ]/g, '');
+    if (h.includes('מסד') || h.includes('מסב') || h.includes('מזהה')
+        || (h.includes('מספר') && h.includes('עובד'))
+        || hz.includes('תעודתזהות') || hz.includes('מספרזהות')
+        || hz === 'תז' || hz === 'תזהות') return 'worker_id';
     if (h.includes('קוד משרד') || h.includes('קוד גוף') || (h.includes('קוד') && h.includes('משרד/גוף'))) return 'ministry_code';
     if (h.includes('שם משרד') || h.includes('שם גוף') || h === 'משרד/גוף' || h === 'משרד' || h === 'גוף') return 'ministry_name';
     if (h.includes('דרוג')) return 'droog';
@@ -875,7 +881,7 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-18a';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-29a';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
