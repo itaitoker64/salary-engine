@@ -483,7 +483,8 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
                "כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו "
                "← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← "
                "דריכות ← גמול מנהל ← בוררות מיסים ← שגיאה אמיתית. סכום "
-               "העמודות = סה\"כ העובדים. % שגויים אמיתיים מתוך תקין+כל השגויים.")
+               "העמודות (כולל 'תקין' בסוף) = סה\"כ העובדים. "
+               "% שגויים אמיתיים = אמיתיים חלקי סה\"כ העובדים.")
     s.font = Font(size=10, color=MUTED)
 
     tot = Counter()
@@ -523,33 +524,36 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     # merges two pay periods), not part of the chain, shown for reference only.
     # A clean PARTITION: columns D..N are mutually exclusive and sum to C
     # (עובדים) — presentable without reconciliation notes.
+    # "תקין" sits LAST, after the %, so the problem columns read as one block.
+    # The partition is unchanged — it is simply no longer contiguous: the
+    # categories are D..O plus Q.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "ללא בסיס (מלאה)",
-              "שתי שורות שכר משולב", "תקין (מלאה)", "שגויי ותק סטודנט",
-              "שגויי ותק קטוע", "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999",
-              "שגויי דריכות", "שגויי גמול מנהל", "שגויי בוררות מיסים",
-              "שגויים אמיתיים", "% שגויים אמיתיים"]
+              "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
+              "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
+              "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויים אמיתיים",
+              "% שגויים אמיתיים", "תקין (מלאה)"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 10, 11, 10, 11, 11, 12, 13])
+                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("ft_no_base", 0), r.get("ft_multi", 0),
-                r.get("ft_valid", 0), r.get("inv_student", 0),
-                r.get("inv_vatek", 0), r.get("inv_base", 0), r.get("inv_gmul", 0),
-                r.get("inv_h1999", 0), r.get("inv_brich", 0), r.get("inv_mnhal", 0),
+                r.get("inv_student", 0), r.get("inv_vatek", 0),
+                r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_h1999", 0),
+                r.get("inv_brich", 0), r.get("inv_mnhal", 0),
                 r.get("inv_borerut", 0), r.get("inv_real", 0),
-                r.get("real_pct", 0.0) / 100]
+                r.get("real_pct", 0.0) / 100, r.get("ft_valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 16:
+            if 3 <= c_i <= 15 or c_i == 17:
                 cell.number_format = INT
-            if c_i == 7:
-                cell.font = Font(color=GOOD_TXT)
-            if c_i in (8, 9, 10, 11, 12, 13, 14, 15) and v:
-                cell.font = Font(color=WARN_TXT)
-            if c_i == 16 and v:
-                cell.font = Font(color=BAD_TXT, bold=True)
             if c_i == 17:
+                cell.font = Font(color=GOOD_TXT)
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14) and v:
+                cell.font = Font(color=WARN_TXT)
+            if c_i == 15 and v:
+                cell.font = Font(color=BAD_TXT, bold=True)
+            if c_i == 16:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
@@ -564,13 +568,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 16:
+        if 3 <= c_i <= 15 or c_i == 17:
             cell.number_format = INT
-        if c_i == 17:
-            cell.number_format = "0.00%"
         if c_i == 16:
+            cell.number_format = "0.00%"
+        if c_i == 15:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"Q{head_r + 1}:Q{last}"    # % שגויים אמיתיים
+    rng = f"P{head_r + 1}:P{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -585,7 +589,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"P{head_r + 1}:P{last}",          # שגויים אמיתיים
+        f"O{head_r + 1}:O{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
