@@ -5,10 +5,11 @@ Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-One commit beyond `origin/main`, **not merged**. `main` is ahead by 4 commits
-from the other session, and both sides touched `index.html`,
-`salary_frontend.html` and `tools/unified_report.py` — a merge will conflict in
-the neutralization chain.
+**Not merged.** One substantive commit (`bff6c3e`, the chain reorder below) plus
+the session-tooling commits. `main` is ahead from the other session, and both
+sides touched `index.html`, `salary_frontend.html` and
+`tools/unified_report.py` — a merge will conflict in the neutralization chain.
+The SessionStart brief prints the live counts; trust it over this paragraph.
 
 ## What this branch changed, and why
 
