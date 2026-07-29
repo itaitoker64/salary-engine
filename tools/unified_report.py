@@ -163,16 +163,24 @@ def _gap_reason(code, rules):
 
 
 def collect(paths, pure=False):
-    """Run the engine per file; return (summary, per_emp, code_gaps, recs).
+    """Run the engine per file; return (summary, per_emp, code_gaps, recs,
+    uncovered).
 
     pure=True runs the Progim workbook literally (no add-ons) and returns, in
     `recs`, the aggregated recommendations of what to add to the Progim — every
     gap the add-ons would have cleared, itemized, never silently patched.
+
+    `uncovered` lists every pay code found on the slips that the Progim cannot
+    COMPUTE — either completely unknown to the workbook, or referenced only as
+    an input to other formulas. These are coverage gaps in the product itself
+    and get their own sheet in the export.
     """
     lookups = engine.get_lookups()
     rules = engine.get_rules()
     code_gaps = {}   # code -> {"name", "count", "sum"}
     rec_acc = {}     # key -> aggregated recommendation across files
+    computable, referenced_only = engine.progim_coverage(rules)
+    uncov = {}       # code -> {"name", "rows", "sum", "ministries", "known"}
     files = sorted(paths, key=lambda p: (pay_month_of(p) or datetime(2099, 1, 1),
                                          Path(p).name))
     summary, per_emp = [], []
@@ -191,6 +199,22 @@ def collect(paths, pure=False):
                     rec_acc[key] = dict(r)
                 else:
                     a["count"] += r["count"]; a["sum"] = round(a["sum"] + r["sum"], 2)
+        # Progim coverage gaps: every paid code the workbook cannot compute.
+        for e in entries:
+            r = e["result"]
+            for cp in r.components:
+                if cp.code is None or int(cp.code) in computable:
+                    continue
+                code = int(cp.code)
+                u = uncov.setdefault(code, {
+                    "name": "", "rows": 0, "sum": 0.0,
+                    "ministries": set(), "known": code in referenced_only})
+                u["rows"] += 1
+                u["sum"] += abs(cp.expected or 0.0)
+                if r.ministry_name:
+                    u["ministries"].add(str(r.ministry_name))
+                if cp.name:
+                    u["name"] = str(cp.name)
         c = Counter(e["result"].status for e in entries)
         active = c["valid"] + c["invalid"]
         file_start = len(per_emp)   # breakdown is computed after the rows below
@@ -345,7 +369,14 @@ def collect(paths, pure=False):
          for code, g in code_gaps.items()),
         key=lambda x: -x["count"])
     recs = sorted(rec_acc.values(), key=lambda r: -r["count"])
-    return summary, per_emp, code_gap_list, recs
+    uncovered = sorted(
+        ({"code": code, "name": u["name"], "rows": u["rows"],
+          "sum": round(u["sum"], 2), "known": u["known"],
+          "ministries": ", ".join(sorted(u["ministries"])[:3])
+                        + ("…" if len(u["ministries"]) > 3 else "")}
+         for code, u in uncov.items()),
+        key=lambda x: -x["sum"])
+    return summary, per_emp, code_gap_list, recs, uncovered
 
 
 # (key, header, width, number-format, is-gap-cell). Gap cells are red-tinted
@@ -457,7 +488,8 @@ def compute_flips(per_emp):
     return sorted(flips, key=lambda f: -f["diff"])
 
 
-def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
+def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
+                   uncovered=None):
     wb = openpyxl.Workbook()
     anom_by_file = defaultdict(float)
     anom_total = 0.0
@@ -485,6 +517,17 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
                "גמול מנהל ← בוררות מיסים ← תוספת 1999 ← שגיאה אמיתית. סכום "
                "העמודות = סה\"כ העובדים. % שגויים אמיתיים מתוך תקין+כל השגויים.")
     s.font = Font(size=10, color=MUTED)
+    # Coverage warning on the dashboard itself — the Progim is the product, so a
+    # hole in it must be visible on page one, not only in its own sheet.
+    if uncovered:
+        n_u = len(uncovered)
+        s_u = round(sum(u["sum"] for u in uncovered))
+        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=17)
+        w = ws.cell(row=3, column=1,
+                    value=f"\u26a0 {n_u} סמלי שכר (₪{s_u:,}) משולמים בתלושים ללא "
+                          f"נוסחה ב-Progim ולכן לא נבדקו — ראה גיליון \"חסר ב-Progim\"")
+        w.font = Font(bold=True, size=10, color=BAD_TXT)
+        w.fill = PatternFill("solid", fgColor=BAD_BG)
 
     tot = Counter()
     for r in summary:
@@ -636,6 +679,52 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         _run += _anomaly(r)
         r["cum_pct"] = round(_run / _tot_anom, 4)
     _emp_sheet(wb, "שגויים לבדיקה", inv, "Invalids", highlight_invalid=False)
+
+    # ---- ⚠ חסר ב-Progim: paid codes the workbook cannot compute -----------------
+    # The product being sold is the Progim. Every code here is money the payroll
+    # pays that the workbook has NO formula for — the engine accepts it as
+    # reported, unchecked. This sheet is the fix-list for the workbook itself.
+    if uncovered:
+        wsu = wb.create_sheet("חסר ב-Progim", 1)   # right after the dashboard
+        wsu.sheet_view.rightToLeft = True
+        wsu.sheet_properties.tabColor = "A82626"
+        t = wsu.cell(row=1, column=1,
+                     value="⚠ רכיבים משולמים בתלושים ללא נוסחה ב-Progim — "
+                           "המנוע מקבל אותם כמות-שהם, ללא בדיקה")
+        t.font = Font(bold=True, size=12, color=BAD_TXT)
+        wsu.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
+        s = wsu.cell(row=2, column=1,
+                     value="'מוזכר כקלט בלבד' = הסמל מופיע ב-Progim רק בתוך "
+                           "בסיס/קיזוז/ספירת-מינימום של רכיב אחר; "
+                           "'לא קיים כלל' = הסמל אינו מופיע בחוברת בשום מקום. "
+                           "בשני המקרים אין נוסחה שמחשבת אותו — להוסיף לחוברת.")
+        s.font = Font(size=9, color=MUTED)
+        wsu.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
+        tot_u = round(sum(u["sum"] for u in uncovered))
+        c3 = wsu.cell(row=3, column=1,
+                      value=f"{len(uncovered)} סמלים · ₪{tot_u:,} שלא נבדקו")
+        c3.font = Font(bold=True, size=10, color=NAVY)
+        wsu.merge_cells(start_row=3, start_column=1, end_row=3, end_column=6)
+        _header_row(wsu, 4, ["סמל", "שם הרכיב", "סטטוס ב-Progim", "שורות",
+                             "₪ (מוחלט)", "גופים"],
+                    [8, 20, 18, 9, 13, 40])
+        for i, u in enumerate(uncovered, start=5):
+            vals = [u["code"], u["name"],
+                    "מוזכר כקלט בלבד" if u["known"] else "לא קיים כלל",
+                    u["rows"], u["sum"], u["ministries"]]
+            for c_i, v in enumerate(vals, start=1):
+                cell = wsu.cell(row=i, column=c_i, value=v)
+                cell.border = THIN_BOX
+                if c_i == 4:
+                    cell.number_format = INT
+                if c_i == 5:
+                    cell.number_format = MONEY
+            if not u["known"]:   # completely unknown — the louder class
+                wsu.cell(row=i, column=3).font = Font(bold=True, color=BAD_TXT)
+                for c_i in range(1, 7):
+                    wsu.cell(row=i, column=c_i).fill = \
+                        PatternFill("solid", fgColor=BAD_BG)
+        wsu.freeze_panes = "A5"
 
     # ---- שינויי סטטוס בין חודשים -------------------------------------------------
     flips = compute_flips(per_emp)
@@ -883,9 +972,11 @@ def main_cli():
                     help="הרצת ה-Progim כפי-שהוא (ללא תוספות התוכנה) + גיליון המלצות")
     args = ap.parse_args()
     t0 = time.time()
-    summary, per_emp, code_gaps, recs = collect(args.files, pure=args.pure)
+    summary, per_emp, code_gaps, recs, uncovered = collect(args.files,
+                                                           pure=args.pure)
     print(f"עיבוד: {time.time() - t0:.0f}ש · כותב workbook ({len(per_emp):,} שורות)...")
-    write_workbook(summary, per_emp, args.out, code_gaps, recs=recs if args.pure else None)
+    write_workbook(summary, per_emp, args.out, code_gaps,
+                   recs=recs if args.pure else None, uncovered=uncovered)
     inv = sum(1 for r in per_emp if r["status"] == "invalid")
     mode = "Progim בלבד" if args.pure else "רגיל"
     print(f"נכתב: {args.out} · {len(per_emp):,} רשומות · {inv:,} שגויים · מצב {mode}")

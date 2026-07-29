@@ -1230,6 +1230,11 @@ async function runBulk(files){
   const pureMode=!!document.getElementById('pure-toggle')?.checked;
   const perFile=[], perEmp=[], failed=[];
   const codeGaps=new Map();   // code -> {name, count, sum₪}, accumulated across files
+  // Progim coverage gaps: paid codes the workbook has no formula for. The
+  // Progim is the product being sold, so every one of these is a hole in it —
+  // reported in its own sheet, not just in the docs.
+  const uncov=new Map();      // code -> {name, rows, sum₪, ministries:Set, known}
+  const _cov=SalaryEngine.progimCoverage(_engineRules||{});
   const recAcc=new Map();     // "Progim בלבד": aggregated recommendations across files
   try{
     await ensureLookups();
@@ -1266,6 +1271,15 @@ async function runBulk(files){
           for(const c of r.components){
             if(c.code===1||c.code===2||c.code===10002) baseSlip+=(c.expected||0);
             if(c.calculated) baseCalc+=(c.amount||0);
+          }
+          for(const c of r.components){
+            const cc=Number(c.code);
+            if(!cc||_cov.computable.has(cc)) continue;
+            let u=uncov.get(cc);
+            if(!u){ u={name:'',rows:0,sum:0,ministries:new Set(),known:_cov.referencedOnly.has(cc)}; uncov.set(cc,u); }
+            u.rows++; u.sum+=Math.abs(c.expected||0);
+            if(r.ministry_name) u.ministries.add(String(r.ministry_name));
+            if(c.name) u.name=String(c.name);
           }
           const gf=r.comp_flags||{};
           const flags=Object.keys(gf).map(k=>`${k} (${gf[k].name}): ${gf[k].slip} במקום ${gf[k].expected}`).join('; ');
@@ -1353,7 +1367,13 @@ async function runBulk(files){
                          reason:gapReason(code,_engineRules)}))
       .sort((a,b)=>b.count-a.count);
     const recs=[...recAcc.values()].sort((a,b)=>b.count-a.count);
-    _bulkData={perFile,perEmp,codeGaps:codeGapList,recs,pure:pureMode};
+    const uncovList=[...uncov.entries()]
+      .map(([code,u])=>({code, name:u.name, rows:u.rows, sum:SalaryEngine.round2(u.sum),
+                         known:u.known,
+                         ministries:[...u.ministries].sort().slice(0,3).join(', ')
+                                    +(u.ministries.size>3?'…':'')}))
+      .sort((a,b)=>b.sum-a.sum);
+    _bulkData={perFile,perEmp,codeGaps:codeGapList,recs,pure:pureMode,uncovered:uncovList};
     const secs=Math.round((performance.now()-t0)/100)/10;
     if(files.length===1&&_lastResults){
       document.getElementById('bulk-result').style.display='none';
@@ -1682,6 +1702,17 @@ async function downloadUnified(btnId,labelId){
     const sub=ws.getCell('A2');
     sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו ← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת 1999 ← שגיאה אמיתית. סכום העמודות = סה"כ העובדים. % שגויים אמיתיים מתוך תקין+כל השגויים (מלאה).`;
     sub.font={size:10,color:{argb:XL.MUTED}};
+    // Coverage warning on the dashboard itself — the Progim is the product,
+    // so a hole in it must be visible on page one, not only in its own sheet.
+    if(_bulkData.uncovered&&_bulkData.uncovered.length){
+      const nU=_bulkData.uncovered.length;
+      const sU=Math.round(_bulkData.uncovered.reduce((a,u)=>a+u.sum,0));
+      ws.mergeCells('A3:Q3');
+      const w=ws.getCell('A3');
+      w.value=`\u26a0 ${nU} סמלי שכר (₪${sU.toLocaleString()}) משולמים בתלושים ללא נוסחה ב-Progim ולכן לא נבדקו — ראה גיליון "חסר ב-Progim"`;
+      w.font={bold:true,size:10,color:{argb:XL.BADT}};
+      w.fill=fill(XL.BADB);
+    }
     // Totals: sum the partition fields across files.
     const tot={workers:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,
                inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
@@ -1769,6 +1800,39 @@ async function downloadUnified(btnId,labelId){
     }
     // ---- פר עובד --------------------------------------------------------------
     empSheet(wb,'פר עובד',_bulkData.perEmp);
+    // ---- ⚠ חסר ב-Progim: paid codes the workbook cannot compute ---------------
+    // The Progim is the product being sold. Every code here is money the payroll
+    // pays that the workbook has no formula for — the engine takes it as
+    // reported, unchecked. This sheet is the fix-list for the workbook itself.
+    if(_bulkData.uncovered&&_bulkData.uncovered.length){
+      const wsu=wb.addWorksheet('חסר ב-Progim',{views:[{rightToLeft:true,state:'frozen',ySplit:4}]});
+      wsu.properties.tabColor={argb:XL.BADT};
+      wsu.mergeCells('A1:F1');
+      const t1=wsu.getCell('A1');
+      t1.value='⚠ רכיבים משולמים בתלושים ללא נוסחה ב-Progim — המנוע מקבל אותם כמות-שהם, ללא בדיקה';
+      t1.font={bold:true,size:12,color:{argb:XL.BADT}}; wsu.getRow(1).height=22;
+      wsu.mergeCells('A2:F2');
+      const t2=wsu.getCell('A2');
+      t2.value='"מוזכר כקלט בלבד" = הסמל מופיע ב-Progim רק בתוך בסיס/קיזוז/ספירת-מינימום של רכיב אחר; '
+              +'"לא קיים כלל" = הסמל אינו מופיע בחוברת בשום מקום. בשני המקרים אין נוסחה שמחשבת אותו — להוסיף לחוברת.';
+      t2.font={size:9,color:{argb:XL.MUTED}}; t2.alignment={wrapText:true}; wsu.getRow(2).height=26;
+      const totU=_bulkData.uncovered.reduce((a,u)=>a+u.sum,0);
+      wsu.mergeCells('A3:F3');
+      const t3=wsu.getCell('A3');
+      t3.value=`${_bulkData.uncovered.length} סמלים · ₪${Math.round(totU).toLocaleString()} שלא נבדקו`;
+      t3.font={bold:true,size:10,color:{argb:XL.NAVY}};
+      styleHeaderRow(wsu,['סמל','שם הרכיב','סטטוס ב-Progim','שורות','₪ (מוחלט)','גופים'],
+                     [8,20,18,9,13,40]);
+      for(const u of _bulkData.uncovered){
+        const row=wsu.addRow([u.code,u.name,u.known?'מוזכר כקלט בלבד':'לא קיים כלל',
+                              u.rows,u.sum,u.ministries]);
+        row.getCell(4).numFmt=INT_FMT; row.getCell(5).numFmt=MONEY_FMT;
+        if(!u.known){
+          row.getCell(3).font={bold:true,color:{argb:XL.BADT}};
+          for(let ci=1;ci<=6;ci++) row.getCell(ci).fill=fill(XL.BADB);
+        }
+      }
+    }
     // ---- המלצות ל-Progim (מצב "Progim בלבד") ---------------------------------
     if(_bulkData.recs&&_bulkData.recs.length){
       const CAT_HE={shekel_mismatch:'סכום שקלי לא תואם',unstable_rule:'כלל לא יציב בקובץ',

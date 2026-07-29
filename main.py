@@ -204,6 +204,33 @@ TRUST_MIN_MATCH = 0.97
 TRUST_MIN_N = 20
 
 
+def progim_coverage(rules) -> tuple:
+    """Split the code universe by what the Progim can actually COMPUTE.
+
+    Returns (computable, referenced_only):
+      computable      — codes the Progim has a formula/table/manual entry for
+                        (rule codes of any type, the base split, gmul codes).
+      referenced_only — codes the Progim knows only as INPUTS to other
+                        formulas (base members, deductions, minimum counted):
+                        it can read them off a slip but cannot produce them.
+
+    A slip code in NEITHER set is completely unknown to the workbook. Both
+    non-computable classes are surfaced in the reports (גיליון 'חסר ב-Progim')
+    — each is a component the payroll pays but the product cannot check, i.e.
+    a coverage gap to fix in the workbook, not in this engine.
+    """
+    computable = {CODE_YESOD, CODE_VETEK_TOSEFET, CODE_COMBINED_BASE}
+    computable |= set(GMUL_A_CODES) | set(GMUL_B_CODES)
+    referenced = set()
+    for rule in (rules or {}).values():
+        for c in rule.get("codes", []):
+            computable.add(int(c))
+        for key in ("base_codes", "deductions", "counted", "toggle_codes"):
+            for c in rule.get(key) or []:
+                referenced.add(int(c))
+    return computable, referenced - computable
+
+
 def _grade_split_rates(gs, darga_label, droog):
     """Rates admissible for a grade-tiered tosefet (מנמ"ש 2010, code 5216).
 
