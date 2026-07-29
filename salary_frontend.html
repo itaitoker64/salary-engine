@@ -783,7 +783,7 @@ html.present .present-btn{background:#fff;color:var(--primary)}
      the validation, ExcelJS writes the highlighted export. Nothing is uploaded. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="engine.js?v=2026-07-29a"></script>
+<script src="engine.js?v=2026-07-29b"></script>
 <script>
 const API = '';
 // Surface the loaded engine build so a stale (browser-cached) engine.js is
@@ -1317,7 +1317,10 @@ async function runBulk(files){
             r.darga_label, r.vatek, r.job_pct,
             SalaryEngine.round2(baseSlip), baseCalc?SalaryEngine.round2(baseCalc):null, baseDiff,
             gap(667), gap(897), gap(798), gap(4983),
-            r.expected_total, totalCalc, totalDiff, BULK_STATUS_HE[r.status]||r.status, flags, diag, delta,
+            r.expected_total, totalCalc, totalDiff,
+            totalDiff>0.5?'שולם בחסר':totalDiff<-0.5?'שולם ביתר':'',
+            Math.abs(totalDiff)>=MATERIALITY?'כן':'לא',
+            BULK_STATUS_HE[r.status]||r.status, flags, diag, delta,
             r.status, fullTime, errCat]);
         }
         const active=v+inv;
@@ -1363,7 +1366,7 @@ async function runBulk(files){
 // ₪ magnitude of a bulk per-employee row's anomaly: the larger of the base gap
 // (idx 9) and the corrected-total gap (idx 14, which already folds in every
 // component correction incl. גמול), so a component-only mismatch still ranks.
-const R_STATUS=21, STATUS_RAW_IDX=21, FT_IDX=22, ERRCAT_IDX=23;
+const R_STATUS=23, STATUS_RAW_IDX=23, FT_IDX=24, ERRCAT_IDX=25;
 function rowAnomaly(r){ return Math.max(Math.abs(r[9]||0), Math.abs(r[16]||0)); }
 // Sum of anomaly ₪ per file key (month+name), computed from perEmp rows.
 function anomalySums(perEmp){
@@ -1588,9 +1591,13 @@ const EMP_SPEC=[
   {h:'פער דריכות בי"ח',w:13,fmt:'m',diff:1}, {h:'פער גמול מנהל',w:12,fmt:'m',diff:1},
   {h:'סכום בתלוש',w:13,fmt:'m'}, {h:'סכום מחושב',w:13,fmt:'m'},
   {h:'הפרש כולל',w:12,fmt:'m',diff:1},
+  {h:'כיוון',w:11}, {h:'מהותי',w:8},
   {h:'סטטוס',w:16,status:1}, {h:'רכיבים חריגים',w:30}, {h:'אבחון',w:30},
   {h:'שוני מול Progim — והסבר',w:42},
 ];
+// A gap below this is real but not worth opening a case for (mirror of
+// MATERIALITY in tools/unified_report.py).
+const MATERIALITY=100.0;
 const UNIFIED_EMP_HEAD=EMP_SPEC.map(c=>c.h);
 // Workbook palette (light surface; status colors always paired with a label)
 const XL={NAVY:'FF1E3A5F', WHITE:'FFFFFFFF', TILE:'FFF4F5F7', MUTED:'FF6B7280',
@@ -1612,13 +1619,21 @@ function styleHeaderRow(ws,labels,widths){
 // right through the money columns; autofilter; ₪ formats; status colored (with
 // its label); every gap cell tinted red when it carries a real gap so the eye
 // lands on it. The row's last element is the raw status (for coloring).
-function empSheet(wb,title,rows){
+function empSheet(wb,title,rows,cumulative){
   const ws=wb.addWorksheet(title,{views:[{rightToLeft:true,state:'frozen',xSplit:3,ySplit:1}]});
-  styleHeaderRow(ws,UNIFIED_EMP_HEAD,EMP_SPEC.map(c=>c.w));
-  const statusIdx=EMP_SPEC.findIndex(c=>c.status)+1;
+  // The work queue carries a cumulative-₪ column so it answers "how far down do
+  // I work to cover most of the money"; the full roster does not.
+  const head=cumulative?UNIFIED_EMP_HEAD.concat(['% מצטבר מהחשיפה']):UNIFIED_EMP_HEAD;
+  const widths=EMP_SPEC.map(c=>c.w).concat(cumulative?[15]:[]);
+  styleHeaderRow(ws,head,widths);
   const stRaw=EMP_SPEC.length;          // raw status is one past the visible cols
+  const totAnom=cumulative?(rows.reduce((a,x)=>a+rowAnomaly(x),0)||1):0;
+  let run=0;
   for(const row of rows){
-    const r=ws.addRow(row.slice(0,EMP_SPEC.length));
+    const base=row.slice(0,EMP_SPEC.length);
+    if(cumulative){ run+=rowAnomaly(row); base.push(run/totAnom); }
+    const r=ws.addRow(base);
+    if(cumulative) r.getCell(EMP_SPEC.length+1).numFmt='0.0%';
     const invalid=row[stRaw]==='invalid';
     EMP_SPEC.forEach((c,i)=>{
       const cell=r.getCell(i+1);
@@ -1633,7 +1648,7 @@ function empSheet(wb,title,rows){
       }
     });
   }
-  ws.autoFilter={from:{row:1,column:1},to:{row:Math.max(rows.length+1,1),column:EMP_SPEC.length}};
+  ws.autoFilter={from:{row:1,column:1},to:{row:Math.max(rows.length+1,1),column:head.length}};
   return ws;
 }
 
@@ -1659,11 +1674,21 @@ async function downloadUnified(){
     for(const s of _bulkData.perFile) for(const k in tot) tot[k]+=(s[k]||0);
     const ftAct=tot.ft_valid+tot.inv_student+tot.inv_vatek+tot.inv_base+tot.inv_gmul+tot.inv_brich+tot.inv_mnhal+tot.inv_borerut+tot.inv_real;
     const realPct=ftAct?tot.inv_real/ftAct:0;
+    // Direction split — money owed to workers vs money to recover (gross, so
+    // neither side hides the other).
+    let _under=0,_over=0;
+    for(const r of _bulkData.perEmp){
+      if(r[ERRCAT_IDX]!=='real') continue;
+      const d=r[16]||0;
+      if(d>0.5) _under+=d; else if(d<-0.5) _over+=-d;
+    }
     const kpis=[['סה"כ עובדים',tot.workers,null,INT_FMT],['משרה מלאה',tot.ft,null,INT_FMT],
       ['תקין (מלאה)',tot.ft_valid,XL.GOODT,INT_FMT],
       ['שגויים אמיתיים',tot.inv_real,XL.BADT,INT_FMT],
       ['% שגויים אמיתיים',realPct,realPct<=0.01?XL.GOODT:XL.BADT,'0.00%'],
-      ['ללא בסיס (מלאה)',tot.ft_no_base,XL.WARNT,INT_FMT]];
+      ['שולם בחסר ₪ (לתשלום)',Math.round(_under),XL.WARNT,INT_FMT],
+      ['שולם ביתר ₪ (להשבה)',Math.round(_over),XL.BADT,INT_FMT],
+      ['חשיפה ברוטו ₪',Math.round(_under+_over),XL.BADT,INT_FMT]];
     kpis.forEach(([t,v,color,fmt],i)=>{
       const col=i+1;
       const tc=ws.getRow(4).getCell(col); tc.value=t; tc.font={size:10,color:{argb:XL.MUTED}};
@@ -1711,7 +1736,7 @@ async function downloadUnified(){
     // ---- שגויים לבדיקה: full-time workers whose error is real -------------------
     const inv=_bulkData.perEmp.filter(r=>r[STATUS_RAW_IDX]==='invalid'&&r[FT_IDX]&&r[ERRCAT_IDX]==='real')
       .slice().sort((a,b)=>rowAnomaly(b)-rowAnomaly(a));
-    empSheet(wb,'שגויים לבדיקה',inv);
+    empSheet(wb,'שגויים לבדיקה',inv,true);
     // ---- שינויי סטטוס בין חודשים ------------------------------------------------
     const flips=computeFlips(_bulkData.perEmp);
     if(flips.length){
@@ -1750,15 +1775,63 @@ async function downloadUnified(){
       if(!agg.has(k)) agg.set(k,{w:0,v:0,i:0});
       const o=agg.get(k); o.w++; if(r[R_STATUS]==='valid')o.v++; else if(r[R_STATUS]==='invalid')o.i++;
     }
+    // ---- ריכוז לפי סיבה — the one-page answer for management ----------------
+    const realRows=_bulkData.perEmp.filter(r=>r[ERRCAT_IDX]==='real');
+    const cause=new Map();
+    for(const r of realRows){
+      const keys=new Set();
+      for(const part of String(r[20]||'').split(';')){
+        const code=part.trim().split(' ')[0];
+        if(/^\d+$/.test(code)) keys.add(code);
+      }
+      if(!keys.size) keys.add('בסיס/ותק');
+      const d=r[16]||0;
+      for(const k of keys){
+        const c=cause.get(k)||{n:0,sum:0,under:0,over:0};
+        c.n++; c.sum+=Math.abs(d);
+        if(d>0.5)c.under++; else if(d<-0.5)c.over++;
+        cause.set(k,c);
+      }
+    }
+    if(cause.size){
+      const ws5=wb.addWorksheet('ריכוז לפי סיבה',{views:[{rightToLeft:true,state:'frozen',ySplit:2}]});
+      ws5.mergeCells('A1:G1');
+      const t5=ws5.getCell('A1');
+      t5.value='שגיאות אמת לפי הרכיב הגורם — מה מערכתי ומה נקודתי';
+      t5.font={bold:true,size:12,color:{argb:XL.NAVY}}; ws5.getRow(1).height=22;
+      styleHeaderRow(ws5,['סמל / סיבה','שם הרכיב','עובדים','% מכלל שגיאות האמת','חשיפה ₪','שולם בחסר','שולם ביתר'],[14,24,11,16,14,12,12]);
+      const nReal=realRows.length||1;
+      const nameOf=new Map((_bulkData.codeGaps||[]).map(g=>[String(g.code),g.name]));
+      for(const [k,c] of [...cause.entries()].sort((a,b)=>b[1].n-a[1].n)){
+        const r=ws5.addRow([k,nameOf.get(k)||(k==='בסיס/ותק'?'שכר בסיס / ותק':''),
+          c.n,c.n/nReal,SalaryEngine.round2(c.sum),c.under,c.over]);
+        [3,6,7].forEach(ci=>{r.getCell(ci).numFmt=INT_FMT;});
+        r.getCell(4).numFmt='0.0%';
+        if(c.n/nReal>=0.5) r.getCell(4).font={bold:true,color:{argb:XL.BADT}};
+        r.getCell(5).numFmt=MONEY_FMT;
+      }
+    }
+    // ---- פילוח משרדים --------------------------------------------------------
+    const realByM=new Map(), moneyByM=new Map();
+    for(const r of realRows){
+      const m=r[3]||'—';
+      realByM.set(m,(realByM.get(m)||0)+1);
+      moneyByM.set(m,(moneyByM.get(m)||0)+Math.abs(r[16]||0));
+    }
     const ws4=wb.addWorksheet('פילוח משרדים',{views:[{rightToLeft:true,state:'frozen',ySplit:1}]});
-    styleHeaderRow(ws4,['משרד / גוף','עובדים','תקין','שגוי','% תקינות (פעילים)'],[26,11,11,9,16]);
-    const rows4=[...agg.entries()].sort((a,b)=>b[1].w-a[1].w);
+    styleHeaderRow(ws4,['משרד / גוף','עובדים','תקין','שגוי','% תקינות (פעילים)','שגיאות אמת','חשיפה ₪'],[26,11,11,9,16,12,14]);
+    // Sorted by real errors — the ministries that still need work come first.
+    const rows4=[...agg.entries()].sort((a,b)=>
+      (realByM.get(b[0])||0)-(realByM.get(a[0])||0) || b[1].w-a[1].w);
     for(const [name,o] of rows4){
       const act=o.v+o.i;
-      const r=ws4.addRow([name,o.w,o.v,o.i,act?o.v/act:null]);
-      [2,3,4].forEach(ci=>{r.getCell(ci).numFmt=INT_FMT;});
+      const nr=realByM.get(name)||0;
+      const r=ws4.addRow([name,o.w,o.v,o.i,act?o.v/act:null,nr,SalaryEngine.round2(moneyByM.get(name)||0)]);
+      [2,3,4,6].forEach(ci=>{r.getCell(ci).numFmt=INT_FMT;});
       if(o.i) r.getCell(4).font={bold:true,color:{argb:XL.BADT}};
       r.getCell(5).numFmt='0.0%';
+      if(nr) r.getCell(6).font={bold:true,color:{argb:XL.BADT}};
+      r.getCell(7).numFmt=MONEY_FMT;
     }
     const l4=ws4.lastRow.number;
     ws4.addConditionalFormatting({ref:`B2:B${l4}`,rules:[
@@ -1766,7 +1839,7 @@ async function downloadUnified(){
     ws4.addConditionalFormatting({ref:`E2:E${l4}`,rules:[
       {type:'cellIs',operator:'greaterThanOrEqual',formulae:['0.99'],priority:2,style:{fill:fill(XL.GOODB)}},
       {type:'cellIs',operator:'lessThan',formulae:['0.95'],priority:3,style:{fill:fill(XL.BADB)}}]});
-    ws4.autoFilter={from:{row:1,column:1},to:{row:l4,column:5}};
+    ws4.autoFilter={from:{row:1,column:1},to:{row:l4,column:7}};
 
     const buf=await wb.xlsx.writeBuffer();
     downloadBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`בדיקת שכר מאוחדת ${dateStamp()}.xlsx`);

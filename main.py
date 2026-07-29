@@ -396,7 +396,13 @@ def check_minimum_population(entries, rules) -> dict:
             if v <= 0.01:
                 continue
             job = r.job_pct or 1.0
-            yesod = amt.get(CODE_YESOD, 0.0)
+            # Paid base for the minimum-wage sum: the slip reports it either as
+            # יסוד משולב (1) or as the combined שכר משולב (10002). Use whichever
+            # the slip actually carries — falling straight through to the grade
+            # table would substitute the TABLE base for the PAID one and inflate
+            # the implied target wherever the two differ (e.g. קוד-דרגה groups
+            # whose label collides with a much higher מינהלי grade).
+            yesod = amt.get(CODE_YESOD, 0.0) or amt.get(CODE_COMBINED_BASE, 0.0)
             if yesod <= 0:
                 if r.grade_base is None:
                     continue
