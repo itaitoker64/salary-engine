@@ -254,6 +254,16 @@ def collect(paths, pure=False):
                     err_cat = "base"
                 elif 667 in flags or 897 in flags:
                     err_cat = "gmul"
+                elif gap_4624 is not None:
+                    # הסכם 1999: הפערים נובעים מהפרשי רטרו (בולט אצל עובדים
+                    # בעלי ותק נמוך) — סיבה ידועה, מנוטרלת. נבדק מול הבדיקה
+                    # הגולמית ולא מול הדגלים, כי הכלל יושב לרוב מתחת לסף
+                    # הכיול העצמי ואחרת הנטרול לא היה נכנס לפעולה כלל.
+                    # ממוקם מיד אחרי גמול השתלמות ולפני דריכות/גמול מנהל:
+                    # 4624 יושב בבסיס החישוב של 798 ושל שאר האחוזיות, ולכן
+                    # הפרש רטרו ב-1999 מתגלגל אליהן — הייחוס הוא לשורש ולא
+                    # לתסמין.
+                    err_cat = "h1999"
                 elif 798 in flags:
                     err_cat = "brich"
                 elif 4983 in flags:
@@ -262,12 +272,6 @@ def collect(paths, pure=False):
                     # בוררות מיסים: תקין ב-Progim; פערים בקבצים נובעים מחישובי
                     # הפרשים (רטרו) — סיבה ידועה, מנוטרלת.
                     err_cat = "borerut"
-                elif gap_4624 is not None:
-                    # הסכם 1999: הפערים נובעים מהפרשי רטרו (בולט אצל עובדים
-                    # בעלי ותק נמוך) — סיבה ידועה, מנוטרלת. נבדק מול הבדיקה
-                    # הגולמית ולא מול הדגלים, כי הכלל יושב לרוב מתחת לסף
-                    # הכיול העצמי ואחרת הנטרול לא היה נכנס לפעולה כלל.
-                    err_cat = "h1999"
                 else:
                     err_cat = "real"
                 # Per-code gap tally for the exec dashboard: base (when off) plus
@@ -325,14 +329,14 @@ def collect(paths, pure=False):
         s["ft_multi"] = sum(1 for x in ft if x["status"] == "multi_period")
         for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
-                         ("brich", "inv_brich"), ("mnhal", "inv_mnhal"),
-                         ("borerut", "inv_borerut"),
-                         ("h1999", "inv_h1999"), ("real", "inv_real")):
+                         ("h1999", "inv_h1999"), ("brich", "inv_brich"),
+                         ("mnhal", "inv_mnhal"), ("borerut", "inv_borerut"),
+                         ("real", "inv_real")):
             s[key] = sum(1 for x in ft
                          if x["status"] == "invalid" and x["err_cat"] == cat)
         ft_active = s["ft_valid"] + sum(
             s[k] for k in ("inv_student", "inv_vatek", "inv_base", "inv_gmul",
-                           "inv_brich", "inv_mnhal", "inv_borerut", "inv_h1999",
+                           "inv_h1999", "inv_brich", "inv_mnhal", "inv_borerut",
                            "inv_real"))
         s["real_pct"] = round(s["inv_real"] / ft_active * 100, 2) if ft_active else 0.0
     code_gap_list = sorted(
@@ -491,12 +495,12 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
     for k in ("part_time", "ft", "ft_valid", "ft_no_base", "ft_multi",
-              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_brich",
-              "inv_mnhal", "inv_borerut", "inv_h1999", "inv_real"):
+              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_h1999",
+              "inv_brich", "inv_mnhal", "inv_borerut", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _ft_active = (tot["ft_valid"] + tot["inv_student"] + tot["inv_vatek"]
-                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_brich"]
-                  + tot["inv_mnhal"] + tot["inv_borerut"] + tot["inv_h1999"]
+                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_h1999"]
+                  + tot["inv_brich"] + tot["inv_mnhal"] + tot["inv_borerut"]
                   + tot["inv_real"])
     _real_pct = (tot["inv_real"] / _ft_active) if _ft_active else 0.0
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
@@ -514,25 +518,29 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
 
     head_r = 7
     # Neutralization chain (each invalid full-timer counts once, in this order):
-    # base → gmul → דריכות → גמול מנהל. What remains is the REAL error count.
+    # ותק סטודנט → ותק קטוע → בסיס → גמול → תוספת 1999 → דריכות → גמול מנהל →
+    # בוררות מיסים. What remains is the REAL error count. 1999 sits directly
+    # after גמול because 4624 is part of the base of 798 and the other percent
+    # tosafot, so a retro difference there propagates into them — attribute to
+    # the root, not the symptom.
     # רטרו/רב-תקופתי is a SEPARATE class (base code appears twice — the slip
     # merges two pay periods), not part of the chain, shown for reference only.
-    # A clean PARTITION: columns D..N are mutually exclusive and sum to C
+    # A clean PARTITION: columns D..P are mutually exclusive and sum to C
     # (עובדים) — presentable without reconciliation notes.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "ללא בסיס (מלאה)",
               "רטרו (מלאה)", "תקין (מלאה)", "שגויי ותק סטודנט", "שגויי ותק קטוע",
-              "שגויי בסיס", "שגויי גמול", "שגויי דריכות", "שגויי גמול מנהל",
-              "שגויי בוררות מיסים", "שגויי תוספת 1999", "שגויים אמיתיים",
+              "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
+              "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויים אמיתיים",
               "% שגויים אמיתיים"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 11, 11, 11, 12, 13])
+                [11, 18, 10, 10, 10, 10, 11, 11, 10, 10, 10, 11, 10, 11, 11, 12, 13])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("ft_no_base", 0), r.get("ft_multi", 0),
                 r.get("ft_valid", 0), r.get("inv_student", 0),
                 r.get("inv_vatek", 0), r.get("inv_base", 0), r.get("inv_gmul", 0),
-                r.get("inv_brich", 0), r.get("inv_mnhal", 0),
-                r.get("inv_borerut", 0), r.get("inv_h1999", 0),
+                r.get("inv_h1999", 0), r.get("inv_brich", 0),
+                r.get("inv_mnhal", 0), r.get("inv_borerut", 0),
                 r.get("inv_real", 0), r.get("real_pct", 0.0) / 100]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
@@ -554,8 +562,8 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["ft_no_base"],
              tot["ft_multi"], tot["ft_valid"], tot["inv_student"],
              tot["inv_vatek"], tot["inv_base"], tot["inv_gmul"],
-             tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
-             tot["inv_real"], real_pct_tot]
+             tot["inv_h1999"], tot["inv_brich"], tot["inv_mnhal"],
+             tot["inv_borerut"], tot["inv_real"], real_pct_tot]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)

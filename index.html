@@ -1297,10 +1297,12 @@ async function runBulk(files){
             else if(vatekTrunc) errCat='vatek';
             else if(baseDiff!==null && Math.abs(baseDiff)>1) errCat='base';
             else if(gf[667]||gf[897]) errCat='gmul';
+            // 1999 יושב מיד אחרי גמול השתלמות: 4624 נמצא בבסיס החישוב של 798
+            // ושל שאר האחוזיות, ולכן הפרש רטרו בו מתגלגל אליהן — מייחסים לשורש.
+            else if(gap4624!==null) errCat='h1999';
             else if(gf[798]) errCat='brich';
             else if(gf[4983]) errCat='mnhal';
             else if(gf[741]) errCat='borerut';   // בוררות מיסים: פערי הפרשים (רטרו) — סיבה ידועה
-            else if(gap4624!==null) errCat='h1999';  // הסכם 1999: הפרשי רטרו — סיבה ידועה
             else errCat='real';
             // Per-code gap tally for the exec summary: the base (when off) plus
             // every flagged component, each with its ₪ magnitude.
@@ -1713,14 +1715,14 @@ async function downloadUnified(btnId,labelId){
     ws.addRow([]);
     // A clean PARTITION: columns D..O are mutually exclusive and sum to C.
     styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית','ללא בסיס (מלאה)',
-      'רטרו (מלאה)','תקין (מלאה)','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת 1999','שגויים אמיתיים','% שגויים אמיתיים'],
+      'רטרו (מלאה)','תקין (מלאה)','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויים אמיתיים','% שגויים אמיתיים'],
       [11,18,10,10,10,10,11,11,10,10,10,10,11,11,11,12,13]);
     const headR=ws.lastRow.number;
     for(const s of _bulkData.perFile){
       const fa=s.ft_valid+(s.inv_student||0)+(s.inv_vatek||0)+s.inv_base+s.inv_gmul+s.inv_brich+s.inv_mnhal+(s.inv_borerut||0)+(s.inv_h1999||0)+s.inv_real;
       const rp=fa?s.inv_real/fa:0;
       const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.ft_no_base||0,s.ft_multi||0,s.ft_valid,
-        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_h1999||0,s.inv_real,rp]);
+        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_real,rp]);
       for(let ci=3;ci<=16;ci++) r.getCell(ci).numFmt=INT_FMT;
       r.getCell(7).font={color:{argb:XL.GOODT}};
       [8,9,10,11,12,13,14,15].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
@@ -1729,7 +1731,7 @@ async function downloadUnified(btnId,labelId){
     }
     const lastR=ws.lastRow.number;
     const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.ft_no_base,tot.ft_multi,tot.ft_valid,
-      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_h1999,tot.inv_real,realPct]);
+      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_real,realPct]);
     trow.font={bold:true}; for(let ci=3;ci<=16;ci++) trow.getCell(ci).numFmt=INT_FMT;
     trow.getCell(16).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(17).numFmt='0.00%';
     // % real errors — LOW is good.
