@@ -607,7 +607,12 @@ def calculate(worker: WorkerInput, lookups: dict, pure: bool = False) -> SalaryR
 # more specific patterns are checked first (e.g. "קוד דרגה" before "דרגה").
 def _classify_header(h: str) -> Optional[str]:
     h = str(h).strip()
-    if "מסד" in h or "מסב" in h or "מזהה" in h or ("מספר" in h and "עובד" in h):
+    # worker id — dumps label it מסד / מסב / מזהה, and newer exports use the
+    # ID number instead ('תעודת זהות', 'ת.ז.', 'ת"ז', 'מספר זהות').
+    _hz = h.replace('"', "").replace("'", "").replace(".", "").replace(" ", "")
+    if ("מסד" in h or "מסב" in h or "מזהה" in h
+            or ("מספר" in h and "עובד" in h)
+            or "תעודתזהות" in _hz or "מספרזהות" in _hz or _hz in ("תז", "תזהות")):
         return "worker_id"
     if "קוד משרד" in h or "קוד גוף" in h or ("קוד" in h and "משרד/גוף" in h):
         return "ministry_code"
