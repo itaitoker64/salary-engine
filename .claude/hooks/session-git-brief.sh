@@ -64,12 +64,14 @@ REMOTE="origin/$BASE_BRANCH"
     REC="$(sed -n 's/.*<!-- head: \([0-9a-f]\{7,\}\) -->.*/\1/p' docs/HANDOFF.md | head -1)"
     CUR="$(git rev-parse --short HEAD 2>/dev/null)"
     echo
-    if [ -n "$REC" ] && ! git merge-base --is-ancestor "$REC" HEAD 2>/dev/null; then
+    if [ -z "$REC" ]; then
+      echo "--- docs/HANDOFF.md (no head marker — treat as unverified) ---"
+    elif ! git merge-base --is-ancestor "$REC" HEAD 2>/dev/null; then
       echo "--- docs/HANDOFF.md (WARNING: written at $REC, not an ancestor of $CUR) ---"
-    elif [ "$REC" != "$CUR" ]; then
-      echo "--- docs/HANDOFF.md (written at $REC; HEAD is now $CUR) ---"
-    else
+    elif git diff --quiet "$REC" HEAD -- . ':(exclude)docs/HANDOFF.md' 2>/dev/null; then
       echo "--- docs/HANDOFF.md (current) ---"
+    else
+      echo "--- docs/HANDOFF.md (STALE: code moved since $REC; HEAD is $CUR) ---"
     fi
     head -60 docs/HANDOFF.md
   else

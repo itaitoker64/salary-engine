@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Stop hook — a session that added commits must leave docs/HANDOFF.md current.
 #
-# HANDOFF.md carries `<!-- head: <sha> -->`. When HEAD has moved past that sha,
-# the handoff no longer describes the code and the next Claude would start from
-# a stale story, so the turn is blocked once with an explanation.
+# HANDOFF.md carries `<!-- head: <sha> -->`. The handoff counts as current when
+# nothing OTHER than HANDOFF.md itself has changed since that sha — writing the
+# handoff necessarily creates a commit the handoff cannot name, so an exact
+# sha match would be unsatisfiable. Otherwise the turn is blocked once with an
+# explanation.
 #
 # Fires at most ONCE per session (sentinel keyed by session_id) — a Stop hook
 # that keeps blocking would trap the session in a loop.
@@ -37,7 +39,12 @@ REC=""
 [ -f docs/HANDOFF.md ] && \
   REC="$(sed -n 's/.*<!-- head: \([0-9a-f]\{7,\}\) -->.*/\1/p' docs/HANDOFF.md | head -1)"
 
-[ "$REC" = "$CUR" ] && exit 0            # handoff already describes this HEAD
+# Current when no tracked file except the handoff itself has moved since REC.
+if [ -n "$REC" ] && git rev-parse --verify --quiet "$REC^{commit}" >/dev/null 2>&1; then
+  if git diff --quiet "$REC" HEAD -- . ':(exclude)docs/HANDOFF.md' 2>/dev/null; then
+    exit 0
+  fi
+fi
 
 touch "$SENTINEL"
 if [ -z "$REC" ]; then
