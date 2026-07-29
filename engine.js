@@ -547,6 +547,9 @@
       const active = r.status === STATUS.VALID || r.status === STATUS.INVALID;
       r.base_ok = active && r.status === STATUS.VALID;  // base-only verdict (pre pass B)
       const checks = (rules && active) ? checkWorkerComponents(rows, r.job_pct, rules, r.ministry_code, r.darga_label, r.droog, pure) : {};
+      // Expose the RAW checks too: consumers need gaps on rules the
+      // self-calibration gate silences (mirror of comp_checks in main.py).
+      r.comp_checks = checks;
       allChecks.push(checks);
       results.push(r);
     }
@@ -885,7 +888,7 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-29b';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-29c';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
