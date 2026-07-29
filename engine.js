@@ -256,7 +256,11 @@
         const v = amt.get(code) || 0;
         if (v <= 0.01) continue;
         const job = r.job_pct || 1.0;
-        let yesod = amt.get(CODE_YESOD) || 0;
+        // Paid base for the minimum-wage sum: the slip reports it either as
+        // יסוד משולב (1) or as the combined שכר משולב (10002). Use whichever the
+        // slip actually carries — falling straight through to the grade table
+        // would substitute the TABLE base for the PAID one. (Mirror of main.py.)
+        let yesod = (amt.get(CODE_YESOD) || 0) || (amt.get(CODE_COMBINED_BASE) || 0);
         if (yesod <= 0) {
           if (r.grade_base === null || r.grade_base === undefined) continue;
           yesod = r.grade_base * job;
@@ -881,7 +885,7 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-29a';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-29b';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,

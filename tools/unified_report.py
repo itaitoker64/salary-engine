@@ -282,6 +282,13 @@ def collect(paths, pure=False):
                 "gap_4983": gap_4983,
                 "total_slip": r.expected_total, "total_calc": total_calc,
                 "total_diff": total_diff, "status": r.status,
+                # Direction drives the process: a slip paid BELOW the rulebook
+                # is money owed to the worker (retro payment); paid ABOVE is a
+                # recovery case. Materiality separates actionable gaps from
+                # agora-level noise nobody will open a file for.
+                "direction": ("שולם בחסר" if total_diff > 0.5 else
+                              "שולם ביתר" if total_diff < -0.5 else ""),
+                "material": ("כן" if abs(total_diff) >= MATERIALITY else "לא"),
                 "flags": "; ".join(
                     f"{k} ({v['name']}): {v['slip']} במקום {v['expected']}"
                     for k, v in sorted(flags.items())),
@@ -324,6 +331,10 @@ def collect(paths, pure=False):
 
 # (key, header, width, number-format, is-gap-cell). Gap cells are red-tinted
 # when they carry a real value so the eye lands on them.
+# A gap below this is real but not worth opening a case for — the report keeps
+# it, and marks it so the work queue can be filtered to what matters.
+MATERIALITY = 100.0
+
 EMP_COLS = [
     ("month", "חודש שכר", 11, None, False), ("file", "קובץ", 18, None, False),
     ("worker_id", "מסד עובד", 12, INT, False), ("ministry", "משרד", 22, None, False),
@@ -334,7 +345,9 @@ EMP_COLS = [
     ("gap_798", "פער דריכות בי\"ח", 13, MONEY, True),
     ("gap_4983", "פער גמול מנהל", 12, MONEY, True),
     ("total_slip", "סכום בתלוש", 13, MONEY, False), ("total_calc", "סכום מחושב", 13, MONEY, False),
-    ("total_diff", "הפרש כולל", 12, MONEY, True), ("status_he", "סטטוס", 16, None, False),
+    ("total_diff", "הפרש כולל", 12, MONEY, True),
+    ("direction", "כיוון", 11, None, False), ("material", "מהותי", 8, None, False),
+    ("status_he", "סטטוס", 16, None, False),
     ("flags", "רכיבים חריגים", 30, None, False), ("diag", "אבחון", 30, None, False),
     ("progim_delta", "שוני מול Progim — והסבר", 42, None, False),
 ]
@@ -344,16 +357,20 @@ def _emp_sheet(wb, title, rows, table_name, highlight_invalid):
     ws = wb.create_sheet(title)
     ws.sheet_view.rightToLeft = True
     ws.freeze_panes = "D2"            # keep month/file/מסד visible when scrolling ₪ cols
-    _header_row(ws, 1, [he for _, he, _, _, _ in EMP_COLS],
-                [w for _, _, w, _, _ in EMP_COLS])
+    # The work queue carries a cumulative-₪ column; the full roster does not.
+    cols = list(EMP_COLS)
+    if rows and "cum_pct" in rows[0]:
+        cols.append(("cum_pct", "% מצטבר מהחשיפה", 15, "0.0%", False))
+    _header_row(ws, 1, [he for _, he, _, _, _ in cols],
+                [w for _, _, w, _, _ in cols])
     inv_font = Font(color=BAD_TXT, bold=True)
     inv_fill = PatternFill("solid", fgColor=BAD_BG)
     ok_font = Font(color=GOOD_TXT)
     warn_font = Font(color=WARN_TXT)
     for r_i, row in enumerate(rows, start=2):
         vals = [row.get(k) if k != "status_he" else STATUS_HE[row["status"]]
-                for k, _, _, _, _ in EMP_COLS]
-        for c_i, ((key, _, _, fmt, is_gap), v) in enumerate(zip(EMP_COLS, vals), start=1):
+                for k, _, _, _, _ in cols]
+        for c_i, ((key, _, _, fmt, is_gap), v) in enumerate(zip(cols, vals), start=1):
             cell = ws.cell(row=r_i, column=c_i, value=v)
             if fmt:
                 cell.number_format = fmt
@@ -370,7 +387,7 @@ def _emp_sheet(wb, title, rows, table_name, highlight_invalid):
         if highlight_invalid and row["status"] == "invalid":
             ws.cell(row=r_i, column=1).fill = inv_fill
     if rows:
-        ref = f"A1:{get_column_letter(len(EMP_COLS))}{len(rows) + 1}"
+        ref = f"A1:{get_column_letter(len(cols))}{len(rows) + 1}"
         table = Table(displayName=table_name, ref=ref)
         table.tableStyleInfo = TableStyleInfo(name="TableStyleLight15",
                                               showRowStripes=True)
@@ -460,9 +477,15 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
     _kpi(ws, 4, 4, 1, "% שגויים אמיתיים", _real_pct,
          GOOD_TXT if _real_pct <= 0.01 else BAD_TXT, "0.00%")
-    _kpi(ws, 4, 5, 1, "שווי חריגות ₪", round(anom_total), BAD_TXT, INT)
-    _kpi(ws, 4, 6, 1, "ללא בסיס (מלאה)", tot["ft_no_base"], WARN_TXT, INT)
-    _kpi(ws, 4, 7, 1, "רטרו (מלאה)", tot["ft_multi"], WARN_TXT, INT)
+    # Direction split — two different processes: money owed to workers vs money
+    # to recover. Gross exposure, not net, so neither side is hidden.
+    _under = sum(r["total_diff"] for r in per_emp
+                 if r["err_cat"] == "real" and (r["total_diff"] or 0) > 0.5)
+    _over = sum(-r["total_diff"] for r in per_emp
+                if r["err_cat"] == "real" and (r["total_diff"] or 0) < -0.5)
+    _kpi(ws, 4, 5, 1, "שולם בחסר ₪ (לתשלום)", round(_under), WARN_TXT, INT)
+    _kpi(ws, 4, 6, 1, "שולם ביתר ₪ (להשבה)", round(_over), BAD_TXT, INT)
+    _kpi(ws, 4, 7, 1, "חשיפה ברוטו ₪", round(_under + _over), BAD_TXT, INT)
 
     head_r = 7
     # Neutralization chain (each invalid full-timer counts once, in this order):
@@ -569,6 +592,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     inv = [r for r in per_emp if r["status"] == "invalid"
            and r["full_time"] and r["err_cat"] == "real"]
     inv.sort(key=_anomaly, reverse=True)
+    # Cumulative share of the ₪ exposure, so the queue answers "how far down do
+    # I have to work to cover most of the money".
+    _tot_anom = sum(_anomaly(r) for r in inv) or 1.0
+    _run = 0.0
+    for r in inv:
+        _run += _anomaly(r)
+        r["cum_pct"] = round(_run / _tot_anom, 4)
     _emp_sheet(wb, "שגויים לבדיקה", inv, "Invalids", highlight_invalid=False)
 
     # ---- שינויי סטטוס בין חודשים -------------------------------------------------
@@ -619,6 +649,58 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
             c5 = wsr.cell(row=i, column=5, value=r["sum"]); c5.number_format = MONEY
             c6 = wsr.cell(row=i, column=6, value=r["suggestion"]); c6.alignment = Alignment(wrap_text=True)
 
+    # ---- ריכוז לפי סיבה — the one-page answer for management ------------------
+    # Every real error grouped by the component that caused it, so a systemic
+    # single-code problem is instantly visible instead of being buried in rows.
+    real_rows = [r for r in per_emp if r["err_cat"] == "real"]
+    cause = defaultdict(lambda: {"n": 0, "sum": 0.0, "under": 0, "over": 0})
+    for r in real_rows:
+        keys = set()
+        for part in (r["flags"] or "").split(";"):
+            code = part.strip().split(" ")[0]
+            if code.isdigit():
+                keys.add(code)
+        if not keys:
+            keys = {"בסיס/ותק"}
+        for k in keys:
+            c = cause[k]
+            c["n"] += 1
+            c["sum"] += abs(r["total_diff"] or 0.0)
+            if (r["total_diff"] or 0) > 0.5:
+                c["under"] += 1
+            elif (r["total_diff"] or 0) < -0.5:
+                c["over"] += 1
+    if cause:
+        ws5 = wb.create_sheet("ריכוז לפי סיבה")
+        ws5.sheet_view.rightToLeft = True
+        ws5.merge_cells("A1:G1")
+        t5 = ws5.cell(row=1, column=1,
+                      value="שגיאות אמת לפי הרכיב הגורם — מה מערכתי ומה נקודתי")
+        t5.font = Font(bold=True, size=12, color=NAVY)
+        ws5.row_dimensions[1].height = 22
+        _header_row(ws5, 2, ["סמל / סיבה", "שם הרכיב", "עובדים",
+                             "% מכלל שגיאות האמת", "חשיפה ₪", "שולם בחסר",
+                             "שולם ביתר"], [14, 24, 11, 16, 14, 12, 12])
+        ws5.freeze_panes = "A3"
+        n_real = len(real_rows) or 1
+        names = {str(g["code"]): g["name"] for g in (code_gaps or [])}
+        for i, (k, c) in enumerate(sorted(cause.items(), key=lambda kv: -kv[1]["n"]),
+                                   start=3):
+            vals = [k, names.get(k, "שכר בסיס / ותק" if k == "בסיס/ותק" else ""),
+                    c["n"], c["n"] / n_real, round(c["sum"], 2), c["under"], c["over"]]
+            for c_i, v in enumerate(vals, start=1):
+                cell = ws5.cell(row=i, column=c_i, value=v)
+                cell.border = THIN_BOX
+                if c_i in (3, 6, 7):
+                    cell.number_format = INT
+                if c_i == 4:
+                    cell.number_format = "0.0%"
+                    # A single code owning most of the errors is systemic.
+                    if v >= 0.5:
+                        cell.font = Font(bold=True, color=BAD_TXT)
+                if c_i == 5:
+                    cell.number_format = MONEY
+
     # ---- פילוח משרדים ----------------------------------------------------------
     agg = defaultdict(lambda: Counter())
     for r in per_emp:
@@ -626,22 +708,37 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     ws4 = wb.create_sheet("פילוח משרדים")
     ws4.sheet_view.rightToLeft = True
     ws4.freeze_panes = "A2"
-    _header_row(ws4, 1, ["משרד / גוף", "עובדים", "תקין", "שגוי", "% תקינות (פעילים)"],
-                [26, 11, 11, 9, 16])
-    rows = sorted(agg.items(), key=lambda kv: -sum(kv[1].values()))
+    # Real errors + their ₪ per ministry: where the remaining work actually is.
+    real_by_m, money_by_m = Counter(), defaultdict(float)
+    for r in per_emp:
+        if r["err_cat"] == "real":
+            m = r["ministry"] or "—"
+            real_by_m[m] += 1
+            money_by_m[m] += abs(r["total_diff"] or 0.0)
+    _header_row(ws4, 1, ["משרד / גוף", "עובדים", "תקין", "שגוי",
+                         "% תקינות (פעילים)", "שגיאות אמת", "חשיפה ₪"],
+                [26, 11, 11, 9, 16, 12, 14])
+    # Sorted by real errors — the ministries that still need work come first.
+    rows = sorted(agg.items(),
+                  key=lambda kv: (-real_by_m.get(kv[0], 0), -sum(kv[1].values())))
     for i, (name, c) in enumerate(rows, start=2):
         act = c["valid"] + c["invalid"]
         vals = [name, sum(c.values()), c["valid"], c["invalid"],
-                (c["valid"] / act) if act else None]
+                (c["valid"] / act) if act else None,
+                real_by_m.get(name, 0), round(money_by_m.get(name, 0.0), 2)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws4.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if c_i in (2, 3, 4):
+            if c_i in (2, 3, 4, 6):
                 cell.number_format = INT
             if c_i == 4 and c["invalid"]:
                 cell.font = Font(color=BAD_TXT, bold=True)
             if c_i == 5:
                 cell.number_format = "0.0%"
+            if c_i == 6 and v:
+                cell.font = Font(color=BAD_TXT, bold=True)
+            if c_i == 7:
+                cell.number_format = MONEY
     last4 = len(rows) + 1
     ws4.conditional_formatting.add(
         f"B2:B{last4}", DataBarRule(start_type="num", start_value=0,
