@@ -26,11 +26,19 @@ def extract(xlsm_path: str) -> dict:
 
     # DARGA: col B = grade label, col D = base salary at seniority 0
     darga: dict[str, float] = {}
+    # A few labels (10, 11, 12, 12+) appear TWICE: once in the main scale near
+    # the top and again in a separate high block at the bottom. Keep the FIRST
+    # occurrence — that is the scale the גולמי files actually pay by (verified:
+    # every worker at those grades matches the first block, none the second).
+    # Last-write-wins would substitute a ~6× larger base and flag them all.
     for row in wb["DARGA"].iter_rows(min_row=2, values_only=True):
         label, base = row[1], row[3]
         if label is not None and base is not None:
+            key = str(label).strip()
+            if key in darga:
+                continue
             try:
-                darga[str(label).strip()] = float(base)
+                darga[key] = float(base)
             except (TypeError, ValueError):
                 pass
 
