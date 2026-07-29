@@ -48,6 +48,14 @@ Partition still exact: 4,667 + 856 + 10 + 16,633 + 28 + 95 + 98 + 30 + 5 =
 22,422. Generated the workbook and confirmed header/data/totals alignment.
 20/20 tests pass; `node --check engine.js` clean.
 
+## Non-Progim additions on this branch (report these to the user)
+
+The chain reorder is **not** a Progim rule — the workbook has no buckets, and a
+1999 gap there is simply a gap. Declared in `docs/PROGIM_IMPROVEMENTS.md` →
+"שכבת הנטרול בלוח הבקרה", with what the workbook needs to retire it: a
+month-of-retirement × dirug rate table for 4624, like `heskem 2016` has for
+5401. Until then the bucket hides real errors — see item 2 below.
+
 ## Open — read before touching the chain
 
 **1. `main` moved the column but not the priority.** Commit `4e3ce1b` says it

@@ -5,16 +5,40 @@ from the חוקה (the Progim workbook) and reports where the real slip disagree
 The audience is מנהלת הגמלאות, so a number on screen has to survive being
 questioned in a meeting.
 
-## The standing rule: never flag a legitimate worker
+## The product is the Progim workbook, not this engine
 
-A false positive costs more than a miss. Every validation rule must trace to a
-cell in the Progim workbook — a sheet, a formula, a table. Do not reverse-
-engineer a rule from the payroll data and do not keep a rule that "mostly"
-works: if a check fails for workers who are in fact paid correctly, drop it and
-say so.
+The user **sells the Progim**. This software exists to test employee files
+through it and, by doing so, to find what the workbook gets wrong. Every place
+the engine has to compensate is a defect in the thing being sold.
 
-Rules that cannot be sourced belong in `docs/PROGIM_FIXES.md` as a defect to fix
-in the workbook, not as a patch in the engine.
+**So: anything the engine does that the Progim does not, you must surface
+loudly — never bury it in code.** Not as a comment in a function; in a document
+the user reads, saying what was added, why the workbook forced it, and what the
+workbook would need so the addition could be deleted.
+
+Where each kind goes:
+
+- `docs/PROGIM_IMPROVEMENTS.md` — every engine behaviour that has no Progim
+  source (tolerances, heuristics, the dashboard's whole neutralization layer).
+  Each entry names the fix that would retire it.
+- `docs/PROGIM_FIXES.md` — defects in the workbook itself, with the evidence
+  and the exact instruction to fix it.
+- The reply to the user — call it out in that turn. Do not let a divergence
+  reach `main` mentioned only in a commit message.
+
+When a check cannot be sourced to a Progim cell, the default is to **not ship
+it as a silent rule**: report the gap as something to fix in the workbook.
+
+## Never flag a legitimate worker
+
+A false positive costs more than a miss. Do not reverse-engineer a rule from
+the payroll data, and do not keep a rule that "mostly" works — if it fails for
+workers who are in fact paid correctly, drop it and say so.
+
+Suppressing a gap is equally consequential in the other direction: a
+neutralization bucket that swallows unrelated errors makes the headline number
+look good and hides real money. Whenever you widen a bucket, check what else
+falls into it and report that.
 
 ## Two Claudes share this repo
 
