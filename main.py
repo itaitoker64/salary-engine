@@ -907,6 +907,21 @@ def build_progim_recommendations(pure_entries, smart_entries, rules) -> list:
 # ---------------------------------------------------------------------------
 BASE_NAMES = {CODE_YESOD: "יסוד משולב", CODE_COMBINED_BASE: "שכר משולב",
               CODE_VETEK_TOSEFET: "תוספת ותק"}
+# Hebrew labels for the batch summary columns, in the DataFrame's own order —
+# the Excel tabs must not show raw field names in a report that goes out.
+# The English keys stay as-is: they are the CSV/API contract.
+BATCH_HEADERS_HE = {
+    "worker_id": "מסד עובד", "ministry_code": "קוד משרד",
+    "ministry_name": "שם משרד", "droog": "דירוג", "kod_darga": "קוד דרגה",
+    "darga_label": "דרגה", "vatek": "ותק", "job_pct": "חלקיות",
+    "grade_base": "שכר יסוד (דרגה)", "vatek_mult": "מקדם ותק",
+    "total_calculated": "סכום מחושב", "total_expected": "סכום בתלוש",
+    "total_diff": "הפרש כולל", "gmul_diff": "הפרש גמולים",
+    "total_match": "תואם", "status": "סטטוס",
+    "flagged_components": "רכיבים חריגים", "n_components": "מס' רכיבים",
+    "errors": "אבחון",
+}
+
 STATUS_HE = {STATUS_VALID: "תקין", STATUS_INVALID: "שגוי",
              STATUS_NO_BASE: "ללא שכר בסיס פעיל", STATUS_MULTI: "רטרו / רב-תקופתי"}
 
@@ -1703,10 +1718,19 @@ async def batch_calculate(file: UploadFile = File(...)):
         for sheet_name, df in (("תקין", valid_df), ("לבדיקה", review_df)):
             ws = wb.create_sheet(sheet_name)
             ws.sheet_view.rightToLeft = True
-            ws.append(list(summary_df.columns))
+            cols = list(summary_df.columns)
+            ws.append([BATCH_HEADERS_HE.get(c, c) for c in cols])
+            i_match = cols.index("total_match") if "total_match" in cols else -1
+            i_status = cols.index("status") if "status" in cols else -1
             clean = df.where(pd.notnull(df), None)
             for row in clean.itertuples(index=False):
-                ws.append([v.item() if hasattr(v, "item") else v for v in row])
+                vals = [v.item() if hasattr(v, "item") else v for v in row]
+                # Localize the two enum-ish cells too, so no English leaks out.
+                if i_match >= 0 and isinstance(vals[i_match], bool):
+                    vals[i_match] = "כן" if vals[i_match] else "לא"
+                if i_status >= 0:
+                    vals[i_status] = STATUS_HE.get(vals[i_status], vals[i_status])
+                ws.append(vals)
         append_report_sheet(wb, entries)
         out = io.BytesIO(); wb.save(out); out.seek(0)
         total = len(summary_df); valid = len(valid_df)

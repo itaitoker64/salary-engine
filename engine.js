@@ -818,6 +818,13 @@
     'darga_label', 'vatek', 'job_pct', 'grade_base', 'vatek_mult', 'total_calculated',
     'total_expected', 'total_diff', 'gmul_diff', 'total_match', 'status',
     'flagged_components', 'n_components', 'errors'];
+  // Hebrew labels for the same columns, in the same order — used by the Excel
+  // sheets (a report that goes to מנהלת הגמלאות must not show raw field names).
+  // BATCH_COLUMNS itself stays English: it is the CSV/API contract.
+  const BATCH_HEADERS_HE = ['מסד עובד', 'קוד משרד', 'שם משרד', 'דירוג', 'קוד דרגה',
+    'דרגה', 'ותק', 'חלקיות', 'שכר יסוד (דרגה)', 'מקדם ותק', 'סכום מחושב',
+    'סכום בתלוש', 'הפרש כולל', 'הפרש גמולים', 'תואם', 'סטטוס',
+    'רכיבים חריגים', 'מס\' רכיבים', 'אבחון'];
 
   function batchRow(r) {
     const flags = r.comp_flags || {};
@@ -888,14 +895,14 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-29d';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-29e';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
     checkWorkerComponents, trustedRuleCodes, resolvePlusGrades, normalizeGradeLabel,
     diagnoseResult, reportRows, REPORT_HEADERS,
     classifyHeader, loadGolmi, calculate, runEngine, buildProgimRecommendations,
-    accuracyReport, batchCSV, BATCH_COLUMNS, batchRow, buildPivot,
+    accuracyReport, batchCSV, BATCH_COLUMNS, BATCH_HEADERS_HE, batchRow, buildPivot,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.SalaryEngine = api;

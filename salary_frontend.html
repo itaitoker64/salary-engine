@@ -783,7 +783,7 @@ html.present .present-btn{background:#fff;color:var(--primary)}
      the validation, ExcelJS writes the highlighted export. Nothing is uploaded. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="engine.js?v=2026-07-29d"></script>
+<script src="engine.js?v=2026-07-29e"></script>
 <script>
 const API = '';
 // Surface the loaded engine build so a stale (browser-cached) engine.js is
@@ -1978,9 +1978,13 @@ const BATCH_WIDTHS=[12,10,22,7,10,8,8,9,13,10,13,13,12,13,10,16,34,10,30];
 const BATCH_MONEY=[9,10,11,12,13,14]; // grade_base..gmul_diff in BATCH_COLUMNS
 function batchSheet(wb,title,rows){
   const ws=wb.addWorksheet(title,{views:[{rightToLeft:true,state:'frozen',ySplit:1}]});
-  styleHeaderRow(ws,SalaryEngine.BATCH_COLUMNS,BATCH_WIDTHS);
+  styleHeaderRow(ws,SalaryEngine.BATCH_HEADERS_HE,BATCH_WIDTHS);
   for(const r of rows){
-    const row=ws.addRow(SalaryEngine.batchRow(r));
+    // Values are localized here (not in batchRow) so the CSV/API stay English.
+    const vals=SalaryEngine.batchRow(r);
+    vals[14]=vals[14]===true?'כן':vals[14]===false?'לא':vals[14];
+    vals[15]=BULK_STATUS_HE[r.status]||r.status;
+    const row=ws.addRow(vals);
     BATCH_MONEY.forEach(ci=>{ if(typeof row.getCell(ci).value==='number') row.getCell(ci).numFmt=MONEY_FMT; });
     const st=row.getCell(16);
     if(r.status==='valid') st.font={color:{argb:XL.GOODT}};
@@ -1988,7 +1992,7 @@ function batchSheet(wb,title,rows){
       for(const ci of [13,14]) if(typeof row.getCell(ci).value==='number') row.getCell(ci).font={color:{argb:XL.BADT}}; }
     else st.font={color:{argb:XL.WARNT}};
   }
-  ws.autoFilter={from:{row:1,column:1},to:{row:Math.max(rows.length+1,1),column:SalaryEngine.BATCH_COLUMNS.length}};
+  ws.autoFilter={from:{row:1,column:1},to:{row:Math.max(rows.length+1,1),column:SalaryEngine.BATCH_HEADERS_HE.length}};
   return ws;
 }
 // Single-file dashboard — the front sheet of both single-file downloads.
