@@ -888,7 +888,7 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-29c';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-29d';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
