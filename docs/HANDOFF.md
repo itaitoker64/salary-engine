@@ -1,4 +1,4 @@
-<!-- head: acfb8fd -->
+<!-- head: 0ae17f7 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
