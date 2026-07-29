@@ -1,4 +1,4 @@
-<!-- head: 0ae17f7 -->
+<!-- head: f075af5 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -55,6 +55,14 @@ The chain reorder is **not** a Progim rule — the workbook has no buckets, and 
 "שכבת הנטרול בלוח הבקרה", with what the workbook needs to retire it: a
 month-of-retirement × dirug rate table for 4624, like `heskem 2016` has for
 5401. Until then the bucket hides real errors — see item 2 below.
+
+## Progim coverage check (added this session)
+
+`progim_coverage()` splits pay codes into computable / referenced-only /
+unknown. Every run reports the non-computable ones in sheet "חסר ב-Progim" plus
+a dashboard banner — 53 codes and ₪5.4M on the 0108 file. This is a PRODUCT gap
+list, not an engine bug list: the workbook has no formula for that money. Keep
+it in the export; the user reads the Excel, not the docs.
 
 ## Open — read before touching the chain
 
