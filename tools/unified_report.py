@@ -287,7 +287,7 @@ def collect(paths, pure=False):
                 "ministry": r.ministry_name, "darga": r.darga_label,
                 "vatek": r.vatek_calculated, "job_pct": r.job_pct,
                 "full_time": (r.job_pct or 1.0) >= 0.999,
-                "err_cat": err_cat,
+                "err_cat": err_cat, "neutral_he": NEUTRAL_HE.get(err_cat, ""),
                 "base_slip": round(bs, 2),
                 "base_calc": round(bc, 2) if bc else None,
                 "base_diff": base_diff,
@@ -346,6 +346,13 @@ def collect(paths, pure=False):
 
 # (key, header, width, number-format, is-gap-cell). Gap cells are red-tinted
 # when they carry a real value so the eye lands on them.
+# Hebrew label per neutralization bucket, shown in the work queue so a
+# neutralized row is visible and filterable instead of silently dropped.
+NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
+              "gmul": "גמול השתלמות", "brich": "דריכות בי\"ח",
+              "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
+              "h1999": "תוספת 1999", "real": ""}
+
 # A gap below this is real but not worth opening a case for — the report keeps
 # it, and marks it so the work queue can be filtered to what matters.
 MATERIALITY = 100.0
@@ -363,6 +370,7 @@ EMP_COLS = [
     ("total_slip", "סכום בתלוש", 13, MONEY, False), ("total_calc", "סכום מחושב", 13, MONEY, False),
     ("total_diff", "הפרש כולל", 12, MONEY, True),
     ("direction", "כיוון", 11, None, False), ("material", "מהותי", 8, None, False),
+    ("neutral_he", "סיבת נטרול", 14, None, False),
     ("status_he", "סטטוס", 16, None, False),
     ("flags", "רכיבים חריגים", 30, None, False), ("diag", "אבחון", 30, None, False),
     ("progim_delta", "שוני מול Progim — והסבר", 42, None, False),
@@ -607,9 +615,11 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
                         color="FFD03B3B", showValue=True))
 
     # ---- שגויים לבדיקה (ממוין לפי ₪) --------------------------------------------
-    inv = [r for r in per_emp if r["status"] == "invalid"
-           and r["full_time"] and r["err_cat"] == "real"]
-    inv.sort(key=_anomaly, reverse=True)
+    # Every invalid full-timer stays in the queue — a neutralized row is
+    # LABELLED (סיבת נטרול), never dropped, so the sheet remains the full
+    # work list. Real errors sort first, then by ₪ within each group.
+    inv = [r for r in per_emp if r["status"] == "invalid" and r["full_time"]]
+    inv.sort(key=lambda r: (r["err_cat"] != "real", -_anomaly(r)))
     # Cumulative share of the ₪ exposure, so the queue answers "how far down do
     # I have to work to cover most of the money".
     _tot_anom = sum(_anomaly(r) for r in inv) or 1.0

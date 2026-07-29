@@ -783,7 +783,7 @@ html.present .present-btn{background:#fff;color:var(--primary)}
      the validation, ExcelJS writes the highlighted export. Nothing is uploaded. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="engine.js?v=2026-07-29c"></script>
+<script src="engine.js?v=2026-07-29d"></script>
 <script>
 const API = '';
 // Surface the loaded engine build so a stale (browser-cached) engine.js is
@@ -1326,6 +1326,7 @@ async function runBulk(files){
             r.expected_total, totalCalc, totalDiff,
             totalDiff>0.5?'שולם בחסר':totalDiff<-0.5?'שולם ביתר':'',
             Math.abs(totalDiff)>=MATERIALITY?'כן':'לא',
+            NEUTRAL_HE[errCat]||'',
             BULK_STATUS_HE[r.status]||r.status, flags, diag, delta,
             r.status, fullTime, errCat]);
         }
@@ -1372,7 +1373,7 @@ async function runBulk(files){
 // ₪ magnitude of a bulk per-employee row's anomaly: the larger of the base gap
 // (idx 9) and the corrected-total gap (idx 14, which already folds in every
 // component correction incl. גמול), so a component-only mismatch still ranks.
-const R_STATUS=24, STATUS_RAW_IDX=24, FT_IDX=25, ERRCAT_IDX=26;
+const R_STATUS=25, STATUS_RAW_IDX=25, FT_IDX=26, ERRCAT_IDX=27;
 function rowAnomaly(r){ return Math.max(Math.abs(r[9]||0), Math.abs(r[17]||0)); }
 // Sum of anomaly ₪ per file key (month+name), computed from perEmp rows.
 function anomalySums(perEmp){
@@ -1598,13 +1599,18 @@ const EMP_SPEC=[
   {h:'פער תוספת 1999',w:13,fmt:'m',diff:1},
   {h:'סכום בתלוש',w:13,fmt:'m'}, {h:'סכום מחושב',w:13,fmt:'m'},
   {h:'הפרש כולל',w:12,fmt:'m',diff:1},
-  {h:'כיוון',w:11}, {h:'מהותי',w:8},
+  {h:'כיוון',w:11}, {h:'מהותי',w:8}, {h:'סיבת נטרול',w:14},
   {h:'סטטוס',w:16,status:1}, {h:'רכיבים חריגים',w:30}, {h:'אבחון',w:30},
   {h:'שוני מול Progim — והסבר',w:42},
 ];
 // A gap below this is real but not worth opening a case for (mirror of
 // MATERIALITY in tools/unified_report.py).
 const MATERIALITY=100.0;
+// Hebrew label per neutralization bucket — shown in the work queue so a
+// neutralized row is visible and filterable instead of silently dropped.
+const NEUTRAL_HE={student:'ותק סטודנט',vatek:'ותק קטוע',base:'שכר בסיס',
+  gmul:'גמול השתלמות',brich:'דריכות בי"ח',mnhal:'גמול מנהל',
+  borerut:'בוררות מיסים',h1999:'תוספת 1999',real:''};
 const UNIFIED_EMP_HEAD=EMP_SPEC.map(c=>c.h);
 // Workbook palette (light surface; status colors always paired with a label)
 const XL={NAVY:'FF1E3A5F', WHITE:'FFFFFFFF', TILE:'FFF4F5F7', MUTED:'FF6B7280',
@@ -1741,8 +1747,11 @@ async function downloadUnified(){
       {type:'dataBar',minLength:0,maxLength:100,priority:5,cfvo:[{type:'num',value:0},{type:'max'}],color:{argb:XL.REDBAR}}]});
 
     // ---- שגויים לבדיקה: full-time workers whose error is real -------------------
-    const inv=_bulkData.perEmp.filter(r=>r[STATUS_RAW_IDX]==='invalid'&&r[FT_IDX]&&r[ERRCAT_IDX]==='real')
-      .slice().sort((a,b)=>rowAnomaly(b)-rowAnomaly(a));
+    // Every invalid full-timer stays in the queue — a neutralized row is
+    // LABELLED (סיבת נטרול), never dropped. Real errors sort first.
+    const inv=_bulkData.perEmp.filter(r=>r[STATUS_RAW_IDX]==='invalid'&&r[FT_IDX])
+      .slice().sort((a,b)=>
+        ((a[ERRCAT_IDX]!=='real')-(b[ERRCAT_IDX]!=='real')) || rowAnomaly(b)-rowAnomaly(a));
     empSheet(wb,'שגויים לבדיקה',inv,true);
     // ---- שינויי סטטוס בין חודשים ------------------------------------------------
     const flips=computeFlips(_bulkData.perEmp);
@@ -1787,7 +1796,7 @@ async function downloadUnified(){
     const cause=new Map();
     for(const r of realRows){
       const keys=new Set();
-      for(const part of String(r[21]||'').split(';')){
+      for(const part of String(r[22]||'').split(';')){
         const code=part.trim().split(' ')[0];
         if(/^\d+$/.test(code)) keys.add(code);
       }
