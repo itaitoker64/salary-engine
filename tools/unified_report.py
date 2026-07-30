@@ -164,16 +164,25 @@ def _gap_reason(code, rules):
 
 
 def collect(paths, pure=False):
-    """Run the engine per file; return (summary, per_emp, code_gaps, recs).
+    """Run the engine per file; return (summary, per_emp, code_gaps, recs,
+    uncovered).
 
     pure=True runs the Progim workbook literally (no add-ons) and returns, in
     `recs`, the aggregated recommendations of what to add to the Progim — every
     gap the add-ons would have cleared, itemized, never silently patched.
+
+    `uncovered` lists every pay code found on the slips that the Progim cannot
+    COMPUTE — either completely unknown to the workbook, or referenced only as
+    an input to other formulas. These are coverage gaps in the product itself
+    and get their own sheet in the export.
     """
     lookups = engine.get_lookups()
     rules = engine.get_rules()
     code_gaps = {}   # code -> {"name", "count", "sum"}
     rec_acc = {}     # key -> aggregated recommendation across files
+    computable, referenced_only, reported_codes = engine.progim_coverage(rules)
+    uncov = {}       # code -> {"name", "rows", "sum", "ministries", "known"}
+    seen_codes = {}  # code -> name, every code that appeared on a slip
     files = sorted(paths, key=lambda p: (pay_month_of(p) or datetime(2099, 1, 1),
                                          Path(p).name))
     summary, per_emp = [], []
@@ -192,6 +201,30 @@ def collect(paths, pure=False):
                     rec_acc[key] = dict(r)
                 else:
                     a["count"] += r["count"]; a["sum"] = round(a["sum"] + r["sum"], 2)
+        # Progim coverage gaps: every paid code the workbook cannot compute.
+        for e in entries:
+            r = e["result"]
+            for cp in r.components:
+                if cp.code is None:
+                    continue
+                # Running index of every code seen, for the classification sheet.
+                _c = int(cp.code)
+                seen_codes[_c] = seen_codes.get(_c) or (str(cp.name) if cp.name else "")
+                if _c in computable:
+                    continue
+                if int(cp.code) in engine.NON_PENSIONABLE:
+                    continue   # outside the Progim's scope — not a gap
+                code = int(cp.code)
+                u = uncov.setdefault(code, {
+                    "name": "", "rows": 0, "sum": 0.0, "ministries": set(),
+                    "known": code in referenced_only,
+                    "reported": code in reported_codes})
+                u["rows"] += 1
+                u["sum"] += abs(cp.expected or 0.0)
+                if r.ministry_name:
+                    u["ministries"].add(str(r.ministry_name))
+                if cp.name:
+                    u["name"] = str(cp.name)
         c = Counter(e["result"].status for e in entries)
         active = c["valid"] + c["invalid"]
         file_start = len(per_emp)   # breakdown is computed after the rows below
@@ -255,6 +288,16 @@ def collect(paths, pure=False):
                     err_cat = "base"
                 elif 667 in flags or 897 in flags:
                     err_cat = "gmul"
+                elif gap_4624 is not None:
+                    # הסכם 1999: הפערים נובעים מהפרשי רטרו (בולט אצל עובדים
+                    # בעלי ותק נמוך) — סיבה ידועה, מנוטרלת. נבדק מול הבדיקה
+                    # הגולמית ולא מול הדגלים, כי הכלל יושב לרוב מתחת לסף
+                    # הכיול העצמי ואחרת הנטרול לא היה נכנס לפעולה כלל.
+                    # ממוקם מיד אחרי גמול השתלמות ולפני דריכות/גמול מנהל:
+                    # 4624 יושב בבסיס החישוב של 798 ושל שאר האחוזיות, ולכן
+                    # הפרש רטרו ב-1999 מתגלגל אליהן — הייחוס הוא לשורש ולא
+                    # לתסמין.
+                    err_cat = "h1999"
                 elif 798 in flags:
                     err_cat = "brich"
                 elif 4983 in flags:
@@ -263,12 +306,10 @@ def collect(paths, pure=False):
                     # בוררות מיסים: תקין ב-Progim; פערים בקבצים נובעים מחישובי
                     # הפרשים (רטרו) — סיבה ידועה, מנוטרלת.
                     err_cat = "borerut"
-                elif gap_4624 is not None:
-                    # הסכם 1999: הפערים נובעים מהפרשי רטרו (בולט אצל עובדים
-                    # בעלי ותק נמוך) — סיבה ידועה, מנוטרלת. נבדק מול הבדיקה
-                    # הגולמית ולא מול הדגלים, כי הכלל יושב לרוב מתחת לסף
-                    # הכיול העצמי ואחרת הנטרול לא היה נכנס לפעולה כלל.
-                    err_cat = "h1999"
+                elif 600 in flags:
+                    # תוספת בית חולים (600): סכום קבוע בחוקה (75.26); הסוטים
+                    # ממנו הם ברובם פעימה קודמת של הסכום, שהחוקה אינה שומרת.
+                    err_cat = "bhol"
                 else:
                     err_cat = "real"
                 # Per-code gap tally for the exec dashboard: base (when off) plus
@@ -326,15 +367,15 @@ def collect(paths, pure=False):
         s["ft_multi"] = sum(1 for x in ft if x["status"] == "multi_period")
         for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
-                         ("brich", "inv_brich"), ("mnhal", "inv_mnhal"),
-                         ("borerut", "inv_borerut"),
-                         ("h1999", "inv_h1999"), ("real", "inv_real")):
+                         ("h1999", "inv_h1999"), ("brich", "inv_brich"),
+                         ("mnhal", "inv_mnhal"), ("borerut", "inv_borerut"),
+                         ("bhol", "inv_bhol"), ("real", "inv_real")):
             s[key] = sum(1 for x in ft
                          if x["status"] == "invalid" and x["err_cat"] == cat)
         ft_active = s["ft_valid"] + sum(
             s[k] for k in ("inv_student", "inv_vatek", "inv_base", "inv_gmul",
-                           "inv_brich", "inv_mnhal", "inv_borerut", "inv_h1999",
-                           "inv_real"))
+                           "inv_h1999", "inv_brich", "inv_mnhal", "inv_borerut",
+                           "inv_bhol", "inv_real"))
         # % is of the WHOLE file, so it reads as "x% of all slips are a real
         # error" — the number management quotes.
         s["real_pct"] = (round(s["inv_real"] / s["workers"] * 100, 2)
@@ -345,7 +386,50 @@ def collect(paths, pure=False):
          for code, g in code_gaps.items()),
         key=lambda x: -x["count"])
     recs = sorted(rec_acc.values(), key=lambda r: -r["count"])
-    return summary, per_emp, code_gap_list, recs
+    # ---- classification of every known code, by the three kinds + out-of-scope
+    codes_index = []
+    for code in sorted(set(seen_codes) | {int(k) for k in rules}):
+        rule = rules.get(code)
+        name = seen_codes.get(code) or (rule or {}).get("name", "") or ""
+        if code in engine.NON_PENSIONABLE:
+            kind, note = "לא משתתף בחישובים", "מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני (תקין)"
+        elif code in (engine.CODE_YESOD, engine.CODE_VETEK_TOSEFET,
+                      engine.CODE_COMBINED_BASE):
+            kind, note = "מחושב לפי נוסחה", "שכר יסוד × מקדם ותק × חלקיות"
+        elif code in set(engine.GMUL_A_CODES) | set(engine.GMUL_B_CODES):
+            kind, note = "מחושב לפי נוסחה", "גמול השתלמות — ערך תקני לקבוצת הדרגה"
+        elif rule is None:
+            kind, note = "לא מוגדר בחוברת", "פנסיוני אך חסר בחוברת — פער לסגירה"
+        elif rule.get("origin") == "manual":
+            kind, note = "סכום מוזן ידנית", rule.get("source", "")
+        elif rule.get("origin") == "hukka":
+            if rule.get("type") == "shekel":
+                kind = "סכום לפי חוקה"
+                note = f"סכום בחוקה: {rule.get('amounts')}"
+            else:
+                kind = "סכום לפי חוקה"
+                note = "סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא"
+        else:
+            kind = "מחושב לפי נוסחה"
+            if rule.get("type") == "percent":
+                note = "שער " + ", ".join(f"{x*100:g}%" for x in rule.get("rates", []))
+            elif rule.get("type") == "max22":
+                note = "MAX(22% מהמשולב+99, רצפת המשרד)"
+            elif rule.get("type") == "minimum":
+                note = "השלמה לשכר מינימום"
+            else:
+                note = ""
+        codes_index.append({"code": code, "name": name, "kind": kind, "note": note})
+
+    uncovered = sorted(
+        ({"code": code, "name": u["name"], "rows": u["rows"],
+          "sum": round(u["sum"], 2), "known": u["known"],
+          "reported": u["reported"],
+          "ministries": ", ".join(sorted(u["ministries"])[:3])
+                        + ("…" if len(u["ministries"]) > 3 else "")}
+         for code, u in uncov.items()),
+        key=lambda x: -x["sum"])
+    return summary, per_emp, code_gap_list, recs, uncovered, codes_index
 
 
 # (key, header, width, number-format, is-gap-cell). Gap cells are red-tinted
@@ -355,6 +439,7 @@ def collect(paths, pure=False):
 NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "brich": "דריכות בי\"ח",
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
+              "bhol": "תוספת בית חולים",
               "h1999": "תוספת 1999", "real": ""}
 
 # A gap below this is real but not worth opening a case for — the report keeps
@@ -457,7 +542,8 @@ def compute_flips(per_emp):
     return sorted(flips, key=lambda f: -f["diff"])
 
 
-def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
+def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
+                   uncovered=None, codes_index=None):
     wb = openpyxl.Workbook()
     anom_by_file = defaultdict(float)
     anom_total = 0.0
@@ -486,6 +572,22 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
                "העמודות (כולל 'תקין' בסוף) = סה\"כ העובדים. "
                "% שגויים אמיתיים = אמיתיים חלקי סה\"כ העובדים.")
     s.font = Font(size=10, color=MUTED)
+    # Coverage warning on the dashboard itself — the Progim is the product, so a
+    # hole in it must be visible on page one, not only in its own sheet.
+    if uncovered:
+        _rep = [u for u in uncovered if u.get("reported")]
+        _gap = [u for u in uncovered if not u.get("reported")]
+        s_gap = round(sum(u["sum"] for u in _gap))
+        s_rep = round(sum(u["sum"] for u in _rep))
+        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=18)
+        w = ws.cell(row=3, column=1,
+                    value=(f"\u26a0 {len(_gap)} סמלים (₪{s_gap:,}) ללא נוסחה ב-Progim "
+                           f"ואינם מוצהרים כמוזנים — חור בכיסוי החוברת. "
+                           f"בנוסף {len(_rep)} סמלים (₪{s_rep:,}) מוזנים מהקובץ "
+                           f"כפי שה-Progim מגדיר (תקין). ראה גיליון \"חסר ב-Progim\""))
+        w.font = Font(bold=True, size=10,
+                      color=BAD_TXT if _gap else WARN_TXT)
+        w.fill = PatternFill("solid", fgColor=BAD_BG if _gap else WARN_BG)
 
     tot = Counter()
     for r in summary:
@@ -496,12 +598,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
     for k in ("part_time", "ft", "ft_valid", "ft_no_base", "ft_multi",
-              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_brich",
-              "inv_mnhal", "inv_borerut", "inv_h1999", "inv_real"):
+              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_h1999",
+              "inv_brich", "inv_mnhal", "inv_borerut", "inv_bhol", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _ft_active = (tot["ft_valid"] + tot["inv_student"] + tot["inv_vatek"]
-                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_brich"]
-                  + tot["inv_mnhal"] + tot["inv_borerut"] + tot["inv_h1999"]
+                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_h1999"]
+                  + tot["inv_brich"] + tot["inv_mnhal"] + tot["inv_borerut"]
+                  + tot["inv_bhol"]
                   + tot["inv_real"])
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
@@ -519,10 +622,14 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
 
     head_r = 7
     # Neutralization chain (each invalid full-timer counts once, in this order):
-    # base → gmul → דריכות → גמול מנהל. What remains is the REAL error count.
+    # ותק סטודנט → ותק קטוע → בסיס → גמול → תוספת 1999 → דריכות → גמול מנהל →
+    # בוררות מיסים. What remains is the REAL error count. 1999 sits directly
+    # after גמול because 4624 is part of the base of 798 and the other percent
+    # tosafot, so a retro difference there propagates into them — attribute to
+    # the root, not the symptom.
     # רטרו/רב-תקופתי is a SEPARATE class (base code appears twice — the slip
     # merges two pay periods), not part of the chain, shown for reference only.
-    # A clean PARTITION: columns D..N are mutually exclusive and sum to C
+    # A clean PARTITION: columns D..P are mutually exclusive and sum to C
     # (עובדים) — presentable without reconciliation notes.
     # "תקין" sits LAST, after the %, so the problem columns read as one block.
     # The partition is unchanged — it is simply no longer contiguous: the
@@ -530,51 +637,53 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "ללא בסיס (מלאה)",
               "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
               "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
-              "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויים אמיתיים",
-              "% שגויים אמיתיים", "תקין (מלאה)"]
+              "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויי תוספת בית חולים",
+              "שגויים אמיתיים", "% שגויים אמיתיים", "תקין (מלאה)"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("ft_no_base", 0), r.get("ft_multi", 0),
                 r.get("inv_student", 0), r.get("inv_vatek", 0),
                 r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_h1999", 0),
                 r.get("inv_brich", 0), r.get("inv_mnhal", 0),
-                r.get("inv_borerut", 0), r.get("inv_real", 0),
+                r.get("inv_borerut", 0), r.get("inv_bhol", 0),
+                r.get("inv_real", 0),
                 r.get("real_pct", 0.0) / 100, r.get("ft_valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 15 or c_i == 17:
+            if 3 <= c_i <= 16 or c_i == 18:
                 cell.number_format = INT
-            if c_i == 17:
+            if c_i == 18:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14) and v:
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 15 and v:
+            if c_i == 16 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 16:
+            if c_i == 17:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
     tot_active = _ft_active
     real_pct_tot = _real_pct
+    # Same order as `labels`: תקין is the LAST column, % second to last.
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["ft_no_base"],
-             tot["ft_multi"], tot["ft_valid"], tot["inv_student"],
-             tot["inv_vatek"], tot["inv_base"], tot["inv_gmul"],
+             tot["ft_multi"], tot["inv_student"], tot["inv_vatek"],
+             tot["inv_base"], tot["inv_gmul"], tot["inv_h1999"],
              tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
-             tot["inv_real"], real_pct_tot]
+             tot["inv_bhol"], tot["inv_real"], real_pct_tot, tot["ft_valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 15 or c_i == 17:
+        if 3 <= c_i <= 16 or c_i == 18:
             cell.number_format = INT
-        if c_i == 16:
+        if c_i == 17:
             cell.number_format = "0.00%"
-        if c_i == 15:
+        if c_i == 16:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"P{head_r + 1}:P{last}"    # % שגויים אמיתיים
+    rng = f"Q{head_r + 1}:Q{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -589,13 +698,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"O{head_r + 1}:O{last}",          # שגויים אמיתיים
+        f"P{head_r + 1}:P{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
     # ---- פערים לפי סמל שכר (a second table, to the right of the per-file one) ---
     if code_gaps:
-        cbase = 19   # column S (leaves a gap after the 17-column per-file table)
+        cbase = 20   # column T (leaves a gap after the 18-column per-file table)
         heads = ["סמל", "שם רכיב", "כמות פערים", "שווי ₪", "הסיבה לפער"]
         widths = [9, 22, 12, 13, 40]
         for j, (h, w) in enumerate(zip(heads, widths)):
@@ -636,6 +745,93 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None):
         _run += _anomaly(r)
         r["cum_pct"] = round(_run / _tot_anom, 4)
     _emp_sheet(wb, "שגויים לבדיקה", inv, "Invalids", highlight_invalid=False)
+
+    # ---- ⚠ חסר ב-Progim: paid codes the workbook cannot compute -----------------
+    # The product being sold is the Progim. Every code here is money the payroll
+    # pays that the workbook has NO formula for — the engine accepts it as
+    # reported, unchecked. This sheet is the fix-list for the workbook itself.
+    if uncovered:
+        wsu = wb.create_sheet("חסר ב-Progim", 1)   # right after the dashboard
+        wsu.sheet_view.rightToLeft = True
+        wsu.sheet_properties.tabColor = "A82626"
+        t = wsu.cell(row=1, column=1,
+                     value="רכיבים שה-Progim אינו מחשב בנוסחה — "
+                           "אפור = מוזן מהקובץ (כך גם ב-Progim, תקין); "
+                           "אדום/לבן = חור בכיסוי החוברת")
+        t.font = Font(bold=True, size=12, color=BAD_TXT)
+        wsu.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
+        s = wsu.cell(row=2, column=1,
+                     value="'מוזכר כקלט בלבד' = הסמל מופיע ב-Progim רק בתוך "
+                           "בסיס/קיזוז/ספירת-מינימום של רכיב אחר; "
+                           "'לא קיים כלל' = הסמל אינו מופיע בחוברת בשום מקום. "
+                           "בשני המקרים אין נוסחה שמחשבת אותו — להוסיף לחוברת.")
+        s.font = Font(size=9, color=MUTED)
+        wsu.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
+        tot_u = round(sum(u["sum"] for u in uncovered))
+        c3 = wsu.cell(row=3, column=1,
+                      value=f"{len(uncovered)} סמלים · ₪{tot_u:,} שלא נבדקו")
+        c3.font = Font(bold=True, size=10, color=NAVY)
+        wsu.merge_cells(start_row=3, start_column=1, end_row=3, end_column=6)
+        _header_row(wsu, 4, ["סמל", "שם הרכיב", "סטטוס ב-Progim", "שורות",
+                             "₪ (מוחלט)", "גופים"],
+                    [8, 20, 18, 9, 13, 40])
+        for i, u in enumerate(uncovered, start=5):
+            status = ("מוזן מהקובץ — כך ב-Progim" if u.get("reported")
+                      else "מוזכר כקלט בלבד" if u["known"]
+                      else "לא קיים כלל")
+            vals = [u["code"], u["name"], status,
+                    u["rows"], u["sum"], u["ministries"]]
+            for c_i, v in enumerate(vals, start=1):
+                cell = wsu.cell(row=i, column=c_i, value=v)
+                cell.border = THIN_BOX
+                if c_i == 4:
+                    cell.number_format = INT
+                if c_i == 5:
+                    cell.number_format = MONEY
+            if u.get("reported"):
+                for c_i in range(1, 7):
+                    wsu.cell(row=i, column=c_i).fill = \
+                        PatternFill("solid", fgColor="FFEFEFEF")
+            elif not u["known"]:   # completely unknown — the louder class
+                wsu.cell(row=i, column=3).font = Font(bold=True, color=BAD_TXT)
+                for c_i in range(1, 7):
+                    wsu.cell(row=i, column=c_i).fill = \
+                        PatternFill("solid", fgColor=BAD_BG)
+        wsu.freeze_panes = "A5"
+
+    # ---- סיווג סמלי שכר: every code, ascending, by the three kinds -------------
+    if codes_index:
+        wsc = wb.create_sheet("סיווג סמלי שכר", 2)
+        wsc.sheet_view.rightToLeft = True
+        t = wsc.cell(row=1, column=1,
+                     value="כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום")
+        t.font = Font(bold=True, size=12, color=NAVY)
+        wsc.merge_cells(start_row=1, start_column=1, end_row=1, end_column=4)
+        KIND_COLOR = {"מחושב לפי נוסחה": GOOD_BG, "סכום לפי חוקה": "FFEAF2FB",
+                      "סכום מוזן ידנית": "FFEFEFEF",
+                      "לא משתתף בחישובים": "FFF4F5F7",   # מחוץ לתחולה — תקין
+                      "לא מוגדר בחוברת": BAD_BG}          # הפער שנסגר בהדרגה
+        cnt = Counter(x["kind"] for x in codes_index)
+        sub = wsc.cell(row=2, column=1, value=" · ".join(
+            f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה", "סכום לפי חוקה",
+                                       "סכום מוזן ידנית", "לא משתתף בחישובים",
+                                       "לא מוגדר בחוברת")
+            if cnt.get(k)))
+        sub.font = Font(size=10, color=MUTED)
+        wsc.merge_cells(start_row=2, start_column=1, end_row=2, end_column=4)
+        _header_row(wsc, 4, ["סמל", "שם הסמל", "סיווג", "פירוט"], [10, 26, 22, 46])
+        for i, x in enumerate(codes_index, start=5):
+            for c_i, v in enumerate((x["code"], x["name"], x["kind"], x["note"]), start=1):
+                cell = wsc.cell(row=i, column=c_i, value=v)
+                cell.border = THIN_BOX
+                if c_i == 4:
+                    cell.alignment = Alignment(wrap_text=True)
+            fill = KIND_COLOR.get(x["kind"])
+            if fill:
+                for c_i in range(1, 5):
+                    wsc.cell(row=i, column=c_i).fill = PatternFill("solid", fgColor=fill)
+        wsc.freeze_panes = "A5"
+        wsc.auto_filter.ref = f"A4:D{4 + len(codes_index)}"
 
     # ---- שינויי סטטוס בין חודשים -------------------------------------------------
     flips = compute_flips(per_emp)
@@ -883,9 +1079,12 @@ def main_cli():
                     help="הרצת ה-Progim כפי-שהוא (ללא תוספות התוכנה) + גיליון המלצות")
     args = ap.parse_args()
     t0 = time.time()
-    summary, per_emp, code_gaps, recs = collect(args.files, pure=args.pure)
+    summary, per_emp, code_gaps, recs, uncovered, codes_index = collect(
+        args.files, pure=args.pure)
     print(f"עיבוד: {time.time() - t0:.0f}ש · כותב workbook ({len(per_emp):,} שורות)...")
-    write_workbook(summary, per_emp, args.out, code_gaps, recs=recs if args.pure else None)
+    write_workbook(summary, per_emp, args.out, code_gaps,
+                   recs=recs if args.pure else None, uncovered=uncovered,
+                   codes_index=codes_index)
     inv = sum(1 for r in per_emp if r["status"] == "invalid")
     mode = "Progim בלבד" if args.pure else "רגיל"
     print(f"נכתב: {args.out} · {len(per_emp):,} רשומות · {inv:,} שגויים · מצב {mode}")

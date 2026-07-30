@@ -204,6 +204,61 @@ TRUST_MIN_MATCH = 0.97
 TRUST_MIN_N = 20
 
 
+# The Progim covers PENSIONABLE pay only. These components are outside its
+# scope by design — one-off or non-pensionable payments — so their absence from
+# the workbook is not a coverage gap and they must not appear on the fix-list.
+# Supplied by the user (the workbook's author); the גולמי "ביט פנסיוני" column
+# cannot be used instead — on the 0108 file it reads 'כן' for all 124,818 rows,
+# including for every code below, so it carries no signal.
+NON_PENSIONABLE = {
+    1927,   # ד. פגיעה בעבודה
+    1936,   # תאונת עבודה
+    1934,   # השלמה לפגיעה בעבודה
+    1901,   # תגמול מילואים
+    1266,   # דמי הבראה
+    1260,   # דמי הבראה
+    903,    # הפרש ברוטו
+    889,    # הפרש ברוטו
+    4457,   # הפקעת שכר
+    1088,   # ימי שביתה
+}
+
+
+def progim_coverage(rules) -> tuple:
+    """Split the code universe by how the Progim treats each pay code.
+
+    Returns (computable, referenced_only, reported):
+      computable      — the Progim produces the amount from a formula/table
+                        (percent, shekel, max22, minimum, the base split, gmul).
+      reported        — type 'reported'/'manual': the Progim does NOT compute
+                        the amount, it takes it as entered from the מנהלת
+                        הגמלאות file. Accepting the slip value is therefore
+                        CORRECT behaviour, not a coverage gap — but the amount
+                        must still feed the bases of the percent components
+                        that reference it (check_worker_components does that by
+                        summing base_codes off the slip).
+      referenced_only — the workbook knows the code only as an INPUT to another
+                        formula (base member, 4550 deduction, minimum counted)
+                        and has no entry of its own.
+
+    A slip code in none of the three is unknown to the workbook entirely. Only
+    the last two classes are real gaps in the product; the reports separate
+    them from `reported` so the fix-list stays honest.
+    """
+    computable = {CODE_YESOD, CODE_VETEK_TOSEFET, CODE_COMBINED_BASE}
+    computable |= set(GMUL_A_CODES) | set(GMUL_B_CODES)
+    reported, referenced = set(), set()
+    for rule in (rules or {}).values():
+        target = reported if rule.get("type") in ("reported", "manual") else computable
+        for c in rule.get("codes", []):
+            target.add(int(c))
+        for key in ("base_codes", "deductions", "counted", "toggle_codes"):
+            for c in rule.get(key) or []:
+                referenced.add(int(c))
+    reported -= computable
+    return computable, referenced - computable - reported, reported
+
+
 def _grade_split_rates(gs, darga_label, droog):
     """Rates admissible for a grade-tiered tosefet (מנמ"ש 2010, code 5216).
 

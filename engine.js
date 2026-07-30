@@ -179,6 +179,35 @@
   // גמולי השתלמות — population-calibrated checks (mirror of
   // check_gmul_population in main.py; keep in sync).
   const GMUL_A = [647, 667, 4268], GMUL_B = [897, 4269];
+
+  // The Progim covers PENSIONABLE pay only; these are outside its scope by
+  // design, so their absence is not a coverage gap (mirror of NON_PENSIONABLE
+  // in main.py; keep in sync). The file's 'ביט פנסיוני' column cannot stand in
+  // for this — it reads 'כן' on every row, including these.
+  const NON_PENSIONABLE = new Set([1927, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088]);
+
+  // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
+  // computable = codes the workbook can produce; referencedOnly = codes it
+  // knows only as inputs to other formulas. A slip code in neither set is
+  // completely unknown to the workbook. Every non-computable paid code is a
+  // coverage gap in the PRODUCT (the Progim), surfaced in the exported report.
+  function progimCoverage(rules) {
+    const computable = new Set([CODE_YESOD, CODE_VETEK_TOSEFET, CODE_COMBINED_BASE,
+                                ...GMUL_A, ...GMUL_B]);
+    const reported = new Set();
+    const referenced = new Set();
+    for (const k in (rules || {})) {
+      const rule = rules[k];
+      const target = (rule.type === 'reported' || rule.type === 'manual') ? reported : computable;
+      for (const c of rule.codes || []) target.add(Number(c));
+      for (const key of ['base_codes', 'deductions', 'counted', 'toggle_codes']) {
+        for (const c of rule[key] || []) referenced.add(Number(c));
+      }
+    }
+    for (const c of computable) { reported.delete(c); referenced.delete(c); }
+    for (const c of reported) referenced.delete(c);
+    return { computable, referencedOnly: referenced, reported };
+  }
   const GMUL_NOTE = 'חריגה מהערך התקני לקבוצת הדרגה — חשד להפרשי רטרו בתוך הרכיב';
 
   function checkGmulPopulation(results) {
@@ -900,6 +929,7 @@
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
     checkWorkerComponents, trustedRuleCodes, resolvePlusGrades, normalizeGradeLabel,
+    progimCoverage, NON_PENSIONABLE,
     diagnoseResult, reportRows, REPORT_HEADERS,
     classifyHeader, loadGolmi, calculate, runEngine, buildProgimRecommendations,
     accuracyReport, batchCSV, BATCH_COLUMNS, BATCH_HEADERS_HE, batchRow, buildPivot,
