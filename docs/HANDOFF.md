@@ -1,4 +1,4 @@
-<!-- head: d2c7ade -->
+<!-- head: 88c8809 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -98,6 +98,14 @@ VLOOKUP chains) — labelled `type: reported, origin: hukka`. Do not relabel the
 Open: 16 workers pay exactly 96.77% of the חוקה figure across several codes — a
 previous pulse the workbook keeps no history for. Reported to the user; do NOT
 invent the historical amount to silence it.
+
+## Scope: pensionable only
+
+`NON_PENSIONABLE` in main.py (mirrored in engine.js) holds ten codes the Progim
+deliberately does not cover — injury pay, הבראה, מילואים, ברוטו differences,
+הפקעת שכר, ימי שביתה. They are filtered out of the coverage fix-list. The list
+is explicit because the file's "ביט פנסיוני" column reads 'כן' on all 124,818
+rows and cannot discriminate. Gap list: 25 codes/₪742K → 15 codes/₪294K.
 
 ## Open — read before touching the chain
 
