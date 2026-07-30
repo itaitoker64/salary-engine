@@ -1,4 +1,4 @@
-<!-- head: 80b3010 -->
+<!-- head: baf03c9 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -79,6 +79,25 @@ now separates ₪4.84M reported-by-design (correct) from ₪742K real workbook g
 
 Fixed two bases against the workbook: 4374 (+647/667/897) and 4544
 (+642/658/678). 0108 verdicts unchanged (21,217 / 332).
+
+## Three-kind component taxonomy (current model)
+
+Per the user: a component has a FORMULA, or its amount is a FIGURE IN THE חוקה,
+or it is ENTERED BY HAND from the משרד האוצר file. `origin` on each rule records
+which. Manual is exactly seven codes — 4120, 658, 678, 4173, 4643, 4935, 4318 —
+and nothing else may claim `origin: manual`.
+
+25 חוקה amounts are now validated as shekel rules against the workbook figure
+(traced via tosafot!<L>3). Verified against 22,422 slips first: 97–100% match on
+the twelve largest carriers. Unchecked ₪5.38M → ₪1.36M.
+
+27 codes are חוקה amounts the extractor could NOT resolve (eligibility-gated
+VLOOKUP chains) — labelled `type: reported, origin: hukka`. Do not relabel these
+"manual": that would hide a coverage gap that is ours, not the workbook's.
+
+Open: 16 workers pay exactly 96.77% of the חוקה figure across several codes — a
+previous pulse the workbook keeps no history for. Reported to the user; do NOT
+invent the historical amount to silence it.
 
 ## Open — read before touching the chain
 
