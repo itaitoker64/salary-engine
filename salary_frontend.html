@@ -1234,6 +1234,7 @@ async function runBulk(files){
   // Progim is the product being sold, so every one of these is a hole in it —
   // reported in its own sheet, not just in the docs.
   const uncov=new Map();      // code -> {name, rows, sum₪, ministries:Set, known}
+  const seenCodes=new Map();  // code -> name, every code that appeared on a slip
   const _cov=SalaryEngine.progimCoverage(_engineRules||{});
   const recAcc=new Map();     // "Progim בלבד": aggregated recommendations across files
   try{
@@ -1274,7 +1275,10 @@ async function runBulk(files){
           }
           for(const c of r.components){
             const cc=Number(c.code);
-            if(!cc||_cov.computable.has(cc)) continue;
+            if(!cc) continue;
+            if(!seenCodes.has(cc)) seenCodes.set(cc, c.name?String(c.name):'');
+            else if(!seenCodes.get(cc)&&c.name) seenCodes.set(cc,String(c.name));
+            if(_cov.computable.has(cc)) continue;
             if(SalaryEngine.NON_PENSIONABLE.has(cc)) continue;  // מחוץ לתחולת ה-Progim
             let u=uncov.get(cc);
             if(!u){ u={name:'',rows:0,sum:0,ministries:new Set(),known:_cov.referencedOnly.has(cc),reported:(_cov.reported&&_cov.reported.has(cc))}; uncov.set(cc,u); }
@@ -1377,7 +1381,29 @@ async function runBulk(files){
                          ministries:[...u.ministries].sort().slice(0,3).join(', ')
                                     +(u.ministries.size>3?'…':'')}))
       .sort((a,b)=>b.sum-a.sum);
-    _bulkData={perFile,perEmp,codeGaps:codeGapList,recs,pure:pureMode,uncovered:uncovList};
+    // Classification of every known code by how its amount is determined.
+    const R=_engineRules||{};
+    const allCodes=new Set([...seenCodes.keys()]);
+    for(const k in R) allCodes.add(Number(k));
+    const GM=new Set([647,667,4268,897,4269]);
+    const codesIndex=[...allCodes].sort((a,b)=>a-b).map(code=>{
+      const rule=R[code]; const name=seenCodes.get(code)||(rule&&rule.name)||'';
+      let kind,note;
+      if(SalaryEngine.NON_PENSIONABLE.has(code)){ kind='לא משתתף בחישובים'; note='מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני'; }
+      else if(code===1||code===2||code===10002){ kind='מחושב לפי נוסחה'; note='שכר יסוד × מקדם ותק × חלקיות'; }
+      else if(GM.has(code)){ kind='מחושב לפי נוסחה'; note='גמול השתלמות — ערך תקני לקבוצת הדרגה'; }
+      else if(!rule){ kind='לא משתתף בחישובים'; note='הסמל אינו מוגדר בחוברת — חור בכיסוי'; }
+      else if(rule.origin==='manual'){ kind='סכום מוזן ידנית'; note=rule.source||''; }
+      else if(rule.origin==='hukka'){ kind='סכום לפי חוקה';
+        note=rule.type==='shekel'?`סכום בחוקה: [${(rule.amounts||[]).join(', ')}]`
+                                 :'סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא'; }
+      else { kind='מחושב לפי נוסחה';
+        note=rule.type==='percent'?'שער '+(rule.rates||[]).map(x=>`${+(x*100).toFixed(4)}%`).join(', ')
+            :rule.type==='max22'?'MAX(22% מהמשולב+99, רצפת המשרד)'
+            :rule.type==='minimum'?'השלמה לשכר מינימום':''; }
+      return {code,name,kind,note};
+    });
+    _bulkData={perFile,perEmp,codeGaps:codeGapList,recs,pure:pureMode,uncovered:uncovList,codesIndex};
     const secs=Math.round((performance.now()-t0)/100)/10;
     if(files.length===1&&_lastResults){
       document.getElementById('bulk-result').style.display='none';
@@ -1839,6 +1865,30 @@ async function downloadUnified(btnId,labelId){
           row.getCell(3).font={bold:true,color:{argb:XL.BADT}};
           for(let ci=1;ci<=6;ci++) row.getCell(ci).fill=fill(XL.BADB);
         }
+      }
+    }
+    // ---- סיווג סמלי שכר: every code, ascending, by how its amount is set ------
+    if(_bulkData.codesIndex&&_bulkData.codesIndex.length){
+      const wsc=wb.addWorksheet('סיווג סמלי שכר',{views:[{rightToLeft:true,state:'frozen',ySplit:4}]});
+      wsc.mergeCells('A1:D1');
+      const c1=wsc.getCell('A1');
+      c1.value='כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום';
+      c1.font={bold:true,size:12,color:{argb:XL.NAVY}};
+      const KINDS=['מחושב לפי נוסחה','סכום לפי חוקה','סכום מוזן ידנית','לא משתתף בחישובים'];
+      const cnt={}; for(const x of _bulkData.codesIndex) cnt[x.kind]=(cnt[x.kind]||0)+1;
+      wsc.mergeCells('A2:D2');
+      const c2=wsc.getCell('A2');
+      c2.value=KINDS.filter(k=>cnt[k]).map(k=>`${k}: ${cnt[k]}`).join(' · ');
+      c2.font={size:10,color:{argb:XL.MUTED}};
+      wsc.addRow([]);
+      styleHeaderRow(wsc,['סמל','שם הסמל','סיווג','פירוט'],[10,26,22,46]);
+      const KC={'מחושב לפי נוסחה':XL.GOODB,'סכום לפי חוקה':'FFEAF2FB',
+                'סכום מוזן ידנית':'FFEFEFEF','לא משתתף בחישובים':XL.BADB};
+      for(const x of _bulkData.codesIndex){
+        const row=wsc.addRow([x.code,x.name,x.kind,x.note]);
+        row.getCell(4).alignment={wrapText:true};
+        const f=KC[x.kind];
+        if(f) for(let ci=1;ci<=4;ci++) row.getCell(ci).fill=fill(f);
       }
     }
     // ---- המלצות ל-Progim (מצב "Progim בלבד") ---------------------------------

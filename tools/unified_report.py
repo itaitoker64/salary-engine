@@ -181,6 +181,7 @@ def collect(paths, pure=False):
     rec_acc = {}     # key -> aggregated recommendation across files
     computable, referenced_only, reported_codes = engine.progim_coverage(rules)
     uncov = {}       # code -> {"name", "rows", "sum", "ministries", "known"}
+    seen_codes = {}  # code -> name, every code that appeared on a slip
     files = sorted(paths, key=lambda p: (pay_month_of(p) or datetime(2099, 1, 1),
                                          Path(p).name))
     summary, per_emp = [], []
@@ -203,7 +204,12 @@ def collect(paths, pure=False):
         for e in entries:
             r = e["result"]
             for cp in r.components:
-                if cp.code is None or int(cp.code) in computable:
+                if cp.code is None:
+                    continue
+                # Running index of every code seen, for the classification sheet.
+                _c = int(cp.code)
+                seen_codes[_c] = seen_codes.get(_c) or (str(cp.name) if cp.name else "")
+                if _c in computable:
                     continue
                 if int(cp.code) in engine.NON_PENSIONABLE:
                     continue   # outside the Progim's scope — not a gap
@@ -376,6 +382,41 @@ def collect(paths, pure=False):
          for code, g in code_gaps.items()),
         key=lambda x: -x["count"])
     recs = sorted(rec_acc.values(), key=lambda r: -r["count"])
+    # ---- classification of every known code, by the three kinds + out-of-scope
+    codes_index = []
+    for code in sorted(set(seen_codes) | {int(k) for k in rules}):
+        rule = rules.get(code)
+        name = seen_codes.get(code) or (rule or {}).get("name", "") or ""
+        if code in engine.NON_PENSIONABLE:
+            kind, note = "לא משתתף בחישובים", "מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני"
+        elif code in (engine.CODE_YESOD, engine.CODE_VETEK_TOSEFET,
+                      engine.CODE_COMBINED_BASE):
+            kind, note = "מחושב לפי נוסחה", "שכר יסוד × מקדם ותק × חלקיות"
+        elif code in set(engine.GMUL_A_CODES) | set(engine.GMUL_B_CODES):
+            kind, note = "מחושב לפי נוסחה", "גמול השתלמות — ערך תקני לקבוצת הדרגה"
+        elif rule is None:
+            kind, note = "לא משתתף בחישובים", "הסמל אינו מוגדר בחוברת — חור בכיסוי"
+        elif rule.get("origin") == "manual":
+            kind, note = "סכום מוזן ידנית", rule.get("source", "")
+        elif rule.get("origin") == "hukka":
+            if rule.get("type") == "shekel":
+                kind = "סכום לפי חוקה"
+                note = f"סכום בחוקה: {rule.get('amounts')}"
+            else:
+                kind = "סכום לפי חוקה"
+                note = "סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא"
+        else:
+            kind = "מחושב לפי נוסחה"
+            if rule.get("type") == "percent":
+                note = "שער " + ", ".join(f"{x*100:g}%" for x in rule.get("rates", []))
+            elif rule.get("type") == "max22":
+                note = "MAX(22% מהמשולב+99, רצפת המשרד)"
+            elif rule.get("type") == "minimum":
+                note = "השלמה לשכר מינימום"
+            else:
+                note = ""
+        codes_index.append({"code": code, "name": name, "kind": kind, "note": note})
+
     uncovered = sorted(
         ({"code": code, "name": u["name"], "rows": u["rows"],
           "sum": round(u["sum"], 2), "known": u["known"],
@@ -384,7 +425,7 @@ def collect(paths, pure=False):
                         + ("…" if len(u["ministries"]) > 3 else "")}
          for code, u in uncov.items()),
         key=lambda x: -x["sum"])
-    return summary, per_emp, code_gap_list, recs, uncovered
+    return summary, per_emp, code_gap_list, recs, uncovered, codes_index
 
 
 # (key, header, width, number-format, is-gap-cell). Gap cells are red-tinted
@@ -498,7 +539,7 @@ def compute_flips(per_emp):
 
 
 def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
-                   uncovered=None):
+                   uncovered=None, codes_index=None):
     wb = openpyxl.Workbook()
     anom_by_file = defaultdict(float)
     anom_total = 0.0
@@ -749,6 +790,37 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                         PatternFill("solid", fgColor=BAD_BG)
         wsu.freeze_panes = "A5"
 
+    # ---- סיווג סמלי שכר: every code, ascending, by the three kinds -------------
+    if codes_index:
+        wsc = wb.create_sheet("סיווג סמלי שכר", 2)
+        wsc.sheet_view.rightToLeft = True
+        t = wsc.cell(row=1, column=1,
+                     value="כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום")
+        t.font = Font(bold=True, size=12, color=NAVY)
+        wsc.merge_cells(start_row=1, start_column=1, end_row=1, end_column=4)
+        KIND_COLOR = {"מחושב לפי נוסחה": GOOD_BG, "סכום לפי חוקה": "FFEAF2FB",
+                      "סכום מוזן ידנית": "FFEFEFEF", "לא משתתף בחישובים": BAD_BG}
+        cnt = Counter(x["kind"] for x in codes_index)
+        sub = wsc.cell(row=2, column=1, value=" · ".join(
+            f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה", "סכום לפי חוקה",
+                                       "סכום מוזן ידנית", "לא משתתף בחישובים")
+            if cnt.get(k)))
+        sub.font = Font(size=10, color=MUTED)
+        wsc.merge_cells(start_row=2, start_column=1, end_row=2, end_column=4)
+        _header_row(wsc, 4, ["סמל", "שם הסמל", "סיווג", "פירוט"], [10, 26, 22, 46])
+        for i, x in enumerate(codes_index, start=5):
+            for c_i, v in enumerate((x["code"], x["name"], x["kind"], x["note"]), start=1):
+                cell = wsc.cell(row=i, column=c_i, value=v)
+                cell.border = THIN_BOX
+                if c_i == 4:
+                    cell.alignment = Alignment(wrap_text=True)
+            fill = KIND_COLOR.get(x["kind"])
+            if fill:
+                for c_i in range(1, 5):
+                    wsc.cell(row=i, column=c_i).fill = PatternFill("solid", fgColor=fill)
+        wsc.freeze_panes = "A5"
+        wsc.auto_filter.ref = f"A4:D{4 + len(codes_index)}"
+
     # ---- שינויי סטטוס בין חודשים -------------------------------------------------
     flips = compute_flips(per_emp)
     if flips:
@@ -995,11 +1067,12 @@ def main_cli():
                     help="הרצת ה-Progim כפי-שהוא (ללא תוספות התוכנה) + גיליון המלצות")
     args = ap.parse_args()
     t0 = time.time()
-    summary, per_emp, code_gaps, recs, uncovered = collect(args.files,
-                                                           pure=args.pure)
+    summary, per_emp, code_gaps, recs, uncovered, codes_index = collect(
+        args.files, pure=args.pure)
     print(f"עיבוד: {time.time() - t0:.0f}ש · כותב workbook ({len(per_emp):,} שורות)...")
     write_workbook(summary, per_emp, args.out, code_gaps,
-                   recs=recs if args.pure else None, uncovered=uncovered)
+                   recs=recs if args.pure else None, uncovered=uncovered,
+                   codes_index=codes_index)
     inv = sum(1 for r in per_emp if r["status"] == "invalid")
     mode = "Progim בלבד" if args.pure else "רגיל"
     print(f"נכתב: {args.out} · {len(per_emp):,} רשומות · {inv:,} שגויים · מצב {mode}")
