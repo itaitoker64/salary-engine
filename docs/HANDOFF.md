@@ -1,14 +1,13 @@
-<!-- head: e7cc20f -->
+<!-- head: ee3735e -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-**Not merged.** One substantive commit (`bff6c3e`, the chain reorder below) plus
-the session-tooling commits. `main` is ahead from the other session, and both
-sides touched `index.html`, `salary_frontend.html` and
-`tools/unified_report.py` — a merge will conflict in the neutralization chain.
+`origin/main` is **merged in** (dashboard conflicts resolved: main's layout —
+רטרו renamed, תקין last, % over all slips — plus this branch's priority chain,
+which main had changed only in the column order). Ready to merge back to main.
 The SessionStart brief prints the live counts; trust it over this paragraph.
 
 ## What this branch changed, and why
