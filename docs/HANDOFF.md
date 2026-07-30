@@ -1,4 +1,4 @@
-<!-- head: 88c8809 -->
+<!-- head: e7cc20f -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -106,6 +106,13 @@ deliberately does not cover — injury pay, הבראה, מילואים, ברוט
 הפקעת שכר, ימי שביתה. They are filtered out of the coverage fix-list. The list
 is explicit because the file's "ביט פנסיוני" column reads 'כן' on all 124,818
 rows and cannot discriminate. Gap list: 25 codes/₪742K → 15 codes/₪294K.
+
+## Report sheets
+
+`collect()` returns `(summary, per_emp, code_gaps, recs, uncovered, codes_index)`
+— update every caller when changing it. `codes_index` drives the "סיווג סמלי שכר"
+sheet: every code ascending, classified as formula / חוקה amount / manual /
+not-participating. Mirrored in both front-ends from `_bulkData.codesIndex`.
 
 ## Open — read before touching the chain
 
