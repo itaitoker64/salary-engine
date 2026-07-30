@@ -784,7 +784,7 @@ html.present .present-btn{background:#fff;color:var(--primary)}
      the validation, ExcelJS writes the highlighted export. Nothing is uploaded. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="engine.js?v=2026-07-29f"></script>
+<script src="engine.js?v=2026-07-29h"></script>
 <script>
 const API = '';
 // Surface the loaded engine build so a stale (browser-cached) engine.js is
@@ -1178,7 +1178,7 @@ async function runAccuracy(input){
 
 // ---- Bulk: several files → one unified workbook -----------------------------
 let _bulkData=null;   // {perFile:[{name,month,workers,valid,invalid,no_base,multi,acc}], perEmp:[...]}
-const BULK_STATUS_HE={valid:'תקין',invalid:'שגוי',no_base:'ללא שכר בסיס פעיל',multi_period:'רטרו / רב-תקופתי'};
+const BULK_STATUS_HE={valid:'תקין',invalid:'שגוי',no_base:'ללא שכר בסיס פעיל',multi_period:'שתי שורות שכר משולב'};
 // Why the software's verdict differs from a plain current-Progim run.
 function progimDelta(r, rawFirst, rules){
   const notes=[]; const amt=new Map();
@@ -1363,7 +1363,7 @@ async function runBulk(files){
           part_time:fr.length-ft.length, ft:ft.length, ft_valid:ftValid,
           ft_no_base:ftNoBase, ft_multi:ftMulti,
           inv_student:invStudent, inv_vatek:invVatek, inv_base:invBase, inv_gmul:invGmul, inv_brich:invBrich, inv_mnhal:invMnhal, inv_borerut:invBorerut, inv_bhol:invBhol, inv_h1999:invH1999, inv_real:invReal,
-          real_pct:ftAct?SalaryEngine.round2(invReal/ftAct*100):0});
+          real_pct:results.length?SalaryEngine.round2(invReal/results.length*100):0});
       }catch(fe){
         failed.push({name:f.name, msg:fe.message||String(fe)});
       }
@@ -1730,7 +1730,7 @@ async function downloadUnified(btnId,labelId){
     title.font={size:16,bold:true,color:{argb:XL.NAVY}};
     ws.mergeCells('A2:R2');
     const sub=ws.getCell('A2');
-    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו ← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת 1999 ← שגיאה אמיתית. סכום העמודות = סה"כ העובדים. % שגויים אמיתיים מתוך תקין+כל השגויים (מלאה).`;
+    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו ← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת 1999 ← שגיאה אמיתית. סכום העמודות (כולל 'תקין' בסוף) = סה"כ העובדים. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
     sub.font={size:10,color:{argb:XL.MUTED}};
     // Coverage warning on the dashboard itself — the Progim is the product,
     // so a hole in it must be visible on page one, not only in its own sheet.
@@ -1750,7 +1750,7 @@ async function downloadUnified(btnId,labelId){
                inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_bhol:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
     for(const s of _bulkData.perFile) for(const k in tot) tot[k]+=(s[k]||0);
     const ftAct=tot.ft_valid+tot.inv_student+tot.inv_vatek+tot.inv_base+tot.inv_gmul+tot.inv_brich+tot.inv_mnhal+tot.inv_borerut+tot.inv_bhol+tot.inv_h1999+tot.inv_real;
-    const realPct=ftAct?tot.inv_real/ftAct:0;
+    const realPct=tot.workers?tot.inv_real/tot.workers:0;
     // Direction split — money owed to workers vs money to recover (gross, so
     // neither side hides the other).
     let _under=0,_over=0;
@@ -1778,27 +1778,27 @@ async function downloadUnified(btnId,labelId){
     ws.addRow([]);
     // A clean PARTITION: columns D..O are mutually exclusive and sum to C.
     styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית','ללא בסיס (מלאה)',
-      'רטרו (מלאה)','תקין (מלאה)','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים'],
-      [11,18,10,10,10,10,11,11,10,10,10,10,11,11,11,13,12,13]);
+      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין (מלאה)'],
+      [11,18,10,10,10,13,11,11,10,10,11,10,11,11,13,12,13,11]);
     const headR=ws.lastRow.number;
     for(const s of _bulkData.perFile){
-      const fa=s.ft_valid+(s.inv_student||0)+(s.inv_vatek||0)+s.inv_base+s.inv_gmul+s.inv_brich+s.inv_mnhal+(s.inv_borerut||0)+(s.inv_bhol||0)+(s.inv_h1999||0)+s.inv_real;
-      const rp=fa?s.inv_real/fa:0;
-      const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.ft_no_base||0,s.ft_multi||0,s.ft_valid,
-        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp]);
-      for(let ci=3;ci<=17;ci++) r.getCell(ci).numFmt=INT_FMT;
-      r.getCell(7).font={color:{argb:XL.GOODT}};
-      [8,9,10,11,12,13,14,15,16].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
-      if(s.inv_real) r.getCell(17).font={bold:true,color:{argb:XL.BADT}};
-      r.getCell(18).numFmt='0.00%';
+      const rp=s.workers?s.inv_real/s.workers:0;
+      const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.ft_no_base||0,s.ft_multi||0,
+        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp,s.ft_valid]);
+      for(let ci=3;ci<=16;ci++) r.getCell(ci).numFmt=INT_FMT;
+      r.getCell(18).numFmt=INT_FMT; r.getCell(18).font={color:{argb:XL.GOODT}};
+      [7,8,9,10,11,12,13,14,15].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
+      if(s.inv_real) r.getCell(16).font={bold:true,color:{argb:XL.BADT}};
+      r.getCell(17).numFmt='0.00%';
     }
     const lastR=ws.lastRow.number;
-    const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.ft_no_base,tot.ft_multi,tot.ft_valid,
-      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct]);
-    trow.font={bold:true}; for(let ci=3;ci<=17;ci++) trow.getCell(ci).numFmt=INT_FMT;
-    trow.getCell(17).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(18).numFmt='0.00%';
+    const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.ft_no_base,tot.ft_multi,
+      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct,tot.ft_valid]);
+    trow.font={bold:true}; for(let ci=3;ci<=16;ci++) trow.getCell(ci).numFmt=INT_FMT;
+    trow.getCell(18).numFmt=INT_FMT;
+    trow.getCell(16).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(17).numFmt='0.00%';
     // % real errors — LOW is good.
-    ws.addConditionalFormatting({ref:`R${headR+1}:R${lastR}`,rules:[
+    ws.addConditionalFormatting({ref:`Q${headR+1}:Q${lastR}`,rules:[
       {type:'cellIs',operator:'lessThanOrEqual',formulae:['0.01'],priority:1,
        style:{font:{color:{argb:XL.GOODT}},fill:fill(XL.GOODB)}},
       {type:'cellIs',operator:'greaterThan',formulae:['0.05'],priority:2,
@@ -1807,7 +1807,7 @@ async function downloadUnified(btnId,labelId){
        style:{font:{color:{argb:XL.WARNT}},fill:fill(XL.WARNB)}}]});
     ws.addConditionalFormatting({ref:`C${headR+1}:C${lastR}`,rules:[
       {type:'dataBar',minLength:0,maxLength:100,priority:4,cfvo:[{type:'num',value:0},{type:'max'}],color:{argb:XL.BAR}}]});
-    ws.addConditionalFormatting({ref:`Q${headR+1}:Q${lastR}`,rules:[
+    ws.addConditionalFormatting({ref:`P${headR+1}:P${lastR}`,rules:[
       {type:'dataBar',minLength:0,maxLength:100,priority:5,cfvo:[{type:'num',value:0},{type:'max'}],color:{argb:XL.REDBAR}}]});
 
     // ---- שגויים לבדיקה: full-time workers whose error is real -------------------

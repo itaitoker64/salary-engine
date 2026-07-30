@@ -46,7 +46,8 @@ INT = "#,##0"
 PCT1 = '0.00"%"'
 
 STATUS_HE = {"valid": "תקין", "invalid": "שגוי",
-             "no_base": "ללא שכר בסיס פעיל", "multi_period": "רטרו / רב-תקופתי"}
+             "no_base": "ללא שכר בסיס פעיל",
+             "multi_period": "שתי שורות שכר משולב"}
 
 
 def _header_row(ws, row, labels, widths=None):
@@ -375,7 +376,10 @@ def collect(paths, pure=False):
             s[k] for k in ("inv_student", "inv_vatek", "inv_base", "inv_gmul",
                            "inv_h1999", "inv_brich", "inv_mnhal", "inv_borerut",
                            "inv_bhol", "inv_real"))
-        s["real_pct"] = round(s["inv_real"] / ft_active * 100, 2) if ft_active else 0.0
+        # % is of the WHOLE file, so it reads as "x% of all slips are a real
+        # error" — the number management quotes.
+        s["real_pct"] = (round(s["inv_real"] / s["workers"] * 100, 2)
+                         if s["workers"] else 0.0)
     code_gap_list = sorted(
         ({"code": code, "name": g["name"], "count": g["count"],
           "sum": round(g["sum"], 2), "reason": _gap_reason(code, rules)}
@@ -563,9 +567,10 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     s.value = (f"{len(summary)} קבצים · הופק "
                f"{datetime.now().strftime('%d/%m/%Y %H:%M')} · "
                "כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו "
-               "← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← דריכות ← "
-               "גמול מנהל ← בוררות מיסים ← תוספת 1999 ← שגיאה אמיתית. סכום "
-               "העמודות = סה\"כ העובדים. % שגויים אמיתיים מתוך תקין+כל השגויים.")
+               "← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← "
+               "דריכות ← גמול מנהל ← בוררות מיסים ← שגיאה אמיתית. סכום "
+               "העמודות (כולל 'תקין' בסוף) = סה\"כ העובדים. "
+               "% שגויים אמיתיים = אמיתיים חלקי סה\"כ העובדים.")
     s.font = Font(size=10, color=MUTED)
     # Coverage warning on the dashboard itself — the Progim is the product, so a
     # hole in it must be visible on page one, not only in its own sheet.
@@ -601,7 +606,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                   + tot["inv_brich"] + tot["inv_mnhal"] + tot["inv_borerut"]
                   + tot["inv_bhol"]
                   + tot["inv_real"])
-    _real_pct = (tot["inv_real"] / _ft_active) if _ft_active else 0.0
+    _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
     _kpi(ws, 4, 4, 1, "% שגויים אמיתיים", _real_pct,
          GOOD_TXT if _real_pct <= 0.01 else BAD_TXT, "0.00%")
@@ -626,55 +631,59 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # merges two pay periods), not part of the chain, shown for reference only.
     # A clean PARTITION: columns D..P are mutually exclusive and sum to C
     # (עובדים) — presentable without reconciliation notes.
+    # "תקין" sits LAST, after the %, so the problem columns read as one block.
+    # The partition is unchanged — it is simply no longer contiguous: the
+    # categories are D..O plus Q.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "ללא בסיס (מלאה)",
-              "רטרו (מלאה)", "תקין (מלאה)", "שגויי ותק סטודנט", "שגויי ותק קטוע",
+              "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
               "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
               "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויי תוספת בית חולים",
-              "שגויים אמיתיים", "% שגויים אמיתיים"]
+              "שגויים אמיתיים", "% שגויים אמיתיים", "תקין (מלאה)"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 10, 11, 11, 10, 10, 10, 11, 10, 11, 11, 13, 12, 13])
+                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("ft_no_base", 0), r.get("ft_multi", 0),
-                r.get("ft_valid", 0), r.get("inv_student", 0),
-                r.get("inv_vatek", 0), r.get("inv_base", 0), r.get("inv_gmul", 0),
-                r.get("inv_h1999", 0), r.get("inv_brich", 0),
-                r.get("inv_mnhal", 0), r.get("inv_borerut", 0),
-                r.get("inv_bhol", 0),
-                r.get("inv_real", 0), r.get("real_pct", 0.0) / 100]
+                r.get("inv_student", 0), r.get("inv_vatek", 0),
+                r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_h1999", 0),
+                r.get("inv_brich", 0), r.get("inv_mnhal", 0),
+                r.get("inv_borerut", 0), r.get("inv_bhol", 0),
+                r.get("inv_real", 0),
+                r.get("real_pct", 0.0) / 100, r.get("ft_valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 17:
+            if 3 <= c_i <= 16 or c_i == 18:
                 cell.number_format = INT
-            if c_i == 7:
-                cell.font = Font(color=GOOD_TXT)
-            if c_i in (8, 9, 10, 11, 12, 13, 14, 15, 16) and v:
-                cell.font = Font(color=WARN_TXT)
-            if c_i == 17 and v:
-                cell.font = Font(color=BAD_TXT, bold=True)
             if c_i == 18:
+                cell.font = Font(color=GOOD_TXT)
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15) and v:
+                cell.font = Font(color=WARN_TXT)
+            if c_i == 16 and v:
+                cell.font = Font(color=BAD_TXT, bold=True)
+            if c_i == 17:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
     tot_active = _ft_active
     real_pct_tot = _real_pct
+    # Same order as `labels`: תקין is the LAST column, % second to last.
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["ft_no_base"],
-             tot["ft_multi"], tot["ft_valid"], tot["inv_student"],
-             tot["inv_vatek"], tot["inv_base"], tot["inv_gmul"],
-             tot["inv_h1999"], tot["inv_brich"], tot["inv_mnhal"],
-             tot["inv_borerut"], tot["inv_bhol"], tot["inv_real"], real_pct_tot]
+             tot["ft_multi"], tot["inv_student"], tot["inv_vatek"],
+             tot["inv_base"], tot["inv_gmul"], tot["inv_h1999"],
+             tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
+             tot["inv_bhol"], tot["inv_real"], real_pct_tot, tot["ft_valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 17:
+        if 3 <= c_i <= 16 or c_i == 18:
             cell.number_format = INT
-        if c_i == 18:
-            cell.number_format = "0.00%"
         if c_i == 17:
+            cell.number_format = "0.00%"
+        if c_i == 16:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"R{head_r + 1}:R{last}"    # % שגויים אמיתיים
+    rng = f"Q{head_r + 1}:Q{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -689,7 +698,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"Q{head_r + 1}:Q{last}",          # שגויים אמיתיים
+        f"P{head_r + 1}:P{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
