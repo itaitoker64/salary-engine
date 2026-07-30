@@ -188,16 +188,19 @@
   function progimCoverage(rules) {
     const computable = new Set([CODE_YESOD, CODE_VETEK_TOSEFET, CODE_COMBINED_BASE,
                                 ...GMUL_A, ...GMUL_B]);
+    const reported = new Set();
     const referenced = new Set();
     for (const k in (rules || {})) {
       const rule = rules[k];
-      for (const c of rule.codes || []) computable.add(Number(c));
+      const target = (rule.type === 'reported' || rule.type === 'manual') ? reported : computable;
+      for (const c of rule.codes || []) target.add(Number(c));
       for (const key of ['base_codes', 'deductions', 'counted', 'toggle_codes']) {
         for (const c of rule[key] || []) referenced.add(Number(c));
       }
     }
-    for (const c of computable) referenced.delete(c);
-    return { computable, referencedOnly: referenced };
+    for (const c of computable) { reported.delete(c); referenced.delete(c); }
+    for (const c of reported) referenced.delete(c);
+    return { computable, referencedOnly: referenced, reported };
   }
   const GMUL_NOTE = 'חריגה מהערך התקני לקבוצת הדרגה — חשד להפרשי רטרו בתוך הרכיב';
 

@@ -1276,7 +1276,7 @@ async function runBulk(files){
             const cc=Number(c.code);
             if(!cc||_cov.computable.has(cc)) continue;
             let u=uncov.get(cc);
-            if(!u){ u={name:'',rows:0,sum:0,ministries:new Set(),known:_cov.referencedOnly.has(cc)}; uncov.set(cc,u); }
+            if(!u){ u={name:'',rows:0,sum:0,ministries:new Set(),known:_cov.referencedOnly.has(cc),reported:(_cov.reported&&_cov.reported.has(cc))}; uncov.set(cc,u); }
             u.rows++; u.sum+=Math.abs(c.expected||0);
             if(r.ministry_name) u.ministries.add(String(r.ministry_name));
             if(c.name) u.name=String(c.name);
@@ -1369,7 +1369,7 @@ async function runBulk(files){
     const recs=[...recAcc.values()].sort((a,b)=>b.count-a.count);
     const uncovList=[...uncov.entries()]
       .map(([code,u])=>({code, name:u.name, rows:u.rows, sum:SalaryEngine.round2(u.sum),
-                         known:u.known,
+                         known:u.known, reported:u.reported,
                          ministries:[...u.ministries].sort().slice(0,3).join(', ')
                                     +(u.ministries.size>3?'…':'')}))
       .sort((a,b)=>b.sum-a.sum);
@@ -1705,13 +1705,15 @@ async function downloadUnified(btnId,labelId){
     // Coverage warning on the dashboard itself — the Progim is the product,
     // so a hole in it must be visible on page one, not only in its own sheet.
     if(_bulkData.uncovered&&_bulkData.uncovered.length){
-      const nU=_bulkData.uncovered.length;
-      const sU=Math.round(_bulkData.uncovered.reduce((a,u)=>a+u.sum,0));
+      const rep=_bulkData.uncovered.filter(u=>u.reported);
+      const gap=_bulkData.uncovered.filter(u=>!u.reported);
+      const sGap=Math.round(gap.reduce((a,u)=>a+u.sum,0));
+      const sRep=Math.round(rep.reduce((a,u)=>a+u.sum,0));
       ws.mergeCells('A3:Q3');
       const w=ws.getCell('A3');
-      w.value=`\u26a0 ${nU} סמלי שכר (₪${sU.toLocaleString()}) משולמים בתלושים ללא נוסחה ב-Progim ולכן לא נבדקו — ראה גיליון "חסר ב-Progim"`;
-      w.font={bold:true,size:10,color:{argb:XL.BADT}};
-      w.fill=fill(XL.BADB);
+      w.value=`\u26a0 ${gap.length} סמלים (₪${sGap.toLocaleString()}) ללא נוסחה ב-Progim ואינם מוצהרים כמוזנים — חור בכיסוי החוברת. בנוסף ${rep.length} סמלים (₪${sRep.toLocaleString()}) מוזנים מהקובץ כפי שה-Progim מגדיר (תקין). ראה גיליון "חסר ב-Progim"`;
+      w.font={bold:true,size:10,color:{argb:gap.length?XL.BADT:XL.WARNT}};
+      w.fill=fill(gap.length?XL.BADB:XL.WARNB);
     }
     // Totals: sum the partition fields across files.
     const tot={workers:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,
@@ -1809,7 +1811,7 @@ async function downloadUnified(btnId,labelId){
       wsu.properties.tabColor={argb:XL.BADT};
       wsu.mergeCells('A1:F1');
       const t1=wsu.getCell('A1');
-      t1.value='⚠ רכיבים משולמים בתלושים ללא נוסחה ב-Progim — המנוע מקבל אותם כמות-שהם, ללא בדיקה';
+      t1.value='רכיבים שה-Progim אינו מחשב בנוסחה — אפור = מוזן מהקובץ (כך גם ב-Progim, תקין); אדום/לבן = חור בכיסוי החוברת';
       t1.font={bold:true,size:12,color:{argb:XL.BADT}}; wsu.getRow(1).height=22;
       wsu.mergeCells('A2:F2');
       const t2=wsu.getCell('A2');
@@ -1824,10 +1826,12 @@ async function downloadUnified(btnId,labelId){
       styleHeaderRow(wsu,['סמל','שם הרכיב','סטטוס ב-Progim','שורות','₪ (מוחלט)','גופים'],
                      [8,20,18,9,13,40]);
       for(const u of _bulkData.uncovered){
-        const row=wsu.addRow([u.code,u.name,u.known?'מוזכר כקלט בלבד':'לא קיים כלל',
-                              u.rows,u.sum,u.ministries]);
+        const status=u.reported?'מוזן מהקובץ — כך ב-Progim'
+                       :u.known?'מוזכר כקלט בלבד':'לא קיים כלל';
+        const row=wsu.addRow([u.code,u.name,status,u.rows,u.sum,u.ministries]);
         row.getCell(4).numFmt=INT_FMT; row.getCell(5).numFmt=MONEY_FMT;
-        if(!u.known){
+        if(u.reported){ for(let ci=1;ci<=6;ci++) row.getCell(ci).fill=fill('FFEFEFEF'); }
+        else if(!u.known){
           row.getCell(3).font={bold:true,color:{argb:XL.BADT}};
           for(let ci=1;ci<=6;ci++) row.getCell(ci).fill=fill(XL.BADB);
         }

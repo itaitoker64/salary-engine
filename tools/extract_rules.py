@@ -110,24 +110,15 @@ STABLE_CODES = {4169, 4932}
 
 # The sample worker in the workbook has most eligibility switches off, so the
 # resolved rate in SACHAR row 7 is 0 for components he doesn't get. The current
-# rate still lives in the `tosafot` sheet's rate row — pull it from there.
-# code -> (tosafot cell holding the rate)
-RATE_FALLBACK_CELLS = {
-    4169: "BD3",   # תוספת ענ"א 16.2%
-    4932: "CA3",   # ענ"א 8%
-    920:  "BA3",   # תוספת 7.5%
-    4687: "BI3",   # תוספת שכר 22%
-    697:  "Y3",    # תוספת מיוחדת
-    659:  "W3",    # ת. קרימינולוג קליני
-    798:  "AC3",   # דריכות בית חולים
-    5216: "AH3",   # מנמ"ש 2010
-    1053: "CF3",   # ענ"א
-    4374: "CU3",   # נתיב ג
-    4658: "CV3",   # גמול תפקיד
-    5287: "CZ3",   # תוספת בט"פ
-    5533: "DQ3",   # תוספת אחוזית 2024 (same 3.94% grid as 2029)
-    2029: "DQ3",   # ר חדשה אחוזי
-}
+# rate still lives in the `tosafot` sheet's rate row.
+#
+# Resolve it DYNAMICALLY: tosafot row 4 labels each column with its pay code(s)
+# and row 3 carries that column's rate. Hardcoded cell addresses were silently
+# wrong the moment the sheet gained a column — the 30.07 workbook shifted the
+# whole layout and every fallback address then pointed at a neighbouring
+# component, so no rate resolved and 11 curated rules were dropped on
+# re-extraction. Reading by code label survives any column move.
+TOSAFOT_RATE_ROW, TOSAFOT_CODE_ROW = 3, 4
 
 
 def valid_rate(v):
@@ -152,10 +143,17 @@ def extract(xlsm_path: str) -> dict:
     wbf = openpyxl.load_workbook(xlsm_path, read_only=False, data_only=False)
     wbv = openpyxl.load_workbook(xlsm_path, read_only=True, data_only=True)
     wsf, wsv = wbf["SACHAR"], wbv["SACHAR"]
-    tosafot = {f"{get_column_letter(c)}{r}": v
-               for r, row in enumerate(wbv["tosafot "].iter_rows(
-                   min_row=1, max_row=6, values_only=True), start=1)
-               for c, v in enumerate(row, start=1)}
+    # code -> current rate, resolved from tosafot by the code labels in row 4
+    # (row 3 holds each column's rate). Never by cell address — see the note on
+    # TOSAFOT_RATE_ROW above.
+    tos_rows = list(wbv["tosafot "].iter_rows(min_row=1, max_row=6,
+                                              values_only=True))
+    tosafot_rate = {}
+    for ci, label in enumerate(tos_rows[TOSAFOT_CODE_ROW - 1]):
+        v = tos_rows[TOSAFOT_RATE_ROW - 1][ci]
+        if valid_rate(v):
+            for code in parse_codes(label):
+                tosafot_rate.setdefault(code, float(v))
 
     c0 = column_index_from_string(BLOCK_FIRST)
     c1 = column_index_from_string(BLOCK_LAST)
@@ -195,9 +193,10 @@ def extract(xlsm_path: str) -> dict:
         rates = MULTI_RATE.get(primary)
         if rates is None:
             rate = col_rate[letter]
-            if rate is None and primary in RATE_FALLBACK_CELLS:
-                v = tosafot.get(RATE_FALLBACK_CELLS[primary])
-                rate = float(v) if valid_rate(v) else None
+            if rate is None:
+                # Resolve by code from tosafot (any of the column's aliases).
+                rate = next((tosafot_rate[c] for c in codes
+                             if c in tosafot_rate), None)
             rates = sorted(set(([rate] if rate is not None else [])
                                + HISTORICAL_RATES.get(primary, [])))
             if not rates:
