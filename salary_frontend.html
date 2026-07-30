@@ -1275,6 +1275,7 @@ async function runBulk(files){
           for(const c of r.components){
             const cc=Number(c.code);
             if(!cc||_cov.computable.has(cc)) continue;
+            if(SalaryEngine.NON_PENSIONABLE.has(cc)) continue;  // מחוץ לתחולת ה-Progim
             let u=uncov.get(cc);
             if(!u){ u={name:'',rows:0,sum:0,ministries:new Set(),known:_cov.referencedOnly.has(cc),reported:(_cov.reported&&_cov.reported.has(cc))}; uncov.set(cc,u); }
             u.rows++; u.sum+=Math.abs(c.expected||0);

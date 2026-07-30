@@ -205,6 +205,8 @@ def collect(paths, pure=False):
             for cp in r.components:
                 if cp.code is None or int(cp.code) in computable:
                     continue
+                if int(cp.code) in engine.NON_PENSIONABLE:
+                    continue   # outside the Progim's scope — not a gap
                 code = int(cp.code)
                 u = uncov.setdefault(code, {
                     "name": "", "rows": 0, "sum": 0.0, "ministries": set(),

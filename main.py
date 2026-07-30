@@ -204,6 +204,26 @@ TRUST_MIN_MATCH = 0.97
 TRUST_MIN_N = 20
 
 
+# The Progim covers PENSIONABLE pay only. These components are outside its
+# scope by design — one-off or non-pensionable payments — so their absence from
+# the workbook is not a coverage gap and they must not appear on the fix-list.
+# Supplied by the user (the workbook's author); the גולמי "ביט פנסיוני" column
+# cannot be used instead — on the 0108 file it reads 'כן' for all 124,818 rows,
+# including for every code below, so it carries no signal.
+NON_PENSIONABLE = {
+    1927,   # ד. פגיעה בעבודה
+    1936,   # תאונת עבודה
+    1934,   # השלמה לפגיעה בעבודה
+    1901,   # תגמול מילואים
+    1266,   # דמי הבראה
+    1260,   # דמי הבראה
+    903,    # הפרש ברוטו
+    889,    # הפרש ברוטו
+    4457,   # הפקעת שכר
+    1088,   # ימי שביתה
+}
+
+
 def progim_coverage(rules) -> tuple:
     """Split the code universe by how the Progim treats each pay code.
 

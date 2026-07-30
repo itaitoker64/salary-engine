@@ -180,6 +180,12 @@
   // check_gmul_population in main.py; keep in sync).
   const GMUL_A = [647, 667, 4268], GMUL_B = [897, 4269];
 
+  // The Progim covers PENSIONABLE pay only; these are outside its scope by
+  // design, so their absence is not a coverage gap (mirror of NON_PENSIONABLE
+  // in main.py; keep in sync). The file's 'ביט פנסיוני' column cannot stand in
+  // for this — it reads 'כן' on every row, including these.
+  const NON_PENSIONABLE = new Set([1927, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088]);
+
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it
   // knows only as inputs to other formulas. A slip code in neither set is
@@ -923,7 +929,7 @@
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
     checkWorkerComponents, trustedRuleCodes, resolvePlusGrades, normalizeGradeLabel,
-    progimCoverage,
+    progimCoverage, NON_PENSIONABLE,
     diagnoseResult, reportRows, REPORT_HEADERS,
     classifyHeader, loadGolmi, calculate, runEngine, buildProgimRecommendations,
     accuracyReport, batchCSV, BATCH_COLUMNS, BATCH_HEADERS_HE, batchRow, buildPivot,
