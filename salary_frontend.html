@@ -1389,10 +1389,10 @@ async function runBulk(files){
     const codesIndex=[...allCodes].sort((a,b)=>a-b).map(code=>{
       const rule=R[code]; const name=seenCodes.get(code)||(rule&&rule.name)||'';
       let kind,note;
-      if(SalaryEngine.NON_PENSIONABLE.has(code)){ kind='לא משתתף בחישובים'; note='מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני'; }
+      if(SalaryEngine.NON_PENSIONABLE.has(code)){ kind='לא משתתף בחישובים'; note='מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני (תקין)'; }
       else if(code===1||code===2||code===10002){ kind='מחושב לפי נוסחה'; note='שכר יסוד × מקדם ותק × חלקיות'; }
       else if(GM.has(code)){ kind='מחושב לפי נוסחה'; note='גמול השתלמות — ערך תקני לקבוצת הדרגה'; }
-      else if(!rule){ kind='לא משתתף בחישובים'; note='הסמל אינו מוגדר בחוברת — חור בכיסוי'; }
+      else if(!rule){ kind='לא מוגדר בחוברת'; note='פנסיוני אך חסר בחוברת — פער לסגירה'; }
       else if(rule.origin==='manual'){ kind='סכום מוזן ידנית'; note=rule.source||''; }
       else if(rule.origin==='hukka'){ kind='סכום לפי חוקה';
         note=rule.type==='shekel'?`סכום בחוקה: [${(rule.amounts||[]).join(', ')}]`
@@ -1874,7 +1874,7 @@ async function downloadUnified(btnId,labelId){
       const c1=wsc.getCell('A1');
       c1.value='כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום';
       c1.font={bold:true,size:12,color:{argb:XL.NAVY}};
-      const KINDS=['מחושב לפי נוסחה','סכום לפי חוקה','סכום מוזן ידנית','לא משתתף בחישובים'];
+      const KINDS=['מחושב לפי נוסחה','סכום לפי חוקה','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
       const cnt={}; for(const x of _bulkData.codesIndex) cnt[x.kind]=(cnt[x.kind]||0)+1;
       wsc.mergeCells('A2:D2');
       const c2=wsc.getCell('A2');
@@ -1883,7 +1883,9 @@ async function downloadUnified(btnId,labelId){
       wsc.addRow([]);
       styleHeaderRow(wsc,['סמל','שם הסמל','סיווג','פירוט'],[10,26,22,46]);
       const KC={'מחושב לפי נוסחה':XL.GOODB,'סכום לפי חוקה':'FFEAF2FB',
-                'סכום מוזן ידנית':'FFEFEFEF','לא משתתף בחישובים':XL.BADB};
+                'סכום מוזן ידנית':'FFEFEFEF',
+                'לא משתתף בחישובים':'FFF4F5F7',   // מחוץ לתחולה — תקין
+                'לא מוגדר בחוברת':XL.BADB};       // הפער שנסגר בהדרגה
       for(const x of _bulkData.codesIndex){
         const row=wsc.addRow([x.code,x.name,x.kind,x.note]);
         row.getCell(4).alignment={wrapText:true};

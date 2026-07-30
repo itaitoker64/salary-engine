@@ -388,14 +388,14 @@ def collect(paths, pure=False):
         rule = rules.get(code)
         name = seen_codes.get(code) or (rule or {}).get("name", "") or ""
         if code in engine.NON_PENSIONABLE:
-            kind, note = "לא משתתף בחישובים", "מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני"
+            kind, note = "לא משתתף בחישובים", "מחוץ לתחולת ה-Progim — רכיב שאינו פנסיוני (תקין)"
         elif code in (engine.CODE_YESOD, engine.CODE_VETEK_TOSEFET,
                       engine.CODE_COMBINED_BASE):
             kind, note = "מחושב לפי נוסחה", "שכר יסוד × מקדם ותק × חלקיות"
         elif code in set(engine.GMUL_A_CODES) | set(engine.GMUL_B_CODES):
             kind, note = "מחושב לפי נוסחה", "גמול השתלמות — ערך תקני לקבוצת הדרגה"
         elif rule is None:
-            kind, note = "לא משתתף בחישובים", "הסמל אינו מוגדר בחוברת — חור בכיסוי"
+            kind, note = "לא מוגדר בחוברת", "פנסיוני אך חסר בחוברת — פער לסגירה"
         elif rule.get("origin") == "manual":
             kind, note = "סכום מוזן ידנית", rule.get("source", "")
         elif rule.get("origin") == "hukka":
@@ -799,11 +799,14 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         t.font = Font(bold=True, size=12, color=NAVY)
         wsc.merge_cells(start_row=1, start_column=1, end_row=1, end_column=4)
         KIND_COLOR = {"מחושב לפי נוסחה": GOOD_BG, "סכום לפי חוקה": "FFEAF2FB",
-                      "סכום מוזן ידנית": "FFEFEFEF", "לא משתתף בחישובים": BAD_BG}
+                      "סכום מוזן ידנית": "FFEFEFEF",
+                      "לא משתתף בחישובים": "FFF4F5F7",   # מחוץ לתחולה — תקין
+                      "לא מוגדר בחוברת": BAD_BG}          # הפער שנסגר בהדרגה
         cnt = Counter(x["kind"] for x in codes_index)
         sub = wsc.cell(row=2, column=1, value=" · ".join(
             f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה", "סכום לפי חוקה",
-                                       "סכום מוזן ידנית", "לא משתתף בחישובים")
+                                       "סכום מוזן ידנית", "לא משתתף בחישובים",
+                                       "לא מוגדר בחוברת")
             if cnt.get(k)))
         sub.font = Font(size=10, color=MUTED)
         wsc.merge_cells(start_row=2, start_column=1, end_row=2, end_column=4)
