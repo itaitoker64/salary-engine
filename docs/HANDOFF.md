@@ -1,4 +1,4 @@
-<!-- head: f075af5 -->
+<!-- head: 80b3010 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -63,6 +63,22 @@ unknown. Every run reports the non-computable ones in sheet "חסר ב-Progim" p
 a dashboard banner — 53 codes and ₪5.4M on the 0108 file. This is a PRODUCT gap
 list, not an engine bug list: the workbook has no formula for that money. Keep
 it in the export; the user reads the Excel, not the docs.
+
+## Progim 30.07 extraction (latest session)
+
+Rules went 33 → 91. Rate resolution in extract_rules.py is now dynamic (tosafot
+row 4 code labels, not cell addresses) — the old hardcoded addresses silently
+broke on every workbook column shift and dropped 11 curated rules on
+re-extraction. base_codes merges ADD-ONLY: the workbook no longer lists alias
+pairs, so removal would regress alias-paid workers (728: 1,449 rows in 0108).
+
+55 codes are declared type "reported" — the Progim takes their amount from the
+מנהלת הגמלאות file rather than computing it. They are accepted as reported AND
+summed into the bases of percent rules that reference them. The coverage report
+now separates ₪4.84M reported-by-design (correct) from ₪742K real workbook gaps.
+
+Fixed two bases against the workbook: 4374 (+647/667/897) and 4544
+(+642/658/678). 0108 verdicts unchanged (21,217 / 332).
 
 ## Open — read before touching the chain
 
