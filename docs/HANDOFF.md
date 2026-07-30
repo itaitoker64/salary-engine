@@ -1,4 +1,4 @@
-<!-- head: baf03c9 -->
+<!-- head: d2c7ade -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -24,7 +24,7 @@ The user decided 1999 should be attributed to the root rather than the symptom:
 retro difference on 1999 propagates into them. The chain is now
 
 ```
-ותק סטודנט → ותק קטוע → בסיס → גמול → תוספת 1999 → דריכות → גמול מנהל → בוררות מיסים → אמיתי
+ותק סטודנט → ותק קטוע → בסיס → גמול → תוספת 1999 → דריכות → גמול מנהל → בוררות מיסים → תוספת בית חולים → אמיתי
 ```
 
 in `tools/unified_report.py`, `index.html` and `salary_frontend.html`, with the
