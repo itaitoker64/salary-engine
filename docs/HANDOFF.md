@@ -1,4 +1,4 @@
-<!-- head: 600129c -->
+<!-- head: facd0eb -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -38,7 +38,18 @@ sum block, and 5402's tosafot column is empty).
 `HUKKA_KIND` maps the stored value to the Hebrew label in
 `tools/unified_report.py` and in both front-ends — three places, same map.
 
-## 2. 1711 (ניכוי 6% א"ע)
+## 2. Out of scope: 1711 and 4120
+
+**4120 (השלמת שכר)** — the user reclassified it as non-pensionable, so it moved
+out of the seven manual codes and into `NON_PENSIONABLE`. The manual list is
+now six: 658, 678, 4173, 4318, 4643, 4935. Checked before changing anything —
+4120 appears in **no** percent rule's `base_codes`, so removing it from scope
+moves no calculation (21,167 / 382 before and after). Its rule note claimed the
+opposite ("ומכליל אותו בבסיסי החישוב") — that was false and is corrected.
+Classification sheet: out-of-scope 11 → 12, manual 7 → 6; reported-by-design in
+the coverage banner 11 codes/₪613,892 → 10/₪606,867.
+
+## 2b. 1711 (ניכוי 6% א"ע)
 
 Added to `NON_PENSIONABLE` in `main.py` and `engine.js`. Gap list 13 → 12
 codes, ₪248,503 → ₪226,806. Its slip amount is **negative** (−₪20,170.89 over
