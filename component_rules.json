@@ -2337,5 +2337,23 @@
     "source": "Progim 31.07.2026: tosafot!AE3 = 61.32 (סמל בשורה 4); הופיע לראשונה בגרסה זו",
     "amount_period": "fixed",
     "amount_period_note": "טבלת חודש פרישה ב-tosafot: סכום אחד, 61.32 ₪, לכל 228 החודשים"
+  },
+  "4651": {
+    "codes": [
+      4651
+    ],
+    "name": "תוספת שכר (משרד החקלאות)",
+    "type": "percent",
+    "rates": [
+      0.15
+    ],
+    "base_codes": [
+      1,
+      2,
+      4624,
+      10002
+    ],
+    "origin": "formula",
+    "source": "Progim 31.07.2026: SACHAR!DB11 = DB7*(AA11+CZ11) — כלומר 15% × (שכר משולב 10002 + הסכם 1999 4624). השער מ-tosafot!BP2 = VLOOKUP(חודש פרישה, $AQ$7:$BP$234, 26, 0)"
   }
 }

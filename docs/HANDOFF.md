@@ -1,4 +1,4 @@
-<!-- head: ef5da1f -->
+<!-- head: 6aa1243 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,31 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0d. 4651 is a computed 15% component
+
+Per the user, and the workbook has it in full — not estimated:
+`SACHAR!DB11 = DB7 × (AA11 + CZ11)` = 15% × (שכר משולב + הסכם 1999), rate from
+`tosafot!BP2 = VLOOKUP(חודש פרישה, $AQ$7:$BP$234, 26, 0)`. Added as a percent
+rule, `base_codes [1, 2, 4624, 10002]`.
+
+Gap list **10 codes/₪219,906 → 9/₪104,997**. Remaining: 507, 642, 733, 797,
+1297, 1375, 4133, 4180, 4406.
+
+**244 of 248 carriers match (98.4%)** — above the trust gate, so unlike 805
+this rule DOES fail slips. The four misses are all משרד החקלאות, all
+overpayments: 53565575 (+₪87.56), 33848809 (+₪69.10), 304478957 (+₪57.72),
+58277191 (+₪18.69).
+
+**Three of the four were swallowed by the 1999 bucket.** Only 53565575 counts
+as a real error (13 → 14); the others carry a 4624 gap too, and that bucket
+tests gap *presence*, not causation, so it claimed them first. ₪145 of
+overpayment left the headline number because of a 1999 gap. This is not a new
+defect — it is the documented 1999 problem demonstrated with concrete money,
+and the fix is unchanged: give 4624 a חודש-פרישה × dirug rate table.
+
+Same sparse-table defect as §9: 4651's rate table is filled for **12 months of
+228** (all of 2008); outside it the VLOOKUP returns 0.
 
 ## 0c. New classification: amount chosen by a group the file lacks
 
