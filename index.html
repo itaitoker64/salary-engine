@@ -796,13 +796,39 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof refreshProgimStatus === 'function') refreshProgimStatus();
 });
 
+// The badge is not decoration: the pay tables come from /api/lookups, so a
+// server the page cannot reach means file checking does not run at all. A bare
+// "לא מחובר" hid which of four different failures happened, so it now names
+// the one that did — and the console line carries the raw body for a report.
 async function checkStatus(){
   const el = document.getElementById('status-el');
+  const fail = (msg) => {
+    el.innerHTML = `<span class="dot"></span>${msg}`;
+    el.className = 'status err';
+    el.title = 'בדיקת קובץ לא תעבוד עד שהשרת חוזר — לפרטים פתחו /api/diag';
+  };
+  let r;
   try{
-    const r = await fetch(API+'/api/info'); const d = await r.json();
-    el.innerHTML = `<span class="dot"></span>פעיל · ${d.grades_loaded} דרגות · ${d.tracks_loaded||''} מסלולים`;
-    el.className = 'status ok';
-  }catch{ el.innerHTML = '<span class="dot"></span>לא מחובר'; el.className='status err'; }
+    r = await fetch(API+'/api/info');
+  }catch(e){
+    console.error('status: network failure', e);
+    return fail('אין תקשורת לשרת');
+  }
+  const body = await r.text();
+  let d = null;
+  try{ d = JSON.parse(body); }catch(e){}
+  if(!d){
+    // HTML back from a JSON endpoint = the platform answered, not the app:
+    // a build failure, a crashed function, or a rewrite serving the page here.
+    console.error('status: non-JSON from /api/info, HTTP '+r.status, body.slice(0,300));
+    return fail(`שגיאת שרת (${r.status})`);
+  }
+  if(!r.ok || d.status === 'error' || d.grades_loaded === undefined){
+    console.error('status: /api/info HTTP '+r.status, d);
+    return fail(d.detail || d.error || `שגיאת שרת (${r.status})`);
+  }
+  el.innerHTML = `<span class="dot"></span>פעיל · ${d.grades_loaded} דרגות · ${d.tracks_loaded||''} מסלולים`;
+  el.className = 'status ok';
 }
 
 let _trackByName={};
@@ -1083,10 +1109,26 @@ function showWorkerFromFile(){
 let _engineLookups=null,_engineRules=null;
 async function ensureLookups(){
   if(_engineLookups) return _engineLookups;
-  const [rl,rr]=await Promise.all([fetch(API+'/api/lookups'),fetch(API+'/api/rules')]);
+  // Fail with the reason, not with a JSON parse error. When the server answers
+  // a JSON endpoint with HTML (build failure, crashed function, a rewrite
+  // serving the page) `.json()` throws "Unexpected token <", which tells the
+  // user nothing about a payroll run that just refused to start.
+  const asJson = async (url) => {
+    let r;
+    try{ r = await fetch(url); }
+    catch(e){ throw new Error('אין תקשורת לשרת — לא ניתן לטעון את טבלאות השכר'); }
+    const body = await r.text();
+    try{ return {ok:r.ok, status:r.status, data:JSON.parse(body)}; }
+    catch(e){
+      console.error('non-JSON from '+url+', HTTP '+r.status, body.slice(0,300));
+      throw new Error('השרת החזיר תשובה לא תקינה מ-'+url+' (סטטוס '+r.status+')');
+    }
+  };
+  const [rl,rr]=await Promise.all([asJson(API+'/api/lookups'),
+                                   asJson(API+'/api/rules').catch(()=>null)]);
   if(!rl.ok) throw new Error('טעינת טבלאות השכר נכשלה (סטטוס '+rl.status+')');
-  _engineLookups=SalaryEngine.prepLookups(await rl.json());
-  _engineRules=rr.ok?SalaryEngine.prepRules(await rr.json()):null; // rules are optional
+  _engineLookups=SalaryEngine.prepLookups(rl.data);
+  _engineRules=(rr&&rr.ok)?SalaryEngine.prepRules(rr.data):null; // rules are optional
   return _engineLookups;
 }
 
@@ -1308,6 +1350,9 @@ async function runBulk(files){
           const c4624=(r.comp_checks||{})[4624];
           const gap4624=(c4624&&!c4624.ok)?SalaryEngine.round2(c4624.slip-c4624.expected):null;
           const hasStudent=(r.components||[]).some(c=>c.code===5527&&(c.amount||0)!==0);
+          // ניכוי 6% א"ע (1711) — a DEDUCTION, not a payment (negative on the
+          // slip), and outside the Progim's pensionable scope. See the bucket.
+          const has1711=(r.components||[]).some(c=>c.code===1711&&(c.amount||0)!==0);
           const rawV=parseFloat(rawFirsts[ri]&&rawFirsts[ri].vatek)||0;
           const vatekTrunc=Math.abs((r.vatek||0)-rawV)>1e-9;
           let errCat=null;
@@ -1316,6 +1361,9 @@ async function runBulk(files){
             else if(vatekTrunc) errCat='vatek';
             else if(baseDiff!==null && Math.abs(baseDiff)>1) errCat='base';
             else if(gf[667]||gf[897]) errCat='gmul';
+            // ניכוי 6% א"ע: הסמל אינו פנסיוני ואין לו נוסחה בחוברת — העובד
+            // מנוטרל במקום להיספר כשגוי. ממוקם מיד אחרי גמול השתלמות.
+            else if(has1711) errCat='d1711';
             // 1999 יושב מיד אחרי גמול השתלמות: 4624 נמצא בבסיס החישוב של 798
             // ושל שאר האחוזיות, ולכן הפרש רטרו בו מתגלגל אליהן — מייחסים לשורש.
             else if(gap4624!==null) errCat='h1999';
@@ -1357,14 +1405,14 @@ async function runBulk(files){
         // standing OUTSIDE the partition. (Mirror of collect() in unified_report.py.)
         const cnt=(cat)=>fr.filter(x=>x[STATUS_RAW_IDX]==='invalid'&&x[ERRCAT_IDX]===cat).length;
         const ftValid=ft.filter(x=>x[STATUS_RAW_IDX]==='valid').length;
-        const invStudent=cnt('student'),invVatek=cnt('vatek'),invBase=cnt('base'),invGmul=cnt('gmul'),invBrich=cnt('brich'),invMnhal=cnt('mnhal'),invBorerut=cnt('borerut'),invBhol=cnt('bhol'),invH1999=cnt('h1999'),invReal=cnt('real');
+        const invStudent=cnt('student'),invVatek=cnt('vatek'),invBase=cnt('base'),invGmul=cnt('gmul'),invD1711=cnt('d1711'),invBrich=cnt('brich'),invMnhal=cnt('mnhal'),invBorerut=cnt('borerut'),invBhol=cnt('bhol'),invH1999=cnt('h1999'),invReal=cnt('real');
         const ftNoBase=ft.filter(x=>x[STATUS_RAW_IDX]==='no_base').length;
         const ftMulti=ft.filter(x=>x[STATUS_RAW_IDX]==='multi_period').length;
         perFile.push({name:f.name.replace(/\.xlsx$/i,''), month, workers:results.length,
           valid:v, invalid:inv, no_base:nb, multi:mp, acc:active?SalaryEngine.round2(v/active*100):0,
           part_time:fr.length-ft.length, ft:ft.length, ft_valid:ftValid,
           ft_no_base:ftNoBase, ft_multi:ftMulti,
-          inv_student:invStudent, inv_vatek:invVatek, inv_base:invBase, inv_gmul:invGmul, inv_brich:invBrich, inv_mnhal:invMnhal, inv_borerut:invBorerut, inv_bhol:invBhol, inv_h1999:invH1999, inv_real:invReal,
+          inv_student:invStudent, inv_vatek:invVatek, inv_base:invBase, inv_gmul:invGmul, inv_d1711:invD1711, inv_brich:invBrich, inv_mnhal:invMnhal, inv_borerut:invBorerut, inv_bhol:invBhol, inv_h1999:invH1999, inv_real:invReal,
           real_pct:results.length?SalaryEngine.round2(invReal/results.length*100):0});
       }catch(fe){
         failed.push({name:f.name, msg:fe.message||String(fe)});
@@ -1388,6 +1436,9 @@ async function runBulk(files){
     const allCodes=new Set([...seenCodes.keys()]);
     for(const k in R) allCodes.add(Number(k));
     const GM=new Set([647,667,4268,897,4269]);
+    // A חוקה amount splits by whether the workbook's figure moves with the
+    // חודש-פרישה table. Mirror of HUKKA_KIND in tools/unified_report.py.
+    const HUKKA_KIND={fixed:'סכום קבוע לכל התקופה',varies:'סכום משתנה מעת לעת'};
     const codesIndex=[...allCodes].sort((a,b)=>a-b).map(code=>{
       const rule=R[code]; const name=seenCodes.get(code)||(rule&&rule.name)||'';
       let kind,note;
@@ -1396,9 +1447,17 @@ async function runBulk(files){
       else if(GM.has(code)){ kind='מחושב לפי נוסחה'; note='גמול השתלמות — ערך תקני לקבוצת הדרגה'; }
       else if(!rule){ kind='לא מוגדר בחוברת'; note='פנסיוני אך חסר בחוברת — פער לסגירה'; }
       else if(rule.origin==='manual'){ kind='סכום מוזן ידנית'; note=rule.source||''; }
-      else if(rule.origin==='hukka'){ kind='סכום לפי חוקה';
-        note=rule.type==='shekel'?`סכום בחוקה: [${(rule.amounts||[]).join(', ')}]`
-                                 :'סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא'; }
+      else if(rule.origin==='hukka'){
+        // A חוקה amount is either one figure for the whole period or a
+        // חודש-פרישה table whose figure has moved — the second cannot be
+        // validated with a single number. Read out of the workbook by
+        // tools/classify_hukka_amounts.py; a code the workbook cannot settle
+        // keeps its own third label instead of being guessed into "fixed".
+        kind=HUKKA_KIND[rule.amount_period]||'סכום לפי חוקה — לא נקבע';
+        const parts=[rule.type==='shekel'?`סכום בחוקה: [${(rule.amounts||[]).join(', ')}]`
+                                         :'סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא'];
+        if(rule.amount_period_note) parts.push(rule.amount_period_note);
+        note=parts.join(' · '); }
       else { kind='מחושב לפי נוסחה';
         note=rule.type==='percent'?'שער '+(rule.rates||[]).map(x=>`${+(x*100).toFixed(4)}%`).join(', ')
             :rule.type==='max22'?'MAX(22% מהמשולב+99, רצפת המשרד)'
@@ -1507,7 +1566,7 @@ function renderTrend(perFile){
     const o=byMonth.get(s.month); o.v+=s.valid; o.i+=s.invalid;
     o.real+=(s.inv_real||0);
     o.act+=(s.valid||0)+(s.inv_student||0)+(s.inv_vatek||0)+(s.inv_base||0)
-          +(s.inv_gmul||0)+(s.inv_brich||0)+(s.inv_mnhal||0)+(s.inv_borerut||0)+(s.inv_bhol||0)+(s.inv_h1999||0)+(s.inv_real||0);
+          +(s.inv_gmul||0)+(s.inv_d1711||0)+(s.inv_brich||0)+(s.inv_mnhal||0)+(s.inv_borerut||0)+(s.inv_bhol||0)+(s.inv_h1999||0)+(s.inv_real||0);
   }
   const pts=[...byMonth.entries()]
     .map(([m,o])=>({m,acc:o.v+o.i?o.v/(o.v+o.i)*100:0,real:o.real}))
@@ -1661,7 +1720,7 @@ const EMP_SPEC=[
 const MATERIALITY=100.0;
 // Hebrew label per neutralization bucket — shown in the work queue so a
 // neutralized row is visible and filterable instead of silently dropped.
-const NEUTRAL_HE={student:'ותק סטודנט',vatek:'ותק קטוע',base:'שכר בסיס',
+const NEUTRAL_HE={student:'ותק סטודנט',vatek:'ותק קטוע',base:'שכר בסיס',d1711:'ניכוי 6% א"ע',
   gmul:'גמול השתלמות',brich:'דריכות בי"ח',mnhal:'גמול מנהל',
   borerut:'בוררות מיסים',h1999:'תוספת 1999',real:''};
 const UNIFIED_EMP_HEAD=EMP_SPEC.map(c=>c.h);
@@ -1732,7 +1791,7 @@ async function downloadUnified(btnId,labelId){
     title.font={size:16,bold:true,color:{argb:XL.NAVY}};
     ws.mergeCells('A2:R2');
     const sub=ws.getCell('A2');
-    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = סה"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
+    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = סה"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
     sub.font={size:10,color:{argb:XL.MUTED}};
     // Coverage warning on the dashboard itself — the Progim is the product,
     // so a hole in it must be visible on page one, not only in its own sheet.
@@ -1748,7 +1807,7 @@ async function downloadUnified(btnId,labelId){
       w.fill=fill(gap.length?XL.BADB:XL.WARNB);
     }
     // Totals: sum the partition fields across files.
-    const tot={workers:0,valid:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,
+    const tot={workers:0,valid:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,inv_d1711:0,
                inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_bhol:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
     for(const s of _bulkData.perFile) for(const k in tot) tot[k]+=(s[k]||0);
     const realPct=tot.workers?tot.inv_real/tot.workers:0;
@@ -1779,27 +1838,27 @@ async function downloadUnified(btnId,labelId){
     ws.addRow([]);
     // A clean PARTITION: columns D..O are mutually exclusive and sum to C.
     styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית (מתוכם)','ללא בסיס',
-      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין'],
-      [11,18,10,10,10,13,11,11,10,10,11,10,11,11,13,12,13,11]);
+      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי ניכוי 6% א"ע','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין'],
+      [11,18,10,10,10,13,11,11,10,10,13,11,10,11,11,13,12,13,11]);
     const headR=ws.lastRow.number;
     for(const s of _bulkData.perFile){
       const rp=s.workers?s.inv_real/s.workers:0;
       const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.no_base||0,s.multi||0,
-        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp,s.valid]);
-      for(let ci=3;ci<=16;ci++) r.getCell(ci).numFmt=INT_FMT;
-      r.getCell(18).numFmt=INT_FMT; r.getCell(18).font={color:{argb:XL.GOODT}};
-      [7,8,9,10,11,12,13,14,15].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
-      if(s.inv_real) r.getCell(16).font={bold:true,color:{argb:XL.BADT}};
-      r.getCell(17).numFmt='0.00%';
+        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_d1711||0,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp,s.valid]);
+      for(let ci=3;ci<=17;ci++) r.getCell(ci).numFmt=INT_FMT;
+      r.getCell(19).numFmt=INT_FMT; r.getCell(19).font={color:{argb:XL.GOODT}};
+      [7,8,9,10,11,12,13,14,15,16].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
+      if(s.inv_real) r.getCell(17).font={bold:true,color:{argb:XL.BADT}};
+      r.getCell(18).numFmt='0.00%';
     }
     const lastR=ws.lastRow.number;
     const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.no_base,tot.multi,
-      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct,tot.valid]);
-    trow.font={bold:true}; for(let ci=3;ci<=16;ci++) trow.getCell(ci).numFmt=INT_FMT;
-    trow.getCell(18).numFmt=INT_FMT;
-    trow.getCell(16).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(17).numFmt='0.00%';
+      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_d1711,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct,tot.valid]);
+    trow.font={bold:true}; for(let ci=3;ci<=17;ci++) trow.getCell(ci).numFmt=INT_FMT;
+    trow.getCell(19).numFmt=INT_FMT;
+    trow.getCell(17).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(18).numFmt='0.00%';
     // % real errors — LOW is good.
-    ws.addConditionalFormatting({ref:`Q${headR+1}:Q${lastR}`,rules:[
+    ws.addConditionalFormatting({ref:`R${headR+1}:R${lastR}`,rules:[
       {type:'cellIs',operator:'lessThanOrEqual',formulae:['0.01'],priority:1,
        style:{font:{color:{argb:XL.GOODT}},fill:fill(XL.GOODB)}},
       {type:'cellIs',operator:'greaterThan',formulae:['0.05'],priority:2,
@@ -1808,7 +1867,7 @@ async function downloadUnified(btnId,labelId){
        style:{font:{color:{argb:XL.WARNT}},fill:fill(XL.WARNB)}}]});
     ws.addConditionalFormatting({ref:`C${headR+1}:C${lastR}`,rules:[
       {type:'dataBar',minLength:0,maxLength:100,priority:4,cfvo:[{type:'num',value:0},{type:'max'}],color:{argb:XL.BAR}}]});
-    ws.addConditionalFormatting({ref:`P${headR+1}:P${lastR}`,rules:[
+    ws.addConditionalFormatting({ref:`Q${headR+1}:Q${lastR}`,rules:[
       {type:'dataBar',minLength:0,maxLength:100,priority:5,cfvo:[{type:'num',value:0},{type:'max'}],color:{argb:XL.REDBAR}}]});
 
     // ---- שגויים לבדיקה: full-time workers whose error is real -------------------
@@ -1875,7 +1934,7 @@ async function downloadUnified(btnId,labelId){
       const c1=wsc.getCell('A1');
       c1.value='כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום';
       c1.font={bold:true,size:12,color:{argb:XL.NAVY}};
-      const KINDS=['מחושב לפי נוסחה','סכום לפי חוקה','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
+      const KINDS=['מחושב לפי נוסחה','סכום קבוע לכל התקופה','סכום משתנה מעת לעת','סכום לפי חוקה — לא נקבע','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
       const cnt={}; for(const x of _bulkData.codesIndex) cnt[x.kind]=(cnt[x.kind]||0)+1;
       wsc.mergeCells('A2:D2');
       const c2=wsc.getCell('A2');
@@ -1883,7 +1942,10 @@ async function downloadUnified(btnId,labelId){
       c2.font={size:10,color:{argb:XL.MUTED}};
       wsc.addRow([]);
       styleHeaderRow(wsc,['סמל','שם הסמל','סיווג','פירוט'],[10,26,22,46]);
-      const KC={'מחושב לפי נוסחה':XL.GOODB,'סכום לפי חוקה':'FFEAF2FB',
+      const KC={'מחושב לפי נוסחה':XL.GOODB,
+                'סכום קבוע לכל התקופה':'FFEAF2FB',
+                'סכום משתנה מעת לעת':XL.WARNB,    // סכום נע — מספר אחד לא מאמת אותו
+                'סכום לפי חוקה — לא נקבע':XL.BADB,
                 'סכום מוזן ידנית':'FFEFEFEF',
                 'לא משתתף בחישובים':'FFF4F5F7',   // מחוץ לתחולה — תקין
                 'לא מוגדר בחוברת':XL.BADB};       // הפער שנסגר בהדרגה

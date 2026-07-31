@@ -163,6 +163,14 @@ def _gap_reason(code, rules):
     return "סטייה מהערך התקני של הרכיב"
 
 
+# A חוקה amount splits by whether the workbook's figure moves with the
+# חודש-פרישה table. Keys are what classify_hukka_amounts.py writes onto
+# each rule; an unrecognised/missing value falls through to the "לא נקבע"
+# label so an unsettled code is visible instead of silently "fixed".
+HUKKA_KIND = {"fixed": "סכום קבוע לכל התקופה",
+              "varies": "סכום משתנה מעת לעת"}
+
+
 def collect(paths, pure=False):
     """Run the engine per file; return (summary, per_emp, code_gaps, recs,
     uncovered).
@@ -269,6 +277,9 @@ def collect(paths, pure=False):
             # cause, neutralized first (before the base bucket it would land in).
             has_student = any(cp.code == 5527 and (cp.amount or 0) != 0
                               for cp in r.components)
+            # ניכוי 6% א"ע — see the bucket below.
+            has_1711 = any(cp.code == 1711 and (cp.amount or 0) != 0
+                           for cp in r.components)
             # ותק קטוע: the file's 2-decimal ותק is not on the quarter grid, so
             # the base recompute rests on a restored (+0.005) value — when the
             # slip still mismatches, the truncated source data is the known
@@ -288,6 +299,13 @@ def collect(paths, pure=False):
                     err_cat = "base"
                 elif 667 in flags or 897 in flags:
                     err_cat = "gmul"
+                elif has_1711:
+                    # ניכוי 6% א"ע (1711): a DEDUCTION, not a payment — its
+                    # amount is negative on the slip and the Progim, which
+                    # covers pensionable pay, has no formula for it. A worker
+                    # carrying it is neutralized rather than counted as an
+                    # error. Placed where the user asked, right after גמול.
+                    err_cat = "d1711"
                 elif gap_4624 is not None:
                     # הסכם 1999: הפערים נובעים מהפרשי רטרו (בולט אצל עובדים
                     # בעלי ותק נמוך) — סיבה ידועה, מנוטרלת. נבדק מול הבדיקה
@@ -370,6 +388,7 @@ def collect(paths, pure=False):
         # standing OUTSIDE the partition.
         for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
+                         ("d1711", "inv_d1711"),
                          ("h1999", "inv_h1999"), ("brich", "inv_brich"),
                          ("mnhal", "inv_mnhal"), ("borerut", "inv_borerut"),
                          ("bhol", "inv_bhol"), ("real", "inv_real")):
@@ -402,12 +421,23 @@ def collect(paths, pure=False):
         elif rule.get("origin") == "manual":
             kind, note = "סכום מוזן ידנית", rule.get("source", "")
         elif rule.get("origin") == "hukka":
+            # A חוקה amount is one of two things, and the difference decides
+            # whether one figure can validate every month: either the workbook
+            # holds a single figure for the whole period, or it holds a
+            # חודש-פרישה table whose figure has actually moved. Read out of the
+            # workbook by tools/classify_hukka_amounts.py — never assumed; a
+            # code the workbook cannot settle stays in its own third label
+            # rather than being guessed into one of the two.
+            kind = HUKKA_KIND.get(rule.get("amount_period"),
+                                  "סכום לפי חוקה — לא נקבע")
+            parts = []
             if rule.get("type") == "shekel":
-                kind = "סכום לפי חוקה"
-                note = f"סכום בחוקה: {rule.get('amounts')}"
+                parts.append(f"סכום בחוקה: {rule.get('amounts')}")
             else:
-                kind = "סכום לפי חוקה"
-                note = "סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא"
+                parts.append("סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא")
+            if rule.get("amount_period_note"):
+                parts.append(rule["amount_period_note"])
+            note = " · ".join(parts)
         else:
             kind = "מחושב לפי נוסחה"
             if rule.get("type") == "percent":
@@ -438,10 +468,13 @@ def collect(paths, pure=False):
 # The neutralization chain in display order — must match the err_cat priority
 # in collect() and the dashboard column order. Stated on the report itself so
 # a reader can see which bucket claimed a worker first.
-CHAIN_HE = "ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין"
+CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס '
+            '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל '
+            '← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין')
 
 NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
-              "gmul": "גמול השתלמות", "brich": "דריכות בי\"ח",
+              "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
+              "brich": "דריכות בי\"ח",
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
               "bhol": "תוספת בית חולים",
               "h1999": "תוספת 1999", "real": ""}
@@ -602,7 +635,8 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
     for k in ("part_time", "ft", "ft_valid", "ft_no_base", "ft_multi",
-              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_h1999",
+              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
+              "inv_h1999",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_bhol", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
@@ -635,16 +669,18 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # categories are D..O plus Q.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
               "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
-              "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
+              "שגויי בסיס", "שגויי גמול", "שגויי ניכוי 6% א\"ע",
+              "שגויי תוספת 1999", "שגויי דריכות",
               "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויי תוספת בית חולים",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 13, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
                 r.get("inv_student", 0), r.get("inv_vatek", 0),
-                r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_h1999", 0),
+                r.get("inv_base", 0), r.get("inv_gmul", 0),
+                r.get("inv_d1711", 0), r.get("inv_h1999", 0),
                 r.get("inv_brich", 0), r.get("inv_mnhal", 0),
                 r.get("inv_borerut", 0), r.get("inv_bhol", 0),
                 r.get("inv_real", 0),
@@ -652,15 +688,15 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 16 or c_i == 18:
+            if 3 <= c_i <= 17 or c_i == 19:
                 cell.number_format = INT
-            if c_i == 18:
+            if c_i == 19:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15) and v:
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 16 and v:
+            if c_i == 17 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 17:
+            if c_i == 18:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
@@ -668,20 +704,21 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # Same order as `labels`: תקין is the LAST column, % second to last.
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["no_base"],
              tot["multi"], tot["inv_student"], tot["inv_vatek"],
-             tot["inv_base"], tot["inv_gmul"], tot["inv_h1999"],
+             tot["inv_base"], tot["inv_gmul"], tot["inv_d1711"],
+             tot["inv_h1999"],
              tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
              tot["inv_bhol"], tot["inv_real"], real_pct_tot, tot["valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 16 or c_i == 18:
+        if 3 <= c_i <= 17 or c_i == 19:
             cell.number_format = INT
-        if c_i == 17:
+        if c_i == 18:
             cell.number_format = "0.00%"
-        if c_i == 16:
+        if c_i == 17:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"Q{head_r + 1}:Q{last}"    # % שגויים אמיתיים
+    rng = f"R{head_r + 1}:R{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -696,7 +733,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"P{head_r + 1}:P{last}",          # שגויים אמיתיים
+        f"Q{head_r + 1}:Q{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
@@ -805,13 +842,20 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                      value="כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום")
         t.font = Font(bold=True, size=12, color=NAVY)
         wsc.merge_cells(start_row=1, start_column=1, end_row=1, end_column=4)
-        KIND_COLOR = {"מחושב לפי נוסחה": GOOD_BG, "סכום לפי חוקה": "FFEAF2FB",
+        KIND_COLOR = {"מחושב לפי נוסחה": GOOD_BG,
+                      "סכום קבוע לכל התקופה": "FFEAF2FB",
+                      # amber: a moving figure cannot be checked with one number
+                      "סכום משתנה מעת לעת": WARN_BG,
+                      "סכום לפי חוקה — לא נקבע": BAD_BG,
                       "סכום מוזן ידנית": "FFEFEFEF",
                       "לא משתתף בחישובים": "FFF4F5F7",   # מחוץ לתחולה — תקין
                       "לא מוגדר בחוברת": BAD_BG}          # הפער שנסגר בהדרגה
         cnt = Counter(x["kind"] for x in codes_index)
         sub = wsc.cell(row=2, column=1, value=" · ".join(
-            f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה", "סכום לפי חוקה",
+            f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה",
+                                       "סכום קבוע לכל התקופה",
+                                       "סכום משתנה מעת לעת",
+                                       "סכום לפי חוקה — לא נקבע",
                                        "סכום מוזן ידנית", "לא משתתף בחישובים",
                                        "לא מוגדר בחוברת")
             if cnt.get(k)))

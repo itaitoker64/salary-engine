@@ -1,133 +1,168 @@
-<!-- head: be3f7a5 -->
+<!-- head: 600129c -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-Branch restarted from `origin/main` at `573c435` (the previous round merged as
-PR #61). Two topics, in order: **4319/4427 are in the Progim and the engine now
-computes them**, and **the dashboard partition now covers the whole file rather
-than full-timers only**. Not merged.
+Restarted from `origin/main` at `573c435` after PR #61 merged, then merged
+`origin/main` again at `23f5028` (the other session's site-routing work — that
+history is preserved below under "From `main`"). Not merged back yet.
 
-## Dashboard partition: whole file, not full-timers
+Four topics on this branch, newest first:
+
+1. **חוקה amounts split into fixed vs period-varying** in the classification sheet
+2. **1711 out of scope, plus its own neutralization bucket**
+3. **The dashboard partition covers the whole file**, not full-timers only
+4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 1. חוקה amounts: fixed vs varies
+
+"סכום לפי חוקה" became three labels — `סכום קבוע לכל התקופה` (46),
+`סכום משתנה מעת לעת` (8), `סכום לפי חוקה — לא נקבע` (1).
+
+Decided by `tools/classify_hukka_amounts.py`, which reads it out of the
+workbook and stamps `amount_period` + `amount_period_note` onto each `hukka`
+rule. Re-runnable on any new Progim. The method: `tosafot` row 4 gives a code
+its column, rows 7..234 are the amount per חודש פרישה; ≥2 distinct non-zero
+amounts ⇒ varies. When that column is empty the formula names a sheet and the
+same test runs on its grid — with the distinction that a **tier** column
+holding one amount for all 228 months is FIXED (5539's 700/1100/1500 are
+tariffs, not pulses). Nothing is inferred: an unsettled code gets the third
+label rather than being defaulted to "fixed".
+
+Varying: 737, 805, 1063, 1358, 1961, 4147, 4453, 5524. Unsettled: 5402 — see
+`docs/PROGIM_FIXES.md` §7 (`heskem 2016` has the percentage pulse block but no
+sum block, and 5402's tosafot column is empty).
+
+`HUKKA_KIND` maps the stored value to the Hebrew label in
+`tools/unified_report.py` and in both front-ends — three places, same map.
+
+## 2. 1711 (ניכוי 6% א"ע)
+
+Added to `NON_PENSIONABLE` in `main.py` and `engine.js`. Gap list 13 → 12
+codes, ₪248,503 → ₪226,806. Its slip amount is **negative** (−₪20,170.89 over
+72 rows) — a deduction, which never belonged on a list of money the workbook
+fails to cover.
+
+New bucket `d1711` and column **שגויי ניכוי 6% א"ע**, placed immediately after
+גמול השתלמות as the user specified, in the chain and the column order together.
+
+**The column reads 0 on 0108, and this is the thing to know:** of the 72
+carriers, 69 are already valid and 1 has no base. The 2 that are invalid both
+land in **גמול**, which precedes it. A bucket after גמול cannot claim them.
+Moving it before גמול is a one-line change and would claim those 2 — but it
+would then also claim every 1711 carrier failing on anything other than the
+base, which is the swallow-unrelated-errors failure. Reported to the user; not
+moved unilaterally.
+
+## 3. Dashboard partition: whole file, not full-timers
 
 The user asked how 22,422 workers give 21,167 valid when the report showed
-1,146 invalid. Both figures were right and measured on different populations:
-1,146 is `17,755 full-timers − 16,609 full-time valid`, while 21,167 counts
-every worker. The dashboard printed "תקינים 21,167" and "תקין (מלאה) 16,609"
-side by side with neither denominator stated.
+1,146 invalid. Both were right on different populations: 1,146 is
+`17,755 full-timers − 16,609 full-time valid`. The dashboard printed
+"תקינים 21,167" and "תקין (מלאה) 16,609" side by side with neither denominator
+stated.
 
-Worse, the buckets were counted on full-timers only, so **109 part-timers who
-are not valid had no column at all** (102 invalid + 7 retro on 0108). The
-partition closed only because "משרה חלקית" absorbed them — a column swallowing
-unrelated cases, which is the failure `CLAUDE.md` names explicitly.
+The buckets were counted on full-timers only, so **109 non-valid part-timers
+had no column at all** (102 invalid + 7 retro); the partition closed only
+because "משרה חלקית" absorbed them. Buckets now count `rows_f`. The partition
+is `ללא בסיס + שתי שורות + buckets + תקין = עובדים`, with
+`משרה חלקית (מתוכם)` descriptive and **outside** it — said in the header, the
+banner and `CHAIN_HE`. `ft_valid`/`ft_no_base`/`ft_multi` still exist on the
+summary object but drive nothing.
 
-Fixed by counting the buckets over `rows_f` (the whole file). The partition is
-now `ללא בסיס + שתי שורות + buckets + תקין = עובדים`, and
-`משרה חלקית (מתוכם)` is descriptive, **outside** the partition — the header,
-the banner text and `CHAIN_HE` all say so. Mirrored in `index.html` and
-`salary_frontend.html`; `ft_valid`/`ft_no_base`/`ft_multi` are still emitted on
-the summary object but no longer drive any column.
+The 109 land as 1999 58, גמול 20, בסיס 18, דריכות 4, בית חולים 2, retro 7.
+None is a real error — `inv_real` stayed 13.
 
-The 109 land as: 1999 58, גמול 20, בסיס 18, דריכות 4, בית חולים 2, שתי שורות 7.
-**None is a real error** — `inv_real` stays 13. The change exposes hidden
-workers without moving the headline number.
+## 4. 4319 / 4427
 
-## 4319 / 4427
+The user pointed at `tosafot!CX` / `tosafot!CY` in the 30.07 workbook. He was
+right: the previous report listed both as "לא מוגדר בחוברת" when the workbook
+defines them in full. `extract_rules.py` resolves rates from a *scalar* in
+`tosafot` row 3; these two resolve theirs with
+`VLOOKUP(דרגה, '<sheet>'!C6:E115, 2, 0)`, so no rule was emitted and they fell
+into the coverage gap. **That mislabel was ours, not the workbook's.**
 
-## What changed, and why
+New rule key `rate_by_grade` (grade label → rate), copied from the workbook's
+tables, honoured in `main.py` and `engine.js`. Bases from `SACHAR`:
+4319 = (משולב + גמול א + גמול ב) × rate; 4427 adds 4318 and 4319 itself.
 
-The user asked which Progim version the engine reads, and pointed at
-`tosafot!CX` / `tosafot!CY` in the 30.07.2026 workbook. He was right and the
-previous report was wrong: those two codes were listed as "לא מוגדר בחוברת"
-when the workbook defines them in full.
+Key-space trap: `'Netunei Gimlai'!B10` holds the grade **index** (1..110), the
+same column as `DARGA!A` — not the label. The per-grade sheets mirror that, so
+the VLOOKUP is consistent and there is no off-by-one.
 
-**Why the extractor missed them.** `extract_rules.py` resolves a rate from a
-*scalar* in `tosafot` row 3. For these two the rate is not a number — it is
-`VLOOKUP(דרגה, '<sheet>'!C6:E115, 2, 0)` into a dedicated per-grade sheet
-(`פומ נתיב 4319`, `שרות נתיב 4427`). No scalar, no rule, and the code fell
-through into the coverage-gap bucket. **That mislabel was ours, not the
-workbook's** — exactly the failure mode `CLAUDE.md` warns about, a gap of ours
-being reported as a defect in the product.
+Checked against every carrier before shipping: **8 of 10 exact to the agora**
+on each code. Deviants left as findings (grade 18: ₪757.81 vs ₪880.69 on 4319,
+₪3,252.10 vs ₪2,351.11 on 4427; grade 20+: ₪9.26 on 4427).
 
-**What was added.** A new optional rule key `rate_by_grade` (grade label →
-rate), read in `main.py` and mirrored in `engine.js` before the `grade_split`
-branch. The two tables were copied straight out of the workbook, not fitted to
-payroll data. Formulas, from `SACHAR`:
-
-- 4319: `CP11 = (AA11+AC11+AD11) * CP7` → base = משולב + גמול א + גמול ב
-- 4427: `CS11 = (AA11+AC11+AD11+CO11+CP11) * CS7` → the same **plus 4318 and
-  4319 itself**
-
-Careful reading needed on the key space: `'Netunei Gimlai'!B10` holds the grade
-**index** (1..110), not the grade label — `DARGA!A` is the same index column.
-The per-grade sheets mirror that layout, so the VLOOKUP is consistent; there is
-no off-by-one. `rate_by_grade` is keyed by the *label* and resolved through
-`normalize_grade_label`, which was verified against paid slips (below).
-
-Also replaced `data/progim/Progim_18.07.2026.xlsm` with the 30.07 workbook —
-the repo's declared source of truth was two versions behind the rules extracted
-from it. And fixed the dashboard banner: it named a chain that no longer
-matched the columns (1999 still last on the front-ends, תוספת בית חולים missing
-everywhere). It is now one constant, `CHAIN_HE` in `tools/unified_report.py`,
-with the same string in both front-ends.
+Also replaced `data/progim/Progim_18.07.2026.xlsm` with the 30.07 workbook the
+rules actually came from.
 
 ## Verified
 
-Before writing either rule, both formulas were computed by hand against the
-0108 file for every worker who carries the codes — 10 each:
-
-| | exact to the agora | deviating |
-|---|---|---|
-| 4319 | 8 / 10 | 2 |
-| 4427 | 8 / 10 | 2 |
-
-The deviants are one worker at grade 18 (4319: ₪757.81 paid vs ₪880.69;
-4427: ₪3,252.10 vs ₪2,351.11) and one at 20+ (4427: ₪9.26). Nothing was fitted
-to make them pass.
-
-Full run, 0108 file, 22,422 slips:
+0108 file, 22,422 slips, from a run:
 
 ```
 עובדים 22422 · [משרה חלקית 4667 — תיאורי, מחוץ למחיצה]
 ללא בסיס 856 · שתי שורות 17 · ותק סטודנט 0 · ותק קטוע 0
-בסיס 46 · גמול 115 · תוספת 1999 171 · דריכות 34
+בסיס 46 · גמול 115 · ניכוי 6% א"ע 0 · תוספת 1999 171 · דריכות 34
 גמול מנהל 0 · בוררות מיסים 0 · תוספת בית חולים 3
-שגויים אמיתיים 13 · תקין 21167      partition = 22422  OK
+שגויים אמיתיים 13 · תקין 21167        partition = 22422  OK
 ```
 
-Verdicts unchanged (21,167 / 382) — see the trust note below. Coverage gap
-13 codes / ₪248,503 (was 15 / ₪294K). Classification sheet: 35 formula,
-55 חוקה, 7 manual, 10 out-of-scope, 13 undefined. 20/20 tests;
-`node --check engine.js` clean; report regenerated and every column checked
-against its header.
+Classification: 35 formula · 46 חוקה-fixed · 8 חוקה-varies · 1 חוקה-unsettled ·
+7 manual · 11 out-of-scope · 12 undefined. Verdicts 21,167 / 382 throughout —
+none of these changes moved a verdict. 24/24 tests; `node --check engine.js`
+clean; both front-ends' inline scripts syntax-checked; report regenerated and
+every column read back against its header.
 
 ## Open
 
-**1. The two new rules do not flag anyone yet, by design.** Self-calibration
-needs `TRUST_MIN_N = 20` carriers of a code on a file before it trusts the
-rule, and 0108 has 10. So the rules compute and display but cannot fail a slip
-here. Do **not** mark them `stable` to force them through: that would flag 2
-workers out of a 10-worker sample, which is the false-positive trade
-`CLAUDE.md` forbids. Re-check on a file with ≥20 carriers.
+**1. The two new נתיב rules do not flag anyone yet, by design.**
+Self-calibration needs `TRUST_MIN_N = 20` carriers and 0108 has 10. Do **not**
+mark them `stable` to force it — that would flag 2 of a 10-worker sample.
 
-**2. The workbook's rate tables cover 9 grades out of 110.** Column D of
-`C6:E115` is filled for indexes 13–21 (grades 17–21) and empty everywhere else,
-where the VLOOKUP silently returns 0 — a worker outside that band gets a
-tosefet of zero with no error. `'פומ נתיב 4319'!Y5` carries the author's own
-note: "התוספת חושבה לקצינים בלבד - להוסיף חישוב לנגדים". Written up as
-`docs/PROGIM_FIXES.md` §6. The engine **skips** the check for an unlisted
-grade rather than expecting 0, so the workbook's blank never flags a worker.
+**2. The workbook's נתיב rate tables cover 9 grades of 110** (17–21); outside
+that the VLOOKUP silently returns 0. `'פומ נתיב 4319'!Y5` carries the author's
+own note about it. `PROGIM_FIXES.md` §6. The engine skips the check for an
+unlisted grade rather than expecting 0.
 
-**3. Everything below this line is inherited from the merged round** and still
-holds: the 1999 bucket tests gap-presence rather than causation and can hide a
-larger error (worker 66392396, ₪347 behind an ₪85 gap); 27 codes are חוקה
-amounts the extractor cannot resolve through eligibility-gated VLOOKUP chains
-and are labelled `reported/hukka` on purpose; 16 workers pay exactly 96.77% of
-the חוקה figure from a pulse the workbook keeps no history for — reported, not
-silenced. `base_codes` merges are ADD-ONLY (the workbook stopped listing alias
-pairs; 728 alone is 1,449 rows). `lookups.json` DARGA once had a factor-6 error
-that survived an audit because the audit rebuilt its comparison dict with the
-same last-wins bug — when auditing a lookup table, check for duplicate labels
-first.
+**3. Column indices in the dashboard are hardcoded** in
+`tools/unified_report.py` and both front-ends (number formats, warn/bad fonts,
+conditional-formatting ranges `C`/`Q`/`R`). Adding the 1711 column moved every
+index right of גמול by one. If you add another column, walk all three files.
+
+**4. Inherited and still true:** the 1999 bucket tests gap-presence not
+causation and can hide a larger error (worker 66392396, ₪347 behind an ₪85
+gap); 27 codes are חוקה amounts the extractor cannot resolve through
+eligibility-gated VLOOKUP chains, labelled `reported/hukka` on purpose; 16
+workers pay exactly 96.77% of the חוקה figure from a pulse the workbook keeps
+no history for — reported, not silenced. `base_codes` merges are ADD-ONLY (728
+alone is 1,449 rows). When auditing a lookup table, check for duplicate labels
+first — a factor-6 DARGA error once survived an audit that rebuilt its
+comparison dict with the same last-wins bug.
+
+---
+
+## From `main` — site routing (the other session, merged in here)
+
+The deployed site returned `{"detail": "Not Found"}` — Starlette's 404, not a
+crash. Vercel rewrites `/(.*)` to `api/index.py` with no static server in
+front, so FastAPI answers for the frontend's own files, and `/index.html`,
+`/salary_frontend.html` and `/api/index.py` had no route. Fixed with a
+catch-all in `main.py` registered **after every real route** (route order is
+declaration order — it must stay at the bottom of the file). HTML responses
+carry `Cache-Control: no-cache`, because the page's embedded `BUILD` must match
+the `engine.js?v=` it requests. `vercel.json` also lost `xlsx` from
+`includeFiles` — 9.1MB of real payroll data was being bundled into a public
+serverless function.
+
+Still open there: the header badge reads **לא מחובר**, which is not cosmetic —
+`ensureLookups()` fetches the pay tables, so file checking does not run at all.
+`/api/diag` was added to make production answer for itself: it reports
+`path_seen` and whether lookups/rules loaded. Get it from production first. If
+`path_seen` is `/api/index.py`, the rewrite is the cause and every `/api/*`
+call is being answered by the catch-all — fix the rewrite, do not add routes.
+This environment's network policy returns 403 on CONNECT to `*.vercel.app`, so
+none of it can be checked from here.
