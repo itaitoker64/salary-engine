@@ -1,4 +1,4 @@
-<!-- head: 6aa1243 -->
+<!-- head: 4c401ce -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,27 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0e. 1375 out of scope — and the minimum-wage list was wrong
+
+**1375 (קצובת ביגוד)** is not pensionable per the user; added to
+`NON_PENSIONABLE` in both engines. Gap 9 codes/₪104,997 → 8/₪99,113;
+out-of-scope 12 → 13. Remaining gap: 507, 642, 733, 797, 1297, 4133, 4180, 4406.
+
+**Found while checking it: rule 5260's `counted` list diverged from the
+workbook.** It held **265** codes; `sminimum` column C marks only **192** as
+'כן'. So 75 codes were counted toward minimum wage that the workbook says are
+not — 1375 itself, 4935 (תוספת אמון), 5216 (מנמ"ש 2010), 4934, 4994, 5268,
+5270 among them — and 10001/10002 (שכר משולב), the single most important
+component, were **missing**.
+
+The list is now read straight from `sminimum` column C rather than hand-kept.
+
+Measured before and after: **zero verdict change** — 21,163 / 386 with 14 real
+both ways, and 5260 flags nobody on the 0108 file regardless. The divergence
+was inert on this data, which is exactly why it survived: it would only have
+surfaced the day the rule started firing. Re-derive it from the sheet on every
+workbook upgrade; do not hand-edit it back.
 
 ## 0d. 4651 is a computed 15% component
 
