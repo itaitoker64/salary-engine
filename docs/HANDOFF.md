@@ -1,4 +1,4 @@
-<!-- head: 2df0bfd -->
+<!-- head: 534a739 -->
 # Handoff — branch `claude/salary-validation-highlighting-s22hlj`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -53,6 +53,40 @@ Verified: `python3 -m pytest tests/ -q` → **24 passed** (20 + 4 new routing
 tests in `tests/test_engine.py`); `node --check engine.js` clean. No payroll
 rule changed, so `engine.js` and the two front-ends were untouched and `BUILD`
 was not bumped.
+
+## "לא מחובר" — open, and it matters
+
+After the routing fix deployed, the page loads but the header badge reads
+**לא מחובר**. That badge is not cosmetic: `ensureLookups()` fetches the pay
+tables from `/api/lookups`, so a server the page cannot reach means file
+checking does not run at all. Do not dismiss it as a UI nit.
+
+What is known: `/` serves the page, so something is answering. The old
+`checkStatus` collapsed every failure into that one string, and critically it
+would have shown `פעיל · undefined דרגות` had `/api/info` returned FastAPI's
+own 404 JSON — so whatever came back was **not JSON**. That points away from a
+route miss and toward the platform answering instead of the app: a failed
+build, a crashed function, or a rewrite handing the function its destination
+path.
+
+Not diagnosed further because this environment's network policy returns 403 on
+CONNECT to `*.vercel.app` — the site cannot be reached from here at all, by
+curl or WebFetch. So instead of guessing, this session made the failure report
+itself:
+
+- `/api/diag` — the path the function was actually handed (`path_seen`), which
+  bundled files survived, whether lookups and rules loaded. Opening that one URL
+  in a browser settles it. No secrets in the output.
+- `checkStatus` and `ensureLookups` now read the body as text, report the HTTP
+  status and the server's own message, and log the raw body to the console.
+- `/api/info` returns 503 with a JSON reason instead of raising, since an
+  unhandled raise comes back as the platform's HTML error page.
+
+Next session: get `/api/diag` from production first. If `path_seen` is
+`/api/index.py` rather than the requested path, the rewrite is the cause and
+every `/api/*` call is being answered by the catch-all with HTML — fix the
+rewrite rather than adding more routes. If `lookups.ok` is false, the data files
+did not make it into the function bundle; check `includeFiles` in `vercel.json`.
 
 ---
 

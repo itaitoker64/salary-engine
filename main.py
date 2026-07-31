@@ -2,7 +2,7 @@
 main.py — Salary Engine API v0.2 (self-contained, flat structure)
 """
 
-import os, io, re, time, json, tempfile
+import os, io, re, sys, time, json, tempfile
 from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
@@ -16,7 +16,7 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.comments import Comment
 import pandas as pd
 from tools import progim_ingest  # top-level so Vercel bundles tools/*.py
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -1511,11 +1511,53 @@ def health():
 
 @app.get("/api/info")
 def info():
-    lk = get_lookups()
+    # An unhandled raise here comes back as the platform's HTML error page,
+    # which the frontend can only report as "לא מחובר" — the least useful
+    # message possible. Answer with JSON either way, so the page can say what
+    # actually broke.
+    try:
+        lk = get_lookups()
+    except Exception as e:
+        return JSONResponse(status_code=503, content={
+            "status": "error", "error": f"{type(e).__name__}: {e}",
+            "detail": "טבלאות השכר לא נטענו בשרת", "version": "0.3.0"})
     return {"status": "ok", "grades_loaded": len(lk["label_to_base"]),
             "tracks_loaded": len(lk["vetek_by_track"]),
             "track_caps": lk["track_max"],
             "match_threshold": MATCH_THRESHOLD, "version": "0.3.0"}
+
+
+@app.get("/api/diag", include_in_schema=False)
+def diag(request: Request):
+    """What the function actually sees. This environment cannot reach the
+    deployed site (network policy), so when production misbehaves this endpoint
+    is the evidence: the path the platform handed us — a rewrite that passes its
+    own destination instead of the request path is invisible from any other
+    angle — and whether the data files survived the bundle. No secrets."""
+    files = {}
+    for p in (BUNDLED_LOOKUPS, BUNDLED_RULES, COMPONENTS_FILE, MINISTRIES_FILE,
+              FRONTEND_FILE, ENGINE_JS_FILE):
+        files[p.name] = p.stat().st_size if p.exists() else None
+    try:
+        lk = get_lookups()
+        lookups = {"ok": True, "grades": len(lk["label_to_base"]),
+                   "tracks": len(lk["vetek_by_track"])}
+    except Exception as e:
+        lookups = {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    try:
+        rules_n = len(get_rules())
+    except Exception as e:
+        rules_n = f"{type(e).__name__}: {e}"
+    return {
+        "path_seen": request.url.path,
+        "root_path": request.scope.get("root_path", ""),
+        "python": sys.version.split()[0],
+        "bundled_files": files,
+        "runtime_data_dir": str(PROGIM_DATA_DIR),
+        "runtime_data_present": PROGIM_DATA_DIR.exists(),
+        "lookups": lookups,
+        "rules_loaded": rules_n,
+    }
 
 @app.get("/api/lookups")
 def api_lookups():
