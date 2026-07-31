@@ -1,4 +1,4 @@
-<!-- head: facd0eb -->
+<!-- head: 5f3633c -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -9,16 +9,46 @@ Restarted from `origin/main` at `573c435` after PR #61 merged, then merged
 `origin/main` again at `23f5028` (the other session's site-routing work — that
 history is preserved below under "From `main`"). Not merged back yet.
 
-Four topics on this branch, newest first:
+Five topics on this branch, newest first:
 
+0. **Upgraded to the Progim 31.07.2026 workbook** — 956/957 newly defined there
 1. **חוקה amounts split into fixed vs period-varying** in the classification sheet
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
 
+## 0. Progim 31.07.2026
+
+`data/progim` now holds the 31.07 workbook. What actually changed in it:
+
+- **956 (הש. מצט. מנמ"ש, ₪40.83) and 957 (הש. מוכ. מנמ"ש, ₪61.32) are new** in
+  `tosafot`, both constant across all 228 months. Both were on the
+  "לא מוגדר בחוברת" list, so the gap drops **12 codes/₪226,806 → 10/₪219,906**.
+  Remaining: 507, 642, 733, 797, 1297, 1375, 4133, 4180, 4406, 4651.
+- **91 `tosafot` columns moved.** 4319 went CX→CZ, 4427 CY→DA. Rate resolution
+  is by the code label in row 4, so nothing broke — this is the drift the
+  dynamic lookup exists for. Do not reintroduce cell addresses anywhere.
+- `lookups.json` re-extracted **byte-identical**. The `vetek` sheet does differ,
+  but only in the single-worker calculator scratch area (a worker's vatek
+  32.25→37), not the multiplier table.
+- Re-running `extract_rules.py` yields the same 26 percent rules with **no rate
+  change**. It still emits only 33 rules total and would drop the 60 curated
+  ones plus the alias base codes — so it was diffed, not applied.
+
+956/957 were validated against the slips before either rule was written:
+**107/108** and **7/7** exact against `amount × חלקיות`. The single 956
+outlier is worker 73742286 at −₪2,449.80, who was already invalid on גמול
+השתלמות (₪19,777.20 against ₪328.76) — a retro month, not a rate error. He
+stays in the גמול bucket; the new rules added no error at all (21,167 / 382,
+13 real, unchanged).
+
+**None of the three reported workbook defects was fixed in 31.07:** 5402 still
+has no sum table (§7), 636 still holds 353.75 against its own 353.76 (§8), and
+the 4319/4427 rate tables still cover 9 grades of 110 (§6).
+
 ## 1. חוקה amounts: fixed vs varies
 
-"סכום לפי חוקה" became three labels — `סכום קבוע לכל התקופה` (46),
+"סכום לפי חוקה" became three labels — `סכום קבוע לכל התקופה` (48),
 `סכום משתנה מעת לעת` (8), `סכום לפי חוקה — לא נקבע` (1).
 
 Decided by `tools/classify_hukka_amounts.py`, which reads it out of the
@@ -122,8 +152,8 @@ rules actually came from.
 שגויים אמיתיים 13 · תקין 21167        partition = 22422  OK
 ```
 
-Classification: 35 formula · 46 חוקה-fixed · 8 חוקה-varies · 1 חוקה-unsettled ·
-6 manual · 12 out-of-scope · 12 undefined. Verdicts 21,167 / 382 throughout —
+Classification: 35 formula · 48 חוקה-fixed · 8 חוקה-varies · 1 חוקה-unsettled ·
+6 manual · 12 out-of-scope · 10 undefined. Verdicts 21,167 / 382 throughout —
 none of these changes moved a verdict. 24/24 tests; `node --check engine.js`
 clean; both front-ends' inline scripts syntax-checked; report regenerated and
 every column read back against its header.

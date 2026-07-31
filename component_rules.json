@@ -1625,7 +1625,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!AS3: 0 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!AU3: 0 ₪"
   },
   "658": {
     "codes": [
@@ -1783,7 +1783,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "varies",
-    "amount_period_note": "טבלת חודש פרישה ב-tosafot: 2 סכומים שונים על פני 24 חודשים (95.8–116.41)"
+    "amount_period_note": "טבלת חודש פרישה ב-tosafot: 4 סכומים שונים על פני 48 חודשים (95.8–116.41)"
   },
   "808": {
     "codes": [
@@ -1995,7 +1995,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!CO3: 442.28 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!CQ3: 442.28 ₪"
   },
   "1657": {
     "codes": [
@@ -2009,7 +2009,7 @@
     "origin": "hukka",
     "source": "סכום מחוקת ה-Progim (tosafot!CP3) — קבוע בחוקה",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!CP3: 1414 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!CR3: 1414 ₪"
   },
   "1951": {
     "codes": [
@@ -2021,7 +2021,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!CQ3: 328.76 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!CS3: 328.76 ₪"
   },
   "1961": {
     "codes": [
@@ -2093,7 +2093,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!CV3: 203.92 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!CX3: 203.92 ₪"
   },
   "4318": {
     "codes": [
@@ -2139,7 +2139,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!CH3: 286.63 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!CJ3: 286.63 ₪"
   },
   "5253": {
     "codes": [
@@ -2211,7 +2211,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!DH3: 500 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!DJ3: 500 ₪"
   },
   "5539": {
     "codes": [
@@ -2235,7 +2235,7 @@
     "note": "הסכום קיים בחוקה אך החילוץ לא הצליח לפתור אותו (VLOOKUP/שרשרת תנאים תלוית-זכאות). לכן הרכיב מתקבל כמות-שהוא ואינו מאומת — זהו פער כיסוי שנותר לסגור, לא רכיב ידני.",
     "origin": "hukka",
     "amount_period": "fixed",
-    "amount_period_note": "סכום קבוע בתא tosafot!DI3: 300 ₪"
+    "amount_period_note": "סכום קבוע בתא tosafot!DK3: 300 ₪"
   },
   "4319": {
     "codes": [
@@ -2303,5 +2303,33 @@
     ],
     "origin": "formula",
     "source": "Progim 30.07.2026: SACHAR!CS11 = (AA11+AC11+AD11+CO11+CP11)*CS7, CS7='tosafot '!CY2; שער לפי דרגה = VLOOKUP('שרות נתיב 4427'!C6:E115,2,0)"
+  },
+  "956": {
+    "codes": [
+      956
+    ],
+    "name": "השלמה מצטבר מנמ\"ש",
+    "type": "shekel",
+    "amounts": [
+      40.83
+    ],
+    "origin": "hukka",
+    "source": "Progim 31.07.2026: tosafot!AD3 = 40.83 (סמל בשורה 4); הופיע לראשונה בגרסה זו",
+    "amount_period": "fixed",
+    "amount_period_note": "טבלת חודש פרישה ב-tosafot: סכום אחד, 40.83 ₪, לכל 228 החודשים"
+  },
+  "957": {
+    "codes": [
+      957
+    ],
+    "name": "השלמה מוכפל מנמ\"ש",
+    "type": "shekel",
+    "amounts": [
+      61.32
+    ],
+    "origin": "hukka",
+    "source": "Progim 31.07.2026: tosafot!AE3 = 61.32 (סמל בשורה 4); הופיע לראשונה בגרסה זו",
+    "amount_period": "fixed",
+    "amount_period_note": "טבלת חודש פרישה ב-tosafot: סכום אחד, 61.32 ₪, לכל 228 החודשים"
   }
 }
