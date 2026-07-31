@@ -244,3 +244,40 @@ def test_component_matches_any_official_phase():
                  (5533, "אחוזית-2024", round(base_amt * rate, 2), "כן")]
         checks = engine.check_worker_components(comps, 1.0, rules)
         assert checks[5533]["ok"] is ok, (rate, checks[5533])
+
+
+# --- routing ---------------------------------------------------------------
+# Vercel rewrites every path to the serverless entrypoint, so FastAPI answers
+# for the frontend's files too. Each of these once returned {"detail": "Not
+# Found"}, which reads to a user as a dead site.
+
+def _client():
+    from fastapi.testclient import TestClient
+    return TestClient(engine.app)
+
+
+def test_frontend_is_served_on_every_entry_path():
+    c = _client()
+    for path in ("/", "/index.html", "/salary_frontend.html", "/api/index.py"):
+        r = c.get(path)
+        assert r.status_code == 200, path
+        assert r.headers["content-type"].startswith("text/html"), path
+        assert b"<html" in r.content.lower(), path
+
+
+def test_unknown_navigation_falls_back_to_the_app():
+    r = _client().get("/nosuchpage")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")
+
+
+def test_unknown_api_and_asset_paths_still_404():
+    c = _client()
+    for path in ("/api/nope", "/missing.png", "/golmi.xlsx", "/tools/unified_report.py"):
+        assert c.get(path).status_code == 404, path
+
+
+def test_engine_js_is_served():
+    r = _client().get("/engine.js")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("application/javascript")

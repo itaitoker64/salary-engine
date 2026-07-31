@@ -1466,11 +1466,20 @@ class AccuracyResponse(BaseModel):
     avg_diff: float; max_diff: float
     by_ministry: list[dict]; mismatches: list[dict] = []; elapsed_sec: float
 
+def _frontend_response():
+    """The single-page frontend. `no-cache` so a redeploy is picked up on the
+    next load — the page carries an inline script whose BUILD must match the
+    engine.js it asks for, and a stale HTML against a fresh engine.js is the
+    one combination that silently mis-renders."""
+    if FRONTEND_FILE.exists():
+        return FileResponse(str(FRONTEND_FILE), media_type="text/html; charset=utf-8",
+                            headers={"Cache-Control": "no-cache"})
+    return JSONResponse({"status": "ok", "service": "salary-engine", "version": "0.2.0"})
+
+
 @app.get("/", include_in_schema=False)
 def root():
-    if FRONTEND_FILE.exists():
-        return FileResponse(str(FRONTEND_FILE))
-    return JSONResponse({"status": "ok", "service": "salary-engine", "version": "0.2.0"})
+    return _frontend_response()
 
 # Inline SVG favicon — navy rounded square with a white validation check, matching
 # the frontend's <link rel="icon">. Served as a route so direct /favicon.ico hits
@@ -1801,3 +1810,57 @@ async def batch_calculate(file: UploadFile = File(...)):
         )
     finally:
         os.unlink(tmp_path)
+
+
+# ---------------------------------------------------------------------------
+# Static files and the not-found fallback.
+#
+# On Vercel there is no static file server in front of us: vercel.json rewrites
+# EVERY path to api/index.py, so FastAPI has to answer for the frontend's own
+# files too. Anything without a route above returned Starlette's bare
+# {"detail": "Not Found"} — which is what a user sees, and reads as "the site
+# is down", not "wrong URL". Three real paths hit it:
+#
+#   /index.html, /salary_frontend.html  — a bookmark or a shared link
+#   /api/index.py                       — a rewrite that hands the function its
+#                                         destination path instead of the
+#                                         original request path
+#
+# Registered last, so it only ever sees paths no route above claimed.
+# ---------------------------------------------------------------------------
+ROOT_DIR = Path(__file__).parent
+VERCEL_ENTRY = "api/index.py"
+STATIC_SERVABLE = {
+    "index.html": "text/html; charset=utf-8",
+    "salary_frontend.html": "text/html; charset=utf-8",
+    "engine.js": "application/javascript",
+    "components.json": "application/json",
+    "ministries.json": "application/json",
+}
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def static_or_frontend(full_path: str):
+    path = full_path.strip("/")
+
+    # A frontend file asked for by name — serve it from the repo root. Only
+    # names on the list, and only from the root: no traversal, no data files.
+    media = STATIC_SERVABLE.get(path)
+    if media:
+        f = ROOT_DIR / path
+        if f.exists():
+            headers = {"Cache-Control": "no-cache"} if path.endswith(".html") else {}
+            return FileResponse(str(f), media_type=media, headers=headers)
+
+    # The serverless entrypoint's own path — this is the app, so show the app.
+    if path == VERCEL_ENTRY:
+        return _frontend_response()
+
+    # An unmatched /api/... path is a caller error, and an unmatched path that
+    # looks like a file is a broken asset reference. Both deserve a real 404 —
+    # answering them with HTML would turn a 404 into a confusing parse error.
+    if path.startswith("api/") or "." in path.rsplit("/", 1)[-1]:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    # Anything else: a navigation. Show the app rather than a JSON error.
+    return _frontend_response()
