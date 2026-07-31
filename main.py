@@ -5,7 +5,7 @@ main.py — Salary Engine API v0.2 (self-contained, flat structure)
 import os, io, re, sys, time, json, tempfile
 from pathlib import Path
 from typing import Optional
-from urllib.parse import quote
+from urllib.parse import parse_qsl, quote, urlencode
 from dataclasses import dataclass, field
 from collections import defaultdict, Counter
 
@@ -1358,6 +1358,84 @@ def content_disposition(hebrew_name: str, ascii_fallback: str) -> str:
 
 
 app = FastAPI(title="Salary Engine API", version="0.2.0")
+
+
+# --- the serverless rewrite ------------------------------------------------
+# Vercel rewrites every path to this function, and hands it the rewrite's
+# DESTINATION instead of the path the browser asked for. Every request arrived
+# as the entrypoint path, no route matched, and the catch-all answered
+# everything — `/api/lookups` included — with the frontend HTML: one identical
+# 200 for every URL. That is what the page's "לא מחובר" badge really reports,
+# since it fetches the pay tables and gets HTML it cannot parse.
+#
+# This has to live ON THE APP, not in api/index.py. A build wrapping the app
+# there went live — proved by `/api/index` serving the page, which only the
+# new main.py does — while not one response carried the wrapper's headers, so
+# the runtime never calls the object that module exports.
+#
+# Nothing here assumes an undocumented header exists: each candidate is looked
+# up by name, and `x-req-header-names` on the response reports what WAS sent,
+# so the next step is a measurement rather than another guess. Names only —
+# header values carry cookies and auth.
+PATH_PARAM = "__path"
+FORWARDED_PATH_HEADERS = (
+    "x-vercel-original-path", "x-vercel-original-pathname",
+    "x-original-uri", "x-forwarded-uri", "x-rewrite-url", "x-matched-path",
+)
+
+
+class _RestoreOriginalPath:
+    """Put the browser's path back into the ASGI scope before routing."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        received = scope.get("path", "")
+        headers = {k.decode("latin-1").lower(): v.decode("latin-1")
+                   for k, v in (scope.get("headers") or [])}
+        pairs = parse_qsl((scope.get("query_string") or b"").decode("latin-1"),
+                          keep_blank_values=True)
+
+        original = next((v for k, v in pairs if k == PATH_PARAM), None)
+        source = PATH_PARAM
+        if not original:
+            for name in FORWARDED_PATH_HEADERS:
+                v = (headers.get(name) or "").split("?", 1)[0]
+                if v.startswith("/") and v.strip("/") != received.strip("/"):
+                    original, source = v, name
+                    break
+
+        if original:
+            if not original.startswith("/"):
+                original = "/" + original
+            scope = dict(scope)
+            scope["path"] = original
+            scope["raw_path"] = original.encode("utf-8")
+            scope["query_string"] = urlencode(
+                [(k, v) for k, v in pairs if k != PATH_PARAM]).encode("latin-1")
+
+        async def _send(message):
+            if message.get("type") == "http.response.start":
+                message = dict(message)
+                message["headers"] = list(message.get("headers") or []) + [
+                    (b"x-path-received", received.encode("latin-1", "replace")),
+                    (b"x-path-restored",
+                     (f"{original} via {source}" if original else "none")
+                     .encode("latin-1", "replace")),
+                    (b"x-req-header-names",
+                     ",".join(sorted(headers)).encode("latin-1", "replace")[:900]),
+                ]
+            await send(message)
+
+        await self.app(scope, receive, _send)
+
+
+app.add_middleware(_RestoreOriginalPath)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 BUNDLED_LOOKUPS = Path(__file__).parent / "lookups.json"

@@ -357,3 +357,38 @@ def test_both_entry_spellings_show_the_app():
         r = c.get(path)
         assert r.status_code == 200, path
         assert r.headers["content-type"].startswith("text/html"), path
+
+
+# --- path restoration lives on the app, not on the entrypoint ---------------
+# A build that wrapped the app in api/index.py went live — /api/index served
+# the page, which only the new main.py does — yet no response carried the
+# wrapper's headers. The runtime does not call what that module exports, so
+# anything per-request has to be middleware on `app` itself.
+
+def test_restoration_middleware_runs_on_the_app():
+    c = _client()
+    r = c.get("/api/index", headers={"x-vercel-original-path": "/api/info"})
+    assert r.headers.get("x-path-restored", "").startswith("/api/info via ")
+    assert r.headers["content-type"].startswith("application/json")
+
+
+def test_query_marker_also_restores_the_path():
+    c = _client()
+    r = c.get("/api/index?__path=/api/info")
+    assert r.headers["content-type"].startswith("application/json")
+
+
+def test_no_path_source_leaves_the_request_alone():
+    """The fallback must be the previous behaviour — show the app — never a 500."""
+    c = _client()
+    r = c.get("/api/index")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")
+    assert r.headers.get("x-path-restored") == "none"
+
+
+def test_normal_requests_are_untouched_by_the_middleware():
+    c = _client()
+    assert c.get("/").status_code == 200
+    assert c.get("/api/nope").status_code == 404
+    assert c.get("/engine.js").status_code == 200
