@@ -1,4 +1,4 @@
-<!-- head: cb2279c -->
+<!-- head: 66dd10c -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -214,7 +214,46 @@ comparison dict with the same last-wins bug.
 
 ---
 
-## Site routing — FIXED here (was `main`'s open item)
+## Site routing — FIXED and verified in production
+
+`/api/info`, `/api/lookups`, `/api/progim/status`, `/api/diag` all return JSON
+from the live site; `/` and `/index.html` serve the page; `/engine.js` serves
+JS; `/nonexistent-asset.js` 404s. `/api/diag` reports `path_seen: "/api/diag"`,
+`rules_loaded: 95`, `runtime_data_present: false` — i.e. the **bundled 31.07
+חוקה is what the site serves**, no `/tmp` upload involved. The `לא מחובר` badge
+is resolved: the page's `/api/lookups` fetch returns 39,738 bytes of JSON.
+
+### What was actually wrong, in the order it was found
+
+1. **The rewrite destination named the file, not the route.**
+   `/api/index.py` is taken literally; the function's published route is
+   `/api/index`. With the file spelling, the request never reached the routing
+   layer in a usable form. Fixed to `/api/index`.
+2. **The platform hands the function the DESTINATION path**, confirmed by
+   `x-path-received: /api/index` on every response. So the original path must
+   be carried explicitly — the rewrite now appends `?__path=/$1`.
+3. **`api/index.py` is not where per-request code can live.** Three rounds were
+   spent on a wrapper there that never ran: a build carrying it went live
+   (`/api/index` served the page, which only the new `main.py` does) while no
+   response carried its headers. The runtime does not call that module's `app`.
+   `_RestoreOriginalPath` is now middleware on the FastAPI app in `main.py`.
+4. **Recognising only one entry spelling 404'd the homepage** for ~2 minutes
+   after step 1 — every request, `/` included, fell into the `api/` branch.
+   `VERCEL_ENTRY` is now both spellings, pinned by a test.
+
+`x-req-header-names` from production shows **no** forwarded-path header exists
+(`x-vercel-original-path` and friends are absent), so the query marker was
+genuinely necessary — the header fallback in the middleware never fires here
+and is kept only as insurance. `x-path-*` are cheap and stay: while routing is
+broken no diagnostic *endpoint* is reachable, so the diagnosis has to ride on
+the response. Names only, never values.
+
+**Do not "simplify" any of this without re-reading the above.** Reverting the
+destination to `/api/index.py`, dropping `?__path=`, moving the middleware back
+to `api/index.py`, or trimming `VERCEL_ENTRY` to one spelling each restore a
+failure that was measured in production.
+
+## Superseded notes from the earlier round
 
 **The whole API was dead in production and the fix is in this branch.** Measured
 against the live site: `/`, `/api/info`, `/api/lookups`, `/api/progim/status`
