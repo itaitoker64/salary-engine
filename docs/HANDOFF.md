@@ -1,4 +1,4 @@
-<!-- head: c51a06b -->
+<!-- head: c7516ac -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,29 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0h. Progim 31.07 — second file, same date: 733 added
+
+A second `Progim_31.07.2026.xlsm` (different md5) adds **733 (ס. ניקוי כלים)**:
+`tosafot!AA3 = ₪10.26`, constant across 228 months, and `SACHAR!AT11` takes it
+straight — no rate, no base. Validated **4 of 4 to the agora** before the rule
+was written, including two at 75% job paid exactly ₪7.70.
+
+Gap **6 codes/₪87,240 → 5/₪87,204**. Remaining: 507, 642, 797, 1297, 4180.
+
+**None of the five reported workbook defects is fixed here** — 4319/4427 rate
+tables still 9 and 8 of 110 (§6), 5402 still has no sum table (§7), 636 still
+holds 353.75 against its own 353.76 (§8), 805 still 48 months of 228 (§9),
+4651 still 12 of 228.
+
+**96 columns moved again**, and `extract_rules.py` on the new file returns
+**25** percent rules instead of 26: **5533 (אחוזית 2024) drops out**, because
+its rate row evaluates to 0 and the extractor rejects an invalid rate. The
+curated 5533 rule is untouched (5 rates, 77 base codes) because the extraction
+is **diffed, never applied** — this is precisely why that rule exists. Do not
+"just re-extract" on a workbook upgrade.
+
+`lookups.json` re-extracted identical again.
 
 ## 0g. 4133 (תוספת יוקר) out of scope
 
