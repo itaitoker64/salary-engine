@@ -796,13 +796,39 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof refreshProgimStatus === 'function') refreshProgimStatus();
 });
 
+// The badge is not decoration: the pay tables come from /api/lookups, so a
+// server the page cannot reach means file checking does not run at all. A bare
+// "לא מחובר" hid which of four different failures happened, so it now names
+// the one that did — and the console line carries the raw body for a report.
 async function checkStatus(){
   const el = document.getElementById('status-el');
+  const fail = (msg) => {
+    el.innerHTML = `<span class="dot"></span>${msg}`;
+    el.className = 'status err';
+    el.title = 'בדיקת קובץ לא תעבוד עד שהשרת חוזר — לפרטים פתחו /api/diag';
+  };
+  let r;
   try{
-    const r = await fetch(API+'/api/info'); const d = await r.json();
-    el.innerHTML = `<span class="dot"></span>פעיל · ${d.grades_loaded} דרגות · ${d.tracks_loaded||''} מסלולים`;
-    el.className = 'status ok';
-  }catch{ el.innerHTML = '<span class="dot"></span>לא מחובר'; el.className='status err'; }
+    r = await fetch(API+'/api/info');
+  }catch(e){
+    console.error('status: network failure', e);
+    return fail('אין תקשורת לשרת');
+  }
+  const body = await r.text();
+  let d = null;
+  try{ d = JSON.parse(body); }catch(e){}
+  if(!d){
+    // HTML back from a JSON endpoint = the platform answered, not the app:
+    // a build failure, a crashed function, or a rewrite serving the page here.
+    console.error('status: non-JSON from /api/info, HTTP '+r.status, body.slice(0,300));
+    return fail(`שגיאת שרת (${r.status})`);
+  }
+  if(!r.ok || d.status === 'error' || d.grades_loaded === undefined){
+    console.error('status: /api/info HTTP '+r.status, d);
+    return fail(d.detail || d.error || `שגיאת שרת (${r.status})`);
+  }
+  el.innerHTML = `<span class="dot"></span>פעיל · ${d.grades_loaded} דרגות · ${d.tracks_loaded||''} מסלולים`;
+  el.className = 'status ok';
 }
 
 let _trackByName={};
@@ -1083,10 +1109,26 @@ function showWorkerFromFile(){
 let _engineLookups=null,_engineRules=null;
 async function ensureLookups(){
   if(_engineLookups) return _engineLookups;
-  const [rl,rr]=await Promise.all([fetch(API+'/api/lookups'),fetch(API+'/api/rules')]);
+  // Fail with the reason, not with a JSON parse error. When the server answers
+  // a JSON endpoint with HTML (build failure, crashed function, a rewrite
+  // serving the page) `.json()` throws "Unexpected token <", which tells the
+  // user nothing about a payroll run that just refused to start.
+  const asJson = async (url) => {
+    let r;
+    try{ r = await fetch(url); }
+    catch(e){ throw new Error('אין תקשורת לשרת — לא ניתן לטעון את טבלאות השכר'); }
+    const body = await r.text();
+    try{ return {ok:r.ok, status:r.status, data:JSON.parse(body)}; }
+    catch(e){
+      console.error('non-JSON from '+url+', HTTP '+r.status, body.slice(0,300));
+      throw new Error('השרת החזיר תשובה לא תקינה מ-'+url+' (סטטוס '+r.status+')');
+    }
+  };
+  const [rl,rr]=await Promise.all([asJson(API+'/api/lookups'),
+                                   asJson(API+'/api/rules').catch(()=>null)]);
   if(!rl.ok) throw new Error('טעינת טבלאות השכר נכשלה (סטטוס '+rl.status+')');
-  _engineLookups=SalaryEngine.prepLookups(await rl.json());
-  _engineRules=rr.ok?SalaryEngine.prepRules(await rr.json()):null; // rules are optional
+  _engineLookups=SalaryEngine.prepLookups(rl.data);
+  _engineRules=(rr&&rr.ok)?SalaryEngine.prepRules(rr.data):null; // rules are optional
   return _engineLookups;
 }
 
