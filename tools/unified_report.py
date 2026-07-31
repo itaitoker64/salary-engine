@@ -436,6 +436,11 @@ def collect(paths, pure=False):
 # when they carry a real value so the eye lands on them.
 # Hebrew label per neutralization bucket, shown in the work queue so a
 # neutralized row is visible and filterable instead of silently dropped.
+# The neutralization chain in display order — must match the err_cat priority
+# in collect() and the dashboard column order. Stated on the report itself so
+# a reader can see which bucket claimed a worker first.
+CHAIN_HE = "משרה חלקית ← ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין"
+
 NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "brich": "דריכות בי\"ח",
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
@@ -566,9 +571,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     s = ws["A2"]
     s.value = (f"{len(summary)} קבצים · הופק "
                f"{datetime.now().strftime('%d/%m/%Y %H:%M')} · "
-               "כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← רטרו "
-               "← תקין ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← "
-               "דריכות ← גמול מנהל ← בוררות מיסים ← שגיאה אמיתית. סכום "
+               "כל עובד נספר בעמודה אחת בדיוק: " + CHAIN_HE + ". סכום "
                "העמודות (כולל 'תקין' בסוף) = סה\"כ העובדים. "
                "% שגויים אמיתיים = אמיתיים חלקי סה\"כ העובדים.")
     s.font = Font(size=10, color=MUTED)

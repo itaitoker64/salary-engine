@@ -310,6 +310,19 @@ def check_worker_components(components, job_pct, rules, ministry_code=0,
             # level rates so a slip paid at the wrong level's rate is caught,
             # instead of silently accepting any of the four rates.
             rates = rule["rates"]
+            # Per-grade rate table (נתיב: פו"מ 4319, תוספת שירות 4427). The
+            # Progim resolves these with VLOOKUP(דרגה, <sheet>!C6:E115, 2, 0)
+            # instead of a flat rate in `tosafot` row 3, so the grade decides
+            # the rate outright. The workbook fills the table for grades 17–21
+            # only; outside that range its VLOOKUP yields 0, which would mark
+            # every payment wrong — so an unlisted grade skips the check and is
+            # reported as a coverage gap instead of flagging the worker.
+            rbg = rule.get("rate_by_grade")
+            if rbg is not None:
+                r = rbg.get(normalize_grade_label(darga_label))
+                if r is None:
+                    continue
+                rates = [r]
             gs = rule.get("grade_split")
             if gs:
                 lvl = _grade_split_rates(gs, darga_label, droog)

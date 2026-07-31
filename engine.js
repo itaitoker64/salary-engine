@@ -138,6 +138,16 @@
         // rates so a slip paid at the wrong level's rate is caught, instead of
         // silently accepting any of the four rates.
         let rates = rule.rates;
+        // Per-grade rate table (נתיב: פו"מ 4319, תוספת שירות 4427). The Progim
+        // resolves these with VLOOKUP(דרגה, <sheet>!C6:E115, 2, 0) rather than a
+        // flat rate in `tosafot` row 3. The workbook fills the table for grades
+        // 17–21 only; outside it the VLOOKUP yields 0, so an unlisted grade
+        // skips the check rather than flagging a worker the workbook can't price.
+        if (rule.rate_by_grade) {
+          const r = rule.rate_by_grade[normalizeGradeLabel(dargaLabel)];
+          if (r === undefined) continue;
+          rates = [r];
+        }
         if (rule.grade_split) {
           const lvl = gradeSplitRates(rule.grade_split, dargaLabel, droog);
           if (lvl) rates = lvl;
@@ -924,7 +934,7 @@
     return { codesSorted, codeNames, rows };
   }
 
-  const BUILD = '2026-07-29h';   // bump on each engine change; see index.html ?v=
+  const BUILD = '2026-07-31a';   // bump on each engine change; see index.html ?v=
   const api = {
     BUILD, MATCH_THRESHOLD, STATUS, round2,
     prepLookups, prepRules, getGradeBase, getVatekMultiplier, baseWithinTolerance,
