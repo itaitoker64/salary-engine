@@ -12,7 +12,7 @@ history is preserved below under "From `main`"). Not merged back yet.
 Four topics on this branch, newest first:
 
 1. **חוקה amounts split into fixed vs period-varying** in the classification sheet
-2. **1711 out of scope, plus its own neutralization bucket**
+2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
 
@@ -123,7 +123,7 @@ rules actually came from.
 ```
 
 Classification: 35 formula · 46 חוקה-fixed · 8 חוקה-varies · 1 חוקה-unsettled ·
-7 manual · 11 out-of-scope · 12 undefined. Verdicts 21,167 / 382 throughout —
+6 manual · 12 out-of-scope · 12 undefined. Verdicts 21,167 / 382 throughout —
 none of these changes moved a verdict. 24/24 tests; `node --check engine.js`
 clean; both front-ends' inline scripts syntax-checked; report regenerated and
 every column read back against its header.
