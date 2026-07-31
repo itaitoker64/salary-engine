@@ -1438,7 +1438,11 @@ async function runBulk(files){
     const GM=new Set([647,667,4268,897,4269]);
     // A חוקה amount splits by whether the workbook's figure moves with the
     // חודש-פרישה table. Mirror of HUKKA_KIND in tools/unified_report.py.
-    const HUKKA_KIND={fixed:'סכום קבוע לכל התקופה',varies:'סכום משתנה מעת לעת'};
+    const HUKKA_KIND={fixed:'סכום קבוע לכל התקופה',varies:'סכום משתנה מעת לעת',
+                      // The workbook has the figure but picks it by a group the
+                      // גולמי does not identify — nothing can validate it, so the
+                      // amount comes from the משרד האוצר file.
+                      group:'תוספת סכומית משתנה לפי בחירת קבוצה'};
     const codesIndex=[...allCodes].sort((a,b)=>a-b).map(code=>{
       const rule=R[code]; const name=seenCodes.get(code)||(rule&&rule.name)||'';
       let kind,note;
@@ -1934,7 +1938,7 @@ async function downloadUnified(btnId,labelId){
       const c1=wsc.getCell('A1');
       c1.value='כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום';
       c1.font={bold:true,size:12,color:{argb:XL.NAVY}};
-      const KINDS=['מחושב לפי נוסחה','סכום קבוע לכל התקופה','סכום משתנה מעת לעת','סכום לפי חוקה — לא נקבע','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
+      const KINDS=['מחושב לפי נוסחה','סכום קבוע לכל התקופה','סכום משתנה מעת לעת','תוספת סכומית משתנה לפי בחירת קבוצה','סכום לפי חוקה — לא נקבע','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
       const cnt={}; for(const x of _bulkData.codesIndex) cnt[x.kind]=(cnt[x.kind]||0)+1;
       wsc.mergeCells('A2:D2');
       const c2=wsc.getCell('A2');
@@ -1945,6 +1949,7 @@ async function downloadUnified(btnId,labelId){
       const KC={'מחושב לפי נוסחה':XL.GOODB,
                 'סכום קבוע לכל התקופה':'FFEAF2FB',
                 'סכום משתנה מעת לעת':XL.WARNB,    // סכום נע — מספר אחד לא מאמת אותו
+                'תוספת סכומית משתנה לפי בחירת קבוצה':XL.WARNB,
                 'סכום לפי חוקה — לא נקבע':XL.BADB,
                 'סכום מוזן ידנית':'FFEFEFEF',
                 'לא משתתף בחישובים':'FFF4F5F7',   // מחוץ לתחולה — תקין

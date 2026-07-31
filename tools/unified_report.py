@@ -168,7 +168,12 @@ def _gap_reason(code, rules):
 # each rule; an unrecognised/missing value falls through to the "לא נקבע"
 # label so an unsettled code is visible instead of silently "fixed".
 HUKKA_KIND = {"fixed": "סכום קבוע לכל התקופה",
-              "varies": "סכום משתנה מעת לעת"}
+              "varies": "סכום משתנה מעת לעת",
+              # The workbook HAS the figure but picks it by a group the גולמי
+              # does not identify (role, tariff, seniority band). Nothing can
+              # validate it, so the amount is taken from the משרד האוצר file —
+              # kept separate from the amounts a single number does check.
+              "group": "תוספת סכומית משתנה לפי בחירת קבוצה"}
 
 
 def collect(paths, pure=False):
@@ -846,6 +851,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                       "סכום קבוע לכל התקופה": "FFEAF2FB",
                       # amber: a moving figure cannot be checked with one number
                       "סכום משתנה מעת לעת": WARN_BG,
+                      "תוספת סכומית משתנה לפי בחירת קבוצה": WARN_BG,
                       "סכום לפי חוקה — לא נקבע": BAD_BG,
                       "סכום מוזן ידנית": "FFEFEFEF",
                       "לא משתתף בחישובים": "FFF4F5F7",   # מחוץ לתחולה — תקין
@@ -855,6 +861,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
             f"{k}: {cnt[k]}" for k in ("מחושב לפי נוסחה",
                                        "סכום קבוע לכל התקופה",
                                        "סכום משתנה מעת לעת",
+                                       "תוספת סכומית משתנה לפי בחירת קבוצה",
                                        "סכום לפי חוקה — לא נקבע",
                                        "סכום מוזן ידנית", "לא משתתף בחישובים",
                                        "לא מוגדר בחוברת")

@@ -1,4 +1,4 @@
-<!-- head: 66dd10c -->
+<!-- head: ef5da1f -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,31 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0c. New classification: amount chosen by a group the file lacks
+
+Per the user, `תוספת סכומית משתנה לפי בחירת קבוצה` — the workbook HAS the
+figure but selects it by a group the גולמי does not identify, so nothing can
+validate it and the amount is taken from the משרד האוצר file. Three codes:
+**4147** (role, 9 columns, ₪1–1,299.79 — also moves over time), **5268**
+(seniority band, ₪26.67–727.46), **5539** (tariff 1/2/3, ₪700–1,500, constant
+in time).
+
+`classify_hukka_amounts.py` gained a `group` state. `SOURCE_GRIDS` now records,
+per sheet, WHAT the columns are and whether the גולמי carries that group —
+stated per sheet, never inferred, because getting it wrong either hides a
+checkable component or claims the file has a field it does not.
+
+**1063 (מנמ"ש 2022) is deliberately NOT in this category.** It is also
+group-selected, but the group is דירוג and קוד דרוג *is* in the file — so it
+stays `varies`: a coverage gap of ours that can be closed, not an unanswerable
+one. Filing it under "group" would excuse a gap that is fixable.
+
+Fixed an ordering bug found doing this: the classifier decided from a code's
+own `tosafot` column before following the formula to a source sheet, so 5268 —
+which carries a value in its column *and* takes its real amount from a group
+grid — was filed as a plain fixed amount. The sheet reference is now resolved
+first.
 
 ## 1. חוקה amounts: fixed vs varies
 
