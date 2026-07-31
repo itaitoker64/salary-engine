@@ -1886,7 +1886,11 @@ async def batch_calculate(file: UploadFile = File(...)):
 # Registered last, so it only ever sees paths no route above claimed.
 # ---------------------------------------------------------------------------
 ROOT_DIR = Path(__file__).parent
-VERCEL_ENTRY = "api/index.py"
+# Both spellings: the rewrite destination may name the function's route
+# ("api/index") or its file ("api/index.py"), and when the platform hands
+# the function its destination instead of the requested path, THIS is the
+# path that arrives. Recognising only one of them 404s the homepage.
+VERCEL_ENTRY = {"api/index.py", "api/index"}
 STATIC_SERVABLE = {
     "index.html": "text/html; charset=utf-8",
     "salary_frontend.html": "text/html; charset=utf-8",
@@ -1910,7 +1914,7 @@ def static_or_frontend(full_path: str):
             return FileResponse(str(f), media_type=media, headers=headers)
 
     # The serverless entrypoint's own path — this is the app, so show the app.
-    if path == VERCEL_ENTRY:
+    if path in VERCEL_ENTRY:
         return _frontend_response()
 
     # An unmatched /api/... path is a caller error, and an unmatched path that

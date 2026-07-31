@@ -344,3 +344,16 @@ def test_missing_marker_falls_back_to_the_old_behaviour():
     r = c.get("/api/index.py")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/html")
+
+
+def test_both_entry_spellings_show_the_app():
+    """The rewrite destination may name the function's route ("/api/index") or
+    its file ("/api/index.py"). When the platform hands the function its
+    destination rather than the requested path, that is the path that arrives —
+    and recognising only one spelling 404s the homepage, which is exactly what
+    happened in production."""
+    c = _client()
+    for path in ("/api/index", "/api/index.py"):
+        r = c.get(path)
+        assert r.status_code == 200, path
+        assert r.headers["content-type"].startswith("text/html"), path
