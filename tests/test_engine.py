@@ -281,3 +281,66 @@ def test_engine_js_is_served():
     r = _client().get("/engine.js")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("application/javascript")
+
+
+# --- the Vercel rewrite -----------------------------------------------------
+# A rewrite hands the function its DESTINATION path, so every request reached
+# FastAPI as "/api/index.py": no route matched and the catch-all answered
+# everything — including /api/lookups — with the frontend HTML. Production
+# served one identical 200 body for every URL, which is why the page's
+# "לא מחובר" badge was really "the API is gone". vercel.json now carries the
+# original path in ?__path=, and api/index.py restores it before routing.
+
+def _vercel_client():
+    """A client for the entrypoint app, exactly as Vercel serves it."""
+    import importlib
+    from fastapi.testclient import TestClient
+    entry = importlib.import_module("api.index")
+    return TestClient(entry.app), entry
+
+
+def _as_vercel(path, query=""):
+    """The URL Vercel actually requests after applying the rewrite."""
+    from urllib.parse import quote
+    rewritten = f"/api/index.py?__path={quote(path)}"
+    return f"{rewritten}&{query}" if query else rewritten
+
+
+def test_rewritten_api_path_reaches_the_api_not_the_frontend():
+    c, _ = _vercel_client()
+    r = c.get(_as_vercel("/api/info"))
+    assert r.status_code in (200, 503), r.status_code
+    assert r.headers["content-type"].startswith("application/json"), r.text[:80]
+
+
+def test_rewritten_root_still_serves_the_frontend():
+    c, _ = _vercel_client()
+    r = c.get(_as_vercel("/"))
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")
+
+
+def test_rewritten_unknown_api_path_404s_instead_of_returning_html():
+    c, _ = _vercel_client()
+    r = c.get(_as_vercel("/api/nope"))
+    assert r.status_code == 404
+    assert not r.headers["content-type"].startswith("text/html")
+
+
+def test_restored_path_does_not_leak_the_marker_into_query_params():
+    """__path is consumed by the wrapper; the caller's own query survives."""
+    c, _ = _vercel_client()
+    r = c.get(_as_vercel("/api/nope", "a=1&b=2"))
+    assert r.status_code == 404          # routing used the restored path
+    r2 = c.get(_as_vercel("/engine.js"))
+    assert r2.status_code == 200
+    assert r2.headers["content-type"].startswith("application/javascript")
+
+
+def test_missing_marker_falls_back_to_the_old_behaviour():
+    """Belt and braces: if the rewrite ever drops __path, show the app rather
+    than erroring — the failure mode is the previous behaviour, not a 500."""
+    c, _ = _vercel_client()
+    r = c.get("/api/index.py")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")

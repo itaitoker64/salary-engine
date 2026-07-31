@@ -1,4 +1,4 @@
-<!-- head: 5f3633c -->
+<!-- head: 6fbec2f -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -186,7 +186,47 @@ comparison dict with the same last-wins bug.
 
 ---
 
-## From `main` — site routing (the other session, merged in here)
+## Site routing — FIXED here (was `main`'s open item)
+
+**The whole API was dead in production and the fix is in this branch.** Measured
+against the live site: `/`, `/api/info`, `/api/lookups`, `/api/progim/status`
+and `/nonexistent-asset.js` all returned **the same 200 and the same 147,447-byte
+HTML body** (identical md5). `POST /api/progim/upload` returned 405.
+
+Cause, confirmed rather than guessed: a Vercel rewrite hands the function its
+**destination** path. Every request reached FastAPI as `/api/index.py`, no route
+matched, and the catch-all's `path == VERCEL_ENTRY → frontend` branch answered
+everything with the page. That branch was added to stop `/api/index.py` 404ing,
+and it turned a visible 404 into a silent site-wide API outage. It is the
+`לא מחובר` badge's real cause: the page fetches `/api/lookups`, gets HTML, and
+file checking never runs.
+
+Fix, deliberately not dependent on any undocumented `x-vercel-*` header — the
+rewrite carries the path itself:
+
+```json
+{ "source": "/(.*)", "destination": "/api/index.py?__path=/$1" }
+```
+
+`api/index.py` now wraps the app in `_RestoreOriginalPath`, an ASGI middleware
+that reads `__path`, restores `scope["path"]`/`raw_path`, and strips the marker
+from the query string. If `__path` is ever absent the request passes through
+untouched, so the failure mode is the OLD behaviour, not a 500. The
+`VERCEL_ENTRY` branch stays as that fallback.
+
+Five tests in `tests/test_engine.py` drive the entrypoint app the way Vercel
+does (`/api/index.py?__path=...`) and assert an API path returns JSON, an
+unknown API path 404s instead of HTML, the caller's own query survives, and a
+missing marker still shows the app. 29/29 pass.
+
+**Only the vercel.json half is untestable from here.** After deploy, the check
+is one command — `/api/info` must return JSON, and `/nonexistent-asset.js` must
+404 rather than return the page. If it still serves HTML everywhere, the rewrite
+is dropping the query string; the next thing to try is legacy `routes`
+(`{"src": "/(.*)", "dest": "/api/index.py"}`), which preserves the request path
+by construction.
+
+## From `main` — site routing (the other session's earlier round)
 
 The deployed site returned `{"detail": "Not Found"}` — Starlette's 404, not a
 crash. Vercel rewrites `/(.*)` to `api/index.py` with no static server in
