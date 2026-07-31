@@ -1,4 +1,4 @@
-<!-- head: 6721095 -->
+<!-- head: cb2279c -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -45,6 +45,34 @@ stays in the גמול bucket; the new rules added no error at all (21,167 / 382,
 **None of the three reported workbook defects was fixed in 31.07:** 5402 still
 has no sum table (§7), 636 still holds 353.75 against its own 353.76 (§8), and
 the 4319/4427 rate tables still cover 9 grades of 110 (§6).
+
+## 0b. 805 (תוספת ערבה) now comes from the Progim
+
+Per the user: 805 is a varying-amount tosefet whose figure must come from the
+workbook, not be accepted from the מנהלת הגמלאות file. Changed from
+`type: reported` to `type: shekel` with the four pulses out of
+`tosafot!BA2 = VLOOKUP(חודש פרישה, $AQ$7:$BA$234, 8, 0)`:
+95.8 (2008) → 102.85 (2011) → 107.88 (2013) → 116.41 (2024). All four are
+accepted because the גולמי carries no חודש פרישה, so which pulse applies to a
+given worker cannot be decided from the file.
+
+Reported-by-design in the coverage banner: 10 codes/₪606,867 → 9/₪597,678.
+
+**Validated on 97 carriers: 93 match (95.9%), 4 do not** — worker 23845808
+(−₪145.72, a reversal), 36429698 (₪150.08 vs ₪116.41), 36828089 (₪211.88 at
+64.5% job against ₪75.08 — nearly triple), 55654954 (the full 2008 figure paid
+at 75% job, unprorated).
+
+**The rule computes but does not yet fail a slip.** Self-calibration needs 97%
+and this is 95.9%, so all four sit below the gate. It was **not** overridden:
+forcing it would flag 4 of 97 on a sub-threshold match, which is the exact
+false-positive risk the gate exists for. The four are named in
+`docs/PROGIM_IMPROVEMENTS.md` so they are actionable without a flag.
+
+Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
+table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
+VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
+workbook with no error.
 
 ## 1. חוקה amounts: fixed vs varies
 
