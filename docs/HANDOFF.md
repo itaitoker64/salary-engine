@@ -1,4 +1,4 @@
-<!-- head: 1bc9ab0 -->
+<!-- head: be3f7a5 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -6,8 +6,35 @@ Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 ## State
 
 Branch restarted from `origin/main` at `573c435` (the previous round merged as
-PR #61). It now carries one topic: **4319 (פו"מ) and 4427 (תוספת שירות) are in
-the Progim and the engine now computes them.**
+PR #61). Two topics, in order: **4319/4427 are in the Progim and the engine now
+computes them**, and **the dashboard partition now covers the whole file rather
+than full-timers only**. Not merged.
+
+## Dashboard partition: whole file, not full-timers
+
+The user asked how 22,422 workers give 21,167 valid when the report showed
+1,146 invalid. Both figures were right and measured on different populations:
+1,146 is `17,755 full-timers − 16,609 full-time valid`, while 21,167 counts
+every worker. The dashboard printed "תקינים 21,167" and "תקין (מלאה) 16,609"
+side by side with neither denominator stated.
+
+Worse, the buckets were counted on full-timers only, so **109 part-timers who
+are not valid had no column at all** (102 invalid + 7 retro on 0108). The
+partition closed only because "משרה חלקית" absorbed them — a column swallowing
+unrelated cases, which is the failure `CLAUDE.md` names explicitly.
+
+Fixed by counting the buckets over `rows_f` (the whole file). The partition is
+now `ללא בסיס + שתי שורות + buckets + תקין = עובדים`, and
+`משרה חלקית (מתוכם)` is descriptive, **outside** the partition — the header,
+the banner text and `CHAIN_HE` all say so. Mirrored in `index.html` and
+`salary_frontend.html`; `ft_valid`/`ft_no_base`/`ft_multi` are still emitted on
+the summary object but no longer drive any column.
+
+The 109 land as: 1999 58, גמול 20, בסיס 18, דריכות 4, בית חולים 2, שתי שורות 7.
+**None is a real error** — `inv_real` stays 13. The change exposes hidden
+workers without moving the headline number.
+
+## 4319 / 4427
 
 ## What changed, and why
 
@@ -63,10 +90,11 @@ to make them pass.
 Full run, 0108 file, 22,422 slips:
 
 ```
-עובדים 22422 · משרה חלקית 4667 · ללא בסיס 856 · שתי שורות 10
-ותק סטודנט 0 · ותק קטוע 0 · בסיס 28 · גמול 95 · תוספת 1999 113
-דריכות 30 · גמול מנהל 0 · בוררות מיסים 0 · תוספת בית חולים 1
-שגויים אמיתיים 13 · תקין 16609      partition = 22422  OK
+עובדים 22422 · [משרה חלקית 4667 — תיאורי, מחוץ למחיצה]
+ללא בסיס 856 · שתי שורות 17 · ותק סטודנט 0 · ותק קטוע 0
+בסיס 46 · גמול 115 · תוספת 1999 171 · דריכות 34
+גמול מנהל 0 · בוררות מיסים 0 · תוספת בית חולים 3
+שגויים אמיתיים 13 · תקין 21167      partition = 22422  OK
 ```
 
 Verdicts unchanged (21,167 / 382) — see the trust note below. Coverage gap

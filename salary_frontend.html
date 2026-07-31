@@ -1350,14 +1350,16 @@ async function runBulk(files){
         // Full-time neutralization breakdown for the dashboard (buckets dedup'd).
         const fr=perEmp.slice(fileStart);
         const ft=fr.filter(x=>x[FT_IDX]);
-        const cnt=(cat)=>ft.filter(x=>x[STATUS_RAW_IDX]==='invalid'&&x[ERRCAT_IDX]===cat).length;
+        // Buckets cover the WHOLE file: counting them on full-timers alone left
+        // every non-valid part-timer with no column, so they vanished into
+        // "משרה חלקית" and the partition only closed because that column
+        // swallowed them. משרה חלקית is now a descriptive "of which" column
+        // standing OUTSIDE the partition. (Mirror of collect() in unified_report.py.)
+        const cnt=(cat)=>fr.filter(x=>x[STATUS_RAW_IDX]==='invalid'&&x[ERRCAT_IDX]===cat).length;
         const ftValid=ft.filter(x=>x[STATUS_RAW_IDX]==='valid').length;
         const invStudent=cnt('student'),invVatek=cnt('vatek'),invBase=cnt('base'),invGmul=cnt('gmul'),invBrich=cnt('brich'),invMnhal=cnt('mnhal'),invBorerut=cnt('borerut'),invBhol=cnt('bhol'),invH1999=cnt('h1999'),invReal=cnt('real');
-        // Full-time-only no-base/retro so the dashboard columns PARTITION the
-        // file (part-timers absorb their own no-base/retro slips).
         const ftNoBase=ft.filter(x=>x[STATUS_RAW_IDX]==='no_base').length;
         const ftMulti=ft.filter(x=>x[STATUS_RAW_IDX]==='multi_period').length;
-        const ftAct=ftValid+invStudent+invVatek+invBase+invGmul+invBrich+invMnhal+invBorerut+invBhol+invH1999+invReal;
         perFile.push({name:f.name.replace(/\.xlsx$/i,''), month, workers:results.length,
           valid:v, invalid:inv, no_base:nb, multi:mp, acc:active?SalaryEngine.round2(v/active*100):0,
           part_time:fr.length-ft.length, ft:ft.length, ft_valid:ftValid,
@@ -1504,7 +1506,7 @@ function renderTrend(perFile){
     if(!byMonth.has(s.month)) byMonth.set(s.month,{v:0,i:0,real:0,act:0});
     const o=byMonth.get(s.month); o.v+=s.valid; o.i+=s.invalid;
     o.real+=(s.inv_real||0);
-    o.act+=(s.ft_valid||0)+(s.inv_student||0)+(s.inv_vatek||0)+(s.inv_base||0)
+    o.act+=(s.valid||0)+(s.inv_student||0)+(s.inv_vatek||0)+(s.inv_base||0)
           +(s.inv_gmul||0)+(s.inv_brich||0)+(s.inv_mnhal||0)+(s.inv_borerut||0)+(s.inv_bhol||0)+(s.inv_h1999||0)+(s.inv_real||0);
   }
   const pts=[...byMonth.entries()]
@@ -1730,7 +1732,7 @@ async function downloadUnified(btnId,labelId){
     title.font={size:16,bold:true,color:{argb:XL.NAVY}};
     ws.mergeCells('A2:R2');
     const sub=ws.getCell('A2');
-    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: משרה חלקית ← ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף) = סה"כ העובדים. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
+    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = סה"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
     sub.font={size:10,color:{argb:XL.MUTED}};
     // Coverage warning on the dashboard itself — the Progim is the product,
     // so a hole in it must be visible on page one, not only in its own sheet.
@@ -1746,10 +1748,9 @@ async function downloadUnified(btnId,labelId){
       w.fill=fill(gap.length?XL.BADB:XL.WARNB);
     }
     // Totals: sum the partition fields across files.
-    const tot={workers:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,
+    const tot={workers:0,valid:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,
                inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_bhol:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
     for(const s of _bulkData.perFile) for(const k in tot) tot[k]+=(s[k]||0);
-    const ftAct=tot.ft_valid+tot.inv_student+tot.inv_vatek+tot.inv_base+tot.inv_gmul+tot.inv_brich+tot.inv_mnhal+tot.inv_borerut+tot.inv_bhol+tot.inv_h1999+tot.inv_real;
     const realPct=tot.workers?tot.inv_real/tot.workers:0;
     // Direction split — money owed to workers vs money to recover (gross, so
     // neither side hides the other).
@@ -1760,7 +1761,7 @@ async function downloadUnified(btnId,labelId){
       if(d>0.5) _under+=d; else if(d<-0.5) _over+=-d;
     }
     const kpis=[['סה"כ עובדים',tot.workers,null,INT_FMT],['משרה מלאה',tot.ft,null,INT_FMT],
-      ['תקין (מלאה)',tot.ft_valid,XL.GOODT,INT_FMT],
+      ['תקין',tot.valid,XL.GOODT,INT_FMT],
       ['שגויים אמיתיים',tot.inv_real,XL.BADT,INT_FMT],
       ['% שגויים אמיתיים',realPct,realPct<=0.01?XL.GOODT:XL.BADT,'0.00%'],
       ['שולם בחסר ₪ (לתשלום)',Math.round(_under),XL.WARNT,INT_FMT],
@@ -1777,14 +1778,14 @@ async function downloadUnified(btnId,labelId){
     ws.getRow(4).height=16; ws.getRow(5).height=24;
     ws.addRow([]);
     // A clean PARTITION: columns D..O are mutually exclusive and sum to C.
-    styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית','ללא בסיס (מלאה)',
-      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין (מלאה)'],
+    styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית (מתוכם)','ללא בסיס',
+      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין'],
       [11,18,10,10,10,13,11,11,10,10,11,10,11,11,13,12,13,11]);
     const headR=ws.lastRow.number;
     for(const s of _bulkData.perFile){
       const rp=s.workers?s.inv_real/s.workers:0;
-      const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.ft_no_base||0,s.ft_multi||0,
-        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp,s.ft_valid]);
+      const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.no_base||0,s.multi||0,
+        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_bhol||0,s.inv_real,rp,s.valid]);
       for(let ci=3;ci<=16;ci++) r.getCell(ci).numFmt=INT_FMT;
       r.getCell(18).numFmt=INT_FMT; r.getCell(18).font={color:{argb:XL.GOODT}};
       [7,8,9,10,11,12,13,14,15].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
@@ -1792,8 +1793,8 @@ async function downloadUnified(btnId,labelId){
       r.getCell(17).numFmt='0.00%';
     }
     const lastR=ws.lastRow.number;
-    const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.ft_no_base,tot.ft_multi,
-      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct,tot.ft_valid]);
+    const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.no_base,tot.multi,
+      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_bhol,tot.inv_real,realPct,tot.valid]);
     trow.font={bold:true}; for(let ci=3;ci<=16;ci++) trow.getCell(ci).numFmt=INT_FMT;
     trow.getCell(18).numFmt=INT_FMT;
     trow.getCell(16).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(17).numFmt='0.00%';

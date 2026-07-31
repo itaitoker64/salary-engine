@@ -359,25 +359,24 @@ def collect(paths, pure=False):
         s["part_time"] = len(rows_f) - len(ft)
         s["ft"] = len(ft)
         s["ft_valid"] = sum(1 for x in ft if x["status"] == "valid")
-        # Full-time-only no-base/retro, so the dashboard columns PARTITION the
-        # file: part-time + no-base + retro + valid + the invalid buckets = the
-        # worker total, with every worker in exactly one column (part-timers
-        # absorb their own no-base/retro slips).
         s["ft_no_base"] = sum(1 for x in ft if x["status"] == "no_base")
         s["ft_multi"] = sum(1 for x in ft if x["status"] == "multi_period")
+        # The dashboard buckets cover the WHOLE file, not just full-timers.
+        # Counting them on full-timers alone left every non-valid part-timer
+        # (102 invalid + 7 retro on the 0108 file) with no column at all: they
+        # vanished into "משרה חלקית" and the partition only closed because that
+        # column swallowed them. Now: no-base + retro + the buckets + valid =
+        # the worker total, and משרה חלקית is a descriptive "of which" column
+        # standing OUTSIDE the partition.
         for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
                          ("h1999", "inv_h1999"), ("brich", "inv_brich"),
                          ("mnhal", "inv_mnhal"), ("borerut", "inv_borerut"),
                          ("bhol", "inv_bhol"), ("real", "inv_real")):
-            s[key] = sum(1 for x in ft
+            s[key] = sum(1 for x in rows_f
                          if x["status"] == "invalid" and x["err_cat"] == cat)
-        ft_active = s["ft_valid"] + sum(
-            s[k] for k in ("inv_student", "inv_vatek", "inv_base", "inv_gmul",
-                           "inv_h1999", "inv_brich", "inv_mnhal", "inv_borerut",
-                           "inv_bhol", "inv_real"))
-        # % is of the WHOLE file, so it reads as "x% of all slips are a real
-        # error" — the number management quotes.
+        # % is of the WHOLE file, and now every worker in that denominator has
+        # actually been bucketed — reads as "x% of all slips are a real error".
         s["real_pct"] = (round(s["inv_real"] / s["workers"] * 100, 2)
                          if s["workers"] else 0.0)
     code_gap_list = sorted(
@@ -439,7 +438,7 @@ def collect(paths, pure=False):
 # The neutralization chain in display order — must match the err_cat priority
 # in collect() and the dashboard column order. Stated on the report itself so
 # a reader can see which bucket claimed a worker first.
-CHAIN_HE = "משרה חלקית ← ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין"
+CHAIN_HE = "ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין"
 
 NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "brich": "דריכות בי\"ח",
@@ -572,7 +571,9 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     s.value = (f"{len(summary)} קבצים · הופק "
                f"{datetime.now().strftime('%d/%m/%Y %H:%M')} · "
                "כל עובד נספר בעמודה אחת בדיוק: " + CHAIN_HE + ". סכום "
-               "העמודות (כולל 'תקין' בסוף) = סה\"כ העובדים. "
+               "העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = "
+               "סה\"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית "
+               "בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. "
                "% שגויים אמיתיים = אמיתיים חלקי סה\"כ העובדים.")
     s.font = Font(size=10, color=MUTED)
     # Coverage warning on the dashboard itself — the Progim is the product, so a
@@ -604,13 +605,8 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_h1999",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_bhol", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
-    _ft_active = (tot["ft_valid"] + tot["inv_student"] + tot["inv_vatek"]
-                  + tot["inv_base"] + tot["inv_gmul"] + tot["inv_h1999"]
-                  + tot["inv_brich"] + tot["inv_mnhal"] + tot["inv_borerut"]
-                  + tot["inv_bhol"]
-                  + tot["inv_real"])
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
-    _kpi(ws, 4, 3, 1, "שגויים אמיתיים (מלאה)", tot["inv_real"], BAD_TXT, INT)
+    _kpi(ws, 4, 3, 1, "שגויים אמיתיים", tot["inv_real"], BAD_TXT, INT)
     _kpi(ws, 4, 4, 1, "% שגויים אמיתיים", _real_pct,
          GOOD_TXT if _real_pct <= 0.01 else BAD_TXT, "0.00%")
     # Direction split — two different processes: money owed to workers vs money
@@ -637,22 +633,22 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # "תקין" sits LAST, after the %, so the problem columns read as one block.
     # The partition is unchanged — it is simply no longer contiguous: the
     # categories are D..O plus Q.
-    labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית", "ללא בסיס (מלאה)",
+    labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
               "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
               "שגויי בסיס", "שגויי גמול", "שגויי תוספת 1999", "שגויי דריכות",
               "שגויי גמול מנהל", "שגויי בוררות מיסים", "שגויי תוספת בית חולים",
-              "שגויים אמיתיים", "% שגויים אמיתיים", "תקין (מלאה)"]
+              "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
                 [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 11, 10, 11, 11, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
-                r.get("ft_no_base", 0), r.get("ft_multi", 0),
+                r.get("no_base", 0), r.get("multi", 0),
                 r.get("inv_student", 0), r.get("inv_vatek", 0),
                 r.get("inv_base", 0), r.get("inv_gmul", 0), r.get("inv_h1999", 0),
                 r.get("inv_brich", 0), r.get("inv_mnhal", 0),
                 r.get("inv_borerut", 0), r.get("inv_bhol", 0),
                 r.get("inv_real", 0),
-                r.get("real_pct", 0.0) / 100, r.get("ft_valid", 0)]
+                r.get("real_pct", 0.0) / 100, r.get("valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
@@ -668,14 +664,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
-    tot_active = _ft_active
     real_pct_tot = _real_pct
     # Same order as `labels`: תקין is the LAST column, % second to last.
-    tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["ft_no_base"],
-             tot["ft_multi"], tot["inv_student"], tot["inv_vatek"],
+    tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["no_base"],
+             tot["multi"], tot["inv_student"], tot["inv_vatek"],
              tot["inv_base"], tot["inv_gmul"], tot["inv_h1999"],
              tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
-             tot["inv_bhol"], tot["inv_real"], real_pct_tot, tot["ft_valid"]]
+             tot["inv_bhol"], tot["inv_real"], real_pct_tot, tot["valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
