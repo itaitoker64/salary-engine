@@ -37,6 +37,18 @@ from main import app as _app  # noqa: E402
 
 PATH_PARAM = "__path"
 
+# Checked in order when the rewrite's query string does not survive. Vercel's
+# forwarded-path header is not contractual, so nothing here is assumed to exist
+# — a name that is absent simply doesn't match, and `x-req-header-names` on the
+# response says what WAS available.
+HEADER_SOURCES = (
+    "x-vercel-original-path",
+    "x-vercel-original-pathname",
+    "x-original-uri",
+    "x-forwarded-uri",
+    "x-rewrite-url",
+)
+
 
 class _RestoreOriginalPath:
     """Put the browser's path back into the ASGI scope before routing.
@@ -53,9 +65,24 @@ class _RestoreOriginalPath:
             await self.app(scope, receive, send)
             return
 
+        received = scope.get("path", "")
+        headers = {k.decode("latin-1").lower(): v.decode("latin-1")
+                   for k, v in (scope.get("headers") or [])}
         pairs = parse_qsl((scope.get("query_string") or b"").decode("latin-1"),
                           keep_blank_values=True)
+
         original = next((v for k, v in pairs if k == PATH_PARAM), None)
+        source = PATH_PARAM
+        if not original:
+            # The rewrite's query string did not survive. Fall back to whichever
+            # header the platform does forward the real path in; each is checked
+            # by name so an absent one simply doesn't match.
+            for name in HEADER_SOURCES:
+                v = headers.get(name)
+                if v and v.startswith("/") and v != received:
+                    original, source = v.split("?", 1)[0], name
+                    break
+
         if original:
             if not original.startswith("/"):
                 original = "/" + original
@@ -65,7 +92,25 @@ class _RestoreOriginalPath:
             scope["query_string"] = urlencode(
                 [(k, v) for k, v in pairs if k != PATH_PARAM]).encode("latin-1")
 
-        await self.app(scope, receive, send)
+        # Report what arrived on every response. Without this the only way to
+        # learn why routing misfires in production is to guess and redeploy —
+        # and while routing is broken no diagnostic ENDPOINT is reachable, so it
+        # has to ride on the response itself. Names only, never header values:
+        # those carry cookies and auth.
+        async def _send(message):
+            if message.get("type") == "http.response.start":
+                message = dict(message)
+                message["headers"] = list(message.get("headers") or []) + [
+                    (b"x-path-received", received.encode("latin-1", "replace")),
+                    (b"x-path-restored",
+                     (f"{original} via {source}" if original else "none")
+                     .encode("latin-1", "replace")),
+                    (b"x-req-header-names",
+                     ",".join(sorted(headers)).encode("latin-1", "replace")[:900]),
+                ]
+            await send(message)
+
+        await self.app(scope, receive, _send)
 
 
 # The ASGI app Vercel serves. `_app` stays importable for tests and local runs.
