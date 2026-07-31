@@ -15,10 +15,15 @@ same 200 and the same body for `/`, `/api/info`, `/api/lookups` and even
 is what the "לא מחובר" badge was reporting: the page fetches `/api/lookups`,
 gets HTML back, cannot parse it, and file checking never runs.
 
-Rather than depend on an undocumented `x-vercel-*` header, the rewrite carries
-the original path itself:
+Two things were wrong. The rewrite pointed at `/api/index.py` — the file on
+disk — rather than `/api/index`, the route Vercel actually publishes for this
+function; a destination that names a file is taken literally, which is how the
+function ended up being handed its own filename as the request path. And
+nothing recovered the real path afterwards. Both are fixed: the destination is
+now the route, and the rewrite carries the original path as a query marker so
+the app does not have to trust any undocumented `x-vercel-*` header:
 
-    { "source": "/(.*)", "destination": "/api/index.py?__path=/$1" }
+    { "source": "/(.*)", "destination": "/api/index?__path=/$1" }
 
 `_RestoreOriginalPath` reads `__path`, puts it back into the ASGI scope, and
 drops it from the query string so handlers never see it. If it is ever missing
