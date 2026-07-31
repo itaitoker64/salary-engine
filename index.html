@@ -1462,6 +1462,13 @@ async function runBulk(files){
                                          :'סכום בחוקה — לא נפתר אוטומטית, מתקבל כמות-שהוא'];
         if(rule.amount_period_note) parts.push(rule.amount_period_note);
         note=parts.join(' · '); }
+      else if(rule.rate_group){
+        // A percentage whose RATE is picked by a group the גולמי does not carry
+        // (4406: a 1/2/3 code hand-entered in Netunei Gimlai). The base is
+        // computable, so the amount can still be tested against the admissible
+        // rates — but which one is right for a worker cannot be decided here.
+        kind='תוספת אחוזית משתנה לפי בחירת קבוצה';
+        note='שער '+(rule.rates||[]).map(x=>`${+(x*100).toFixed(4)}%`).join(', ')+' · '+rule.rate_group; }
       else { kind='מחושב לפי נוסחה';
         note=rule.type==='percent'?'שער '+(rule.rates||[]).map(x=>`${+(x*100).toFixed(4)}%`).join(', ')
             :rule.type==='max22'?'MAX(22% מהמשולב+99, רצפת המשרד)'
@@ -1938,7 +1945,7 @@ async function downloadUnified(btnId,labelId){
       const c1=wsc.getCell('A1');
       c1.value='כל סמלי השכר לפי סדר עולה — סיווג לפי אופן קביעת הסכום';
       c1.font={bold:true,size:12,color:{argb:XL.NAVY}};
-      const KINDS=['מחושב לפי נוסחה','סכום קבוע לכל התקופה','סכום משתנה מעת לעת','תוספת סכומית משתנה לפי בחירת קבוצה','סכום לפי חוקה — לא נקבע','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
+      const KINDS=['מחושב לפי נוסחה','סכום קבוע לכל התקופה','סכום משתנה מעת לעת','תוספת סכומית משתנה לפי בחירת קבוצה','תוספת אחוזית משתנה לפי בחירת קבוצה','סכום לפי חוקה — לא נקבע','סכום מוזן ידנית','לא משתתף בחישובים','לא מוגדר בחוברת'];
       const cnt={}; for(const x of _bulkData.codesIndex) cnt[x.kind]=(cnt[x.kind]||0)+1;
       wsc.mergeCells('A2:D2');
       const c2=wsc.getCell('A2');
@@ -1950,6 +1957,7 @@ async function downloadUnified(btnId,labelId){
                 'סכום קבוע לכל התקופה':'FFEAF2FB',
                 'סכום משתנה מעת לעת':XL.WARNB,    // סכום נע — מספר אחד לא מאמת אותו
                 'תוספת סכומית משתנה לפי בחירת קבוצה':XL.WARNB,
+                'תוספת אחוזית משתנה לפי בחירת קבוצה':XL.WARNB,
                 'סכום לפי חוקה — לא נקבע':XL.BADB,
                 'סכום מוזן ידנית':'FFEFEFEF',
                 'לא משתתף בחישובים':'FFF4F5F7',   // מחוץ לתחולה — תקין

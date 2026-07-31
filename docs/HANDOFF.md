@@ -1,4 +1,4 @@
-<!-- head: 4c401ce -->
+<!-- head: 59c23aa -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,30 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0f. New classification: percentage rate chosen by a group
+
+The percent counterpart of 0c. **4406 (ת.ש. מקרקעין)** is the first member:
+`SACHAR!CT11 = CT7 × (AA11 + CZ11)` with
+`tosafot!BN2 = VLOOKUP('Netunei Gimlai'!H80, parameter!K20:L22, 2, 0)` — the
+rate comes from a **1/2/3 group code hand-entered** in Netunei Gimlai:
+1 → 12.75%, 2 → 16.5%, 3 → 27%. The גולמי does not carry it.
+
+Unlike the shekel case the base IS computable, so the rule is a real `percent`
+rule with all three rates: a slip paid at some *other* rate still fails. Only
+"which of the three is right for this worker" is undecidable. A `rate_group`
+field on the rule carries the explanation and drives the new label in the
+report and both front-ends.
+
+Gap 8 codes/₪99,113 → 7/₪87,571. Remaining: 507, 642, 733, 797, 1297, 4133,
+4180.
+
+18 of 19 carriers match a legitimate rate (15 at 16.5%, 3 at 27%). The
+outlier is worker 25140422: ₪846.52 on a ₪3,467.50 base — an implied
+**24.41%**, which is not one of the three. Against 27% that is ₪89.71 underpaid;
+against 16.5% it is ₪274 overpaid, and without the group there is no way to say
+which. With 19 carriers the rule sits under the 20-sample gate, so it computes
+without failing anyone; the outlier is named in the docs instead.
 
 ## 0e. 1375 out of scope — and the minimum-wage list was wrong
 

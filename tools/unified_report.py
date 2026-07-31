@@ -443,6 +443,15 @@ def collect(paths, pure=False):
             if rule.get("amount_period_note"):
                 parts.append(rule["amount_period_note"])
             note = " · ".join(parts)
+        elif rule.get("rate_group"):
+            # A percentage whose RATE is picked by a group the גולמי does not
+            # carry (4406: a 1/2/3 code hand-entered in Netunei Gimlai). The
+            # base is computable, so unlike the shekel case the amount can
+            # still be tested against the admissible rates — but which rate is
+            # correct for a given worker cannot be decided from the file.
+            kind = "תוספת אחוזית משתנה לפי בחירת קבוצה"
+            note = ("שער " + ", ".join(f"{x*100:g}%" for x in rule.get("rates", []))
+                    + " · " + rule["rate_group"])
         else:
             kind = "מחושב לפי נוסחה"
             if rule.get("type") == "percent":
@@ -852,6 +861,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                       # amber: a moving figure cannot be checked with one number
                       "סכום משתנה מעת לעת": WARN_BG,
                       "תוספת סכומית משתנה לפי בחירת קבוצה": WARN_BG,
+                      "תוספת אחוזית משתנה לפי בחירת קבוצה": WARN_BG,
                       "סכום לפי חוקה — לא נקבע": BAD_BG,
                       "סכום מוזן ידנית": "FFEFEFEF",
                       "לא משתתף בחישובים": "FFF4F5F7",   # מחוץ לתחולה — תקין
@@ -862,6 +872,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                                        "סכום קבוע לכל התקופה",
                                        "סכום משתנה מעת לעת",
                                        "תוספת סכומית משתנה לפי בחירת קבוצה",
+                                       "תוספת אחוזית משתנה לפי בחירת קבוצה",
                                        "סכום לפי חוקה — לא נקבע",
                                        "סכום מוזן ידנית", "לא משתתף בחישובים",
                                        "לא מוגדר בחוברת")

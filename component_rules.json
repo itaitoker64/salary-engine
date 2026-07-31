@@ -2284,5 +2284,26 @@
     ],
     "origin": "formula",
     "source": "Progim 31.07.2026: SACHAR!DB11 = DB7*(AA11+CZ11) — כלומר 15% × (שכר משולב 10002 + הסכם 1999 4624). השער מ-tosafot!BP2 = VLOOKUP(חודש פרישה, $AQ$7:$BP$234, 26, 0)"
+  },
+  "4406": {
+    "codes": [
+      4406
+    ],
+    "name": "ת.ש. מקרקעין",
+    "type": "percent",
+    "rates": [
+      0.1275,
+      0.165,
+      0.27
+    ],
+    "base_codes": [
+      1,
+      2,
+      4624,
+      10002
+    ],
+    "origin": "formula",
+    "rate_group": "קבוצה 1/2/3 המוזנת ידנית ב-Netunei Gimlai!H80 — 1 = 12.75%, 2 = 16.5%, 3 = 27%. הקובץ הגולמי אינו נושא את הקבוצה, ולכן מתקבל כל אחד משלושת השערים",
+    "source": "Progim 31.07.2026: SACHAR!CT11 = CT7*(AA11+CZ11) — שער × (שכר משולב + הסכם 1999). השער: tosafot!BN2 = VLOOKUP('Netunei Gimlai'!H80, parameter!K20:L22, 2, 0)"
   }
 }
