@@ -1,4 +1,4 @@
-<!-- head: 59c23aa -->
+<!-- head: c51a06b -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,18 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0g. 4133 (תוספת יוקר) out of scope
+
+Not pensionable and not part of any calculation, per the user. Added to
+`NON_PENSIONABLE` in both engines. It appears in no rule's `base_codes`,
+`deductions` or `counted`, so taking it out of scope moves nothing —
+21,163 / 386 with 14 real, before and after.
+
+Gap **7 codes/₪87,571 → 6/₪87,240**; out-of-scope 13 → 14. Remaining gap:
+507, 642, 733, 797, 1297, 4180.
+
+Across this whole round the gap went **15 codes/₪294K → 6/₪87K**.
 
 ## 0f. New classification: percentage rate chosen by a group
 
