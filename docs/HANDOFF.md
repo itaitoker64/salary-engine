@@ -1,16 +1,65 @@
-<!-- head: ee3735e -->
-# Handoff — branch `claude/employee-simulator-validation-pl128n`
+<!-- head: 2df0bfd -->
+# Handoff — branch `claude/salary-validation-highlighting-s22hlj`
 
-Written 29.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
+Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-`origin/main` is **merged in** (dashboard conflicts resolved: main's layout —
-רטרו renamed, תקין last, % over all slips — plus this branch's priority chain,
-which main had changed only in the column order). Ready to merge back to main.
-The SessionStart brief prints the live counts; trust it over this paragraph.
+This branch sat level with `main` at `573c435` (everything below the "Site
+routing" section was written from `claude/employee-simulator-validation-pl128n`
+and is already merged). It now carries one commit on top, `2df0bfd`, and is
+ready to merge back.
 
-## What this branch changed, and why
+## Site routing — the "האתר קרס" report (this session)
+
+The user reported the deployed site dead, with a screenshot showing
+`{"detail": "Not Found"}` at salary-engine.vercel.app. That body is Starlette's
+404, not a crash page: the app imported fine and was serving; the requested path
+simply had no route.
+
+Vercel puts no static file server in front of the function — `vercel.json`
+rewrites `/(.*)` to `api/index.py` — so FastAPI answers for the frontend's own
+files. Three real entry paths had no route and returned that JSON:
+`/index.html`, `/salary_frontend.html`, and `/api/index.py` (the rewrite
+destination, which some Vercel configurations hand to the function in place of
+the original request path). Confirmed locally against `TestClient` before the
+fix: all three returned 404 with a 22-byte body, while `/` returned the page.
+
+The fix is a catch-all in `main.py` registered **after every real route** (route
+order is declaration order, so it must stay at the bottom of the file):
+
+- an exact name in `STATIC_SERVABLE` → that file from the repo root (no
+  traversal by construction — it is a dict lookup on the whole stripped path)
+- `api/index.py` or any unmatched navigation → the frontend
+- `/api/...` or a path whose last segment contains a dot → a real 404, so a
+  broken asset reference does not come back as HTML and become a parse error
+
+HTML responses now carry `Cache-Control: no-cache`. The page embeds a script
+whose `BUILD` must match the `engine.js?v=` it requests; stale HTML against a
+fresh engine.js is the one pairing that mis-renders without erroring.
+
+`vercel.json` also lost `xlsx` from `includeFiles`. `golmi.xlsx` is 9.1MB of
+real payroll data that nothing reads at runtime (uploads are handled from temp
+files) and it was being bundled into a public serverless function.
+
+**Not verified against the live site.** This environment's network policy
+returns 403 on CONNECT to `*.vercel.app`, so every check was local
+(`fastapi.testclient`). If the site is still 404ing after this deploys, the next
+thing to check is whether the Vercel deployment is building at all — a failed
+build serves Vercel's own branded 404 page, which looks nothing like the JSON
+body in the screenshot, so it was ruled out as the cause here.
+
+Verified: `python3 -m pytest tests/ -q` → **24 passed** (20 + 4 new routing
+tests in `tests/test_engine.py`); `node --check engine.js` clean. No payroll
+rule changed, so `engine.js` and the two front-ends were untouched and `BUILD`
+was not bumped.
+
+---
+
+*Everything below is from the previous session on
+`claude/employee-simulator-validation-pl128n`, merged as `573c435`.*
+
+## What that branch changed, and why
 
 The dashboard said 9 שגויי תוספת 1999 while the work queue showed a 1999 gap on
 110 rows. Both were right: the dashboard counts **bucket assignment** (one
