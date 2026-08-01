@@ -1,13 +1,14 @@
-<!-- head: 98ba658 -->
+<!-- head: 19c6750 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-Restarted from `origin/main` at `573c435` after PR #61 merged, then merged
-`origin/main` again at `23f5028` (the other session's site-routing work — that
-history is preserved below under "From `main`"). Not merged back yet.
+Everything through `19c6750` is **merged into `main` and live in production**
+— `/api/progim/status` reports `rules: 99`, `source: bundled`,
+`runtime_data_present: false`, so the site serves the 31.07 חוקה from the repo.
+Work after that point sits on this branch until merged.
 
 Five topics on this branch, newest first:
 
@@ -73,6 +74,25 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0j. 808 (תוספת שטחים) is now validated against the חוקה
+
+Per the user: a fixed amount taken from the חוקה. It was `reported` — accepted
+from the slip unchecked and listed in the **חסר ב-Progim** sheet under
+"מוזן מהקובץ". Source: `tosafot!CB2 = VLOOKUP(חודש פרישה, $BU$7:$CB$234, 8, 0)`
+= **₪198.46** across every filled month, with `SACHAR!BF11` taking it directly
+— no rate, no base. Now `type: shekel`.
+
+**1 of 1 carrier matches** — worker 27080220, משרד הרווחה, exactly ₪198.46.
+
+Out of the חסר ב-Progim sheet (13 codes → 12) and classified
+"סכום קבוע לכל התקופה". Reported-by-design line: 9 codes/₪597,678 →
+8/₪597,479.
+
+Same sparse-table defect as §9: 808's table is filled for **12 months of 228**
+(all of 2008) with an exact-match VLOOKUP, so a worker retiring in any other
+year silently gets 0. **797 (ת.שטחים ר.ג)**, its sibling, is still in the sheet
+as input-only with no formula.
 
 ## 0i. 642 is a computed 6% component — closing the user's opening example
 
