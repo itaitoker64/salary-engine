@@ -1,4 +1,4 @@
-<!-- head: ed8a552 -->
+<!-- head: 92f4a6a -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -12,7 +12,9 @@ rules. Verify the deploy with `/api/progim/status` — it should report
 site serves the חוקה from the repo rather than a `/tmp` upload.
 
 The coverage gap is down to **1 code / ₪251** — 507 alone. It started this
-round at 15 codes / ₪294K.
+round at 15 codes / ₪294K. `component_rules.json` holds **102** rules and the
+workbook is the second `Progim_01.08.2026.xlsm` (the one whose `SACHAR!BZ11`
+reads `5.331`).
 
 Five topics on this branch, newest first:
 
@@ -78,6 +80,30 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0n. Second 01.08 workbook — one cell changed, 1297 still fits nothing
+
+A cell-by-cell diff across all 54 sheets found **exactly one difference in the
+whole workbook**: `SACHAR!BZ11`, the constant `5.33` replaced by `5.331`.
+
+That is the 1297 constant reported in `PROGIM_FIXES.md` §10. It moves the rate
+16.28611% → 16.28917% — **0.019%, against a measured gap of 5.94%**, roughly
+310× too small. The rule was updated to the new constant for fidelity and the
+result is unchanged: **0 of 55** slips reproduced, median paid ÷ formula 1.0594
+(was 1.0596), self-calibration still silences it, nobody flagged.
+
+The untested suspect remains the **divisor 180** — 170 takes the match from
+0 to 31 of 55, and it is the only constant whose plausible correction moves the
+result by the right order of magnitude. The 24 that still miss point at the
+standby count 5.5 being per-worker rather than constant, exactly as 4180 works
+via `Netunei Gimlai!H81`.
+
+Everything else is untouched: 110 codes, no column moved, `lookups.json`
+identical, and the other six defects (§6–§9) unfixed.
+
+**Do not put 170 in.** It would look like a fix and would instead turn the
+engine from a validator of the workbook into a mirror of the payroll, and this
+finding would disappear from the report.
 
 ## 0m. 4180 is group-selected — and a label of mine was wrong
 
