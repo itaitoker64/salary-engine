@@ -1,4 +1,4 @@
-<!-- head: 7f227fa -->
+<!-- head: dae0bc1 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -74,6 +74,29 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0l. 1297 is formula-computed — and the workbook's formula fits nothing
+
+Per the user. The workbook does define it:
+`SACHAR!BZ11 = 5.5 × (משולב + גמול א + גמול ב + 4544 + 4550) / 180 × 5.33`,
+an effective **16.286%**. Classified "מחושב לפי נוסחה"; gap
+**3 codes/₪78,064 → 2/₪28,047**, leaving only 507 and 4180.
+
+**But that formula reproduces 0 of 55 slips.** Every one is ~6% above it, and
+uniformly: median ratio **1.0596**, with 52 of 55 inside 1.058–1.063.
+
+Five alternative base compositions were tested to rule out a misreading — the
+workbook's own base gives the *tightest* spread, so the base is right and one of
+the three constants is stale. Prime suspect is the **divisor 180**: using 170
+takes the match from 0 to **31 of 55**. Not conclusive (24 still miss), which
+points to the כוננויות count (5.5) also being a per-worker input the גולמי does
+not carry.
+
+**The rule ships with the workbook's constants, not fitted ones.** It sits at 0%
+match, self-calibration silences it, and nobody is flagged — 21,163 / 386 with
+14 real, unchanged. Putting 170 or 5.828 in would be inventing a חוקה out of
+payslips, which is the one thing this project forbids. Written up as
+`PROGIM_FIXES.md` §10 with the numbers.
 
 ## 0k. Progim 01.08.2026 — 797 added, gap down to 3
 
