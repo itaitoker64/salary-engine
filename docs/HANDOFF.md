@@ -1,14 +1,19 @@
-<!-- head: dae0bc1 -->
+<!-- head: 380dbc2 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
 
 ## State
 
-Everything through `19c6750` is **merged into `main` and live in production**
-— `/api/progim/status` reports `rules: 99`, `source: bundled`,
-`runtime_data_present: false`, so the site serves the 31.07 חוקה from the repo.
-Work after that point sits on this branch until merged.
+Everything on this branch is **merged into `main`**. The workbook in
+`data/progim` is `Progim_01.08.2026.xlsm` and `component_rules.json` holds 101
+rules. Verify the deploy with `/api/progim/status` — it should report
+`rules: 101`, `source: bundled`, `runtime_data_present: false`, meaning the
+site serves the חוקה from the repo rather than a `/tmp` upload.
+
+The coverage gap is down to **2 codes / ₪28,047**: 507 (input-only, ₪251) and
+4180 (**absent from the workbook entirely**, ₪27,796). It started this round at
+15 codes / ₪294K.
 
 Five topics on this branch, newest first:
 
