@@ -1916,8 +1916,9 @@ async function downloadUnified(btnId,labelId){
       t1.font={bold:true,size:12,color:{argb:XL.BADT}}; wsu.getRow(1).height=22;
       wsu.mergeCells('A2:F2');
       const t2=wsu.getCell('A2');
-      t2.value='"מוזכר כקלט בלבד" = הסמל מופיע ב-Progim רק בתוך בסיס/קיזוז/ספירת-מינימום של רכיב אחר; '
-              +'"לא קיים כלל" = הסמל אינו מופיע בחוברת בשום מקום. בשני המקרים אין נוסחה שמחשבת אותו — להוסיף לחוברת.';
+      t2.value='"מוזכר כקלט בלבד" = הסמל מופיע בכללים שחולצו רק בתוך בסיס/קיזוז/ספירת-מינימום של רכיב אחר; '
+              +'"לא נמצא בכללים" = הסמל אינו מופיע באף כלל. שים לב: שתי התוויות מתארות את הכללים שחולצו, לא את החוברת עצמה '
+              +'— ייתכן שהחוברת כן מגדירה את הרכיב והחילוץ לא הגיע אליו (כך היה עם 4180). לבדוק בחוברת.';
       t2.font={size:9,color:{argb:XL.MUTED}}; t2.alignment={wrapText:true}; wsu.getRow(2).height=26;
       const totU=_bulkData.uncovered.reduce((a,u)=>a+u.sum,0);
       wsu.mergeCells('A3:F3');
@@ -1928,7 +1929,7 @@ async function downloadUnified(btnId,labelId){
                      [8,20,18,9,13,40]);
       for(const u of _bulkData.uncovered){
         const status=u.reported?'מוזן מהקובץ — כך ב-Progim'
-                       :u.known?'מוזכר כקלט בלבד':'לא קיים כלל';
+                       :u.known?'מוזכר כקלט בלבד':'לא נמצא בכללים';
         const row=wsu.addRow([u.code,u.name,status,u.rows,u.sum,u.ministries]);
         row.getCell(4).numFmt=INT_FMT; row.getCell(5).numFmt=MONEY_FMT;
         if(u.reported){ for(let ci=1;ci<=6;ci++) row.getCell(ci).fill=fill('FFEFEFEF'); }

@@ -810,10 +810,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         t.font = Font(bold=True, size=12, color=BAD_TXT)
         wsu.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
         s = wsu.cell(row=2, column=1,
-                     value="'מוזכר כקלט בלבד' = הסמל מופיע ב-Progim רק בתוך "
+                     value="'מוזכר כקלט בלבד' = הסמל מופיע בכללים שחולצו רק בתוך "
                            "בסיס/קיזוז/ספירת-מינימום של רכיב אחר; "
-                           "'לא קיים כלל' = הסמל אינו מופיע בחוברת בשום מקום. "
-                           "בשני המקרים אין נוסחה שמחשבת אותו — להוסיף לחוברת.")
+                           "'לא נמצא בכללים' = הסמל אינו מופיע באף כלל. "
+                           "שים לב: שתי התוויות מתארות את הכללים שחולצו, לא את "
+                           "החוברת עצמה — ייתכן שהחוברת כן מגדירה את הרכיב "
+                           "והחילוץ פשוט לא הגיע אליו (כך היה עם 4180). "
+                           "בשני המקרים אין נוסחה שמחשבת אותו כאן — לבדוק בחוברת.")
         s.font = Font(size=9, color=MUTED)
         wsu.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
         tot_u = round(sum(u["sum"] for u in uncovered))
@@ -827,7 +830,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         for i, u in enumerate(uncovered, start=5):
             status = ("מוזן מהקובץ — כך ב-Progim" if u.get("reported")
                       else "מוזכר כקלט בלבד" if u["known"]
-                      else "לא קיים כלל")
+                      else "לא נמצא בכללים")
             vals = [u["code"], u["name"], status,
                     u["rows"], u["sum"], u["ministries"]]
             for c_i, v in enumerate(vals, start=1):

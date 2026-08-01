@@ -1,4 +1,4 @@
-<!-- head: 380dbc2 -->
+<!-- head: f789685 -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -11,9 +11,8 @@ rules. Verify the deploy with `/api/progim/status` — it should report
 `rules: 101`, `source: bundled`, `runtime_data_present: false`, meaning the
 site serves the חוקה from the repo rather than a `/tmp` upload.
 
-The coverage gap is down to **2 codes / ₪28,047**: 507 (input-only, ₪251) and
-4180 (**absent from the workbook entirely**, ₪27,796). It started this round at
-15 codes / ₪294K.
+The coverage gap is down to **1 code / ₪251** — 507 alone. It started this
+round at 15 codes / ₪294K.
 
 Five topics on this branch, newest first:
 
@@ -79,6 +78,39 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0m. 4180 is group-selected — and a label of mine was wrong
+
+Per the user: the amount comes from the ministry file because a standby count
+must be entered. The workbook confirms it in full:
+`SACHAR!EE11 = (wide base) / EE7 × 5.33 × EE8`, with `EE7 = tosafot!CY6 = 184`
+and `EE8 = tosafot!CY3 = 'Netunei Gimlai'!H81` — **the count, hand-entered**.
+The `מנדיי` sheet says so in words: 4 standbys/month for רשות האכיפה (127),
+"6.00" for משרד המשפטים (116), and *"הסמל מדווח ידנית ולא מגיע מהנוכחות"*.
+
+Classified `תוספת סכומית משתנה לפי בחירת קבוצה` (4 members now) and moved in
+the coverage sheet to **"מוזן מהקובץ — כך ב-Progim"**, i.e. correct-by-design
+rather than a hole. Real gap now **1 code / ₪251** — 507 alone.
+
+**A reporting defect of mine, found doing this.** I reported 4180 as
+"לא קיים כלל בחוברת". It is false: 4180 sits in `SACHAR!EE`, `tosafot!CY`,
+`sminimum` and seven other places. The label was derived from the code's absence
+from **our extracted rules**, which is a different statement. Reworded in all
+three surfaces:
+
+- `לא קיים כלל` → **`לא נמצא בכללים`**
+- an explicit sentence added: the labels describe the extracted rules, **not the
+  workbook**, and the workbook may well define the component.
+
+This matters beyond 4180: while it read "absent from the workbook", every code
+our extraction missed looked like a hole in the product the user sells, instead
+of a gap on our side.
+
+**New mechanism:** `amount_period_locked` on a rule tells
+`classify_hukka_amounts.py` to leave the classification alone. Without it, a
+re-run overwrites an author-stated classification with "unknown" whenever the
+component's inputs sit outside the tosafot/grid layouts the tool reads — which
+is exactly 4180's case.
 
 ## 0l. 1297 is formula-computed — and the workbook's formula fits nothing
 

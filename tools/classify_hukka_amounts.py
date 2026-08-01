@@ -21,6 +21,10 @@ The decision is read out of the workbook, never assumed:
    more amounts down a single tier column is **varies**.
 3. Anything that resolves to neither is left **unknown** and says so. Guessing
    "fixed" here would put an unsourced claim in the deliverable.
+4. A rule carrying `amount_period_locked` is left exactly as it is. That marks a
+   classification STATED by the workbook's author for a component whose inputs
+   sit outside the layouts read here — without the lock, a re-run would quietly
+   replace it with "unknown".
 
 Usage:
     python3 tools/classify_hukka_amounts.py [Progim.xlsm] [component_rules.json]
@@ -178,6 +182,15 @@ def main():
             rule.pop("amount_period_note", None)
             continue
         code = int(rule["codes"][0])
+        if rule.get("amount_period_locked"):
+            # Stated by the workbook's author, not derived from the sheets — the
+            # classifier would otherwise overwrite it with "unknown" whenever
+            # the component's inputs live outside the tosafot/grid layout it
+            # knows how to read (4180: the count is a hand-entered field).
+            tally[rule.get("amount_period", "unknown")] += 1
+            print(f"{code:>6}  {rule.get('amount_period'):<8} (נעול) "
+                  f"{rule.get('amount_period_note','')[:70]}")
+            continue
         period, why = classify(wb_v, wb_f, code)
         rule["amount_period"] = period
         rule["amount_period_note"] = why
