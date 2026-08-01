@@ -2319,5 +2319,25 @@
     "source": "Progim 31.07.2026 (עדכון): tosafot!AA3 = 10.26; SACHAR!AT11 = 'tosafot'!AA2 — סכום ישיר, ללא שער ובסיס",
     "amount_period": "fixed",
     "amount_period_note": "טבלת חודש פרישה ב-tosafot: סכום אחד, 10.26 ₪, לכל 228 החודשים"
+  },
+  "642": {
+    "codes": [
+      642
+    ],
+    "name": "תוספת מיוחדת 6%",
+    "type": "percent",
+    "rates": [
+      0.06
+    ],
+    "base_codes": [
+      1,
+      2,
+      658,
+      678,
+      4624,
+      10002
+    ],
+    "origin": "formula",
+    "source": "Progim 31.07.2026: SACHAR!AJ11 = (AA11+AL11+AO11+DA11)*AJ7 — כלומר 6% × (שכר משולב 10002 + 658 + 678 תוספת אישית + הסכם 1999 4624). השער: tosafot!AU2 = IF(זכאי, 6%, 0) — קבוע בנוסחה, לא טבלה"
   }
 }

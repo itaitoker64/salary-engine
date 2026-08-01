@@ -1,4 +1,4 @@
-<!-- head: c7516ac -->
+<!-- head: cb4a40e -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -73,6 +73,25 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0i. 642 is a computed 6% component — closing the user's opening example
+
+From the workbook in full: `SACHAR!AJ11 = (AA11 + AL11 + AO11 + DA11) × AJ7`
+with `tosafot!AU2 = IF(eligible, 6%, 0)` — the rate is a literal in the
+formula, not a table. So **6% × (10002 + 658 + 678 + 4624)**.
+
+**42 of 42 carriers match, every one to the agora.** All 42 are
+טלוויזיה לימודית.
+
+This closes the example that opened the whole round. The user's complaint was
+*"it did not flag components missing from the Progim, e.g. 642 and 678 in
+the Educational TV"* — 642 really was unchecked then, appearing in the workbook
+only as an input (4550 deductions, minimum counting) and never as a computed
+component. Its formula has now been located and it is fully validated. **678
+stays `manual`** — it is one of the six codes whose amount comes from the
+משרד האוצר file, so it is deliberately not validated.
+
+Gap **5 codes/₪87,204 → 4/₪78,080**. Remaining: 507, 797, 1297, 4180.
 
 ## 0h. Progim 31.07 — second file, same date: 733 added
 
