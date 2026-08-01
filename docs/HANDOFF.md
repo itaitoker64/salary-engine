@@ -1,4 +1,4 @@
-<!-- head: 19c6750 -->
+<!-- head: 7f227fa -->
 # Handoff — branch `claude/employee-simulator-validation-pl128n`
 
 Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -74,6 +74,27 @@ Workbook defect found doing this, written up as `PROGIM_FIXES.md` §9: the 805
 table is filled for **48 months of 228** (only 2008, 2011, 2013, 2024) and the
 VLOOKUP is exact-match, so a worker retiring in any other month gets 0 from the
 workbook with no error.
+
+## 0k. Progim 01.08.2026 — 797 added, gap down to 3
+
+`data/progim` now holds `Progim_01.08.2026.xlsm`; the classifier's default path
+moved with it. The only content change is **797 (ת.שטחים ר.ג)** — the sibling
+of 808 flagged as open one round earlier. `tosafot!BB3 = ₪31.62`, constant
+across 228 months, `SACHAR!BD11` takes it directly. **1 of 1 carrier matches**:
+worker 64295237, 31.62 × 0.5 = ₪15.81 to the agora.
+
+Gap **4 codes/₪78,080 → 3/₪78,064**. What is left is the hard residue:
+
+| code | status in the workbook | rows | ₪ |
+|---|---|---:|---:|
+| 1297 | input-only | 56 | 50,017 |
+| 4180 | **absent entirely** | 29 | 27,796 |
+| 507 | input-only | 2 | 251 |
+
+**None of the six reported defects is fixed here** — 4319 (9/110), 4427
+(8/110), 5402 (no sum block), 636 (353.75 vs 353.76), 805 (48/228), 4651
+(12/228), 808 (12/228). 73 columns moved; `lookups.json` identical; no rate
+changed; extraction still returns 25 percent rules with 5533 dropping out.
 
 ## 0j. 808 (תוספת שטחים) is now validated against the חוקה
 

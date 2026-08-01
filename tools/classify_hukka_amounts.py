@@ -165,7 +165,7 @@ def classify(wb_values, wb_formulas, code):
 
 def main():
     xlsm = Path(sys.argv[1] if len(sys.argv) > 1
-                else "data/progim/Progim_31.07.2026.xlsm")
+                else "data/progim/Progim_01.08.2026.xlsm")
     rules_path = Path(sys.argv[2] if len(sys.argv) > 2 else "component_rules.json")
     wb_v = openpyxl.load_workbook(xlsm, data_only=True, keep_vba=True)
     wb_f = openpyxl.load_workbook(xlsm, data_only=False, keep_vba=True)
