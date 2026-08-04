@@ -1,4 +1,4 @@
-<!-- head: PENDING -->
+<!-- head: eb62419 -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -12,7 +12,8 @@ commits, oldest first: `15d9499` (the 04.08 workbook upgrade), `155669e` (the
 12/2010 file check; docs only), `b5c2476` (seven codes out of scope), `6ba4132`
 (the 12/2008 file check; docs only), `550304d` (six more codes out of scope),
 `d2bef27` (the 705 neutralization column), `fdc2226` (the 12/2009 file check;
-docs only). The rest are handoff stamps. `main` had nothing new for it at session start.
+docs only), `eb62419` (the 12/2011 file check; docs only). The rest are handoff
+stamps. `main` had nothing new for it at session start.
 
 The workbook in `data/progim` is now **`Progim_04.08.2026.xlsm`**; the 01.08
 file was deleted in the same commit. `component_rules.json` holds **102** rules
