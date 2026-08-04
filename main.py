@@ -249,6 +249,10 @@ NON_PENSIONABLE = {
     4535,   # ממוצעי שכר — לא נצפה באף קובץ דוגמה
     4454,   # מילואים-מל"ח
     4134,   # ת.יוקר-הפסק — כמו 4133 (תוספת יוקר)
+    # Added 4.8.2026 on the user's instruction, off the 12/2011 coverage list.
+    # Same two checks again: absent from the workbook, absent from every rule.
+    5281,   # מענק שנתי — מענק, כמו 4962
+    1265,   # דמי הבראה — הווריאנט הרביעי, אחרי 1266/1260/1269
 }
 
 

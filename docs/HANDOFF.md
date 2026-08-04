@@ -1,4 +1,4 @@
-<!-- head: eb62419 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -26,6 +26,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0y. **5281 and 1265 out of scope** — third batch; the list is now 29
 0x. **The 12/2011 file checked** — an 808 amount that is not in the table at all
 0w. **The 12/2009 file checked** — refutes my 0t dating; best coverage yet
 0v. **New 705 neutralization bucket** — asked for, delivered, and it hides 5402/5524
@@ -39,6 +40,39 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0y. 5281 and 1265 out of scope — third batch
+
+Off the 12/2011 coverage list, on the user's instruction. Same two checks as
+the previous batches and both pass: absent from the workbook in every sheet,
+absent from `component_rules.json` in every field. Each appears exactly once,
+in 12/2011 only — 5281 מענק שנתי at ₪266.66 and 1265 דמי הבראה at ₪114.17.
+`NON_PENSIONABLE` is now **29 codes**; Python and JS compared element-wise and
+in sync, 34 tests pass, `node --check` clean.
+
+12/2011's coverage gap goes **4 codes / ₪1,296 → 2 codes / ₪915.26**. The other
+three files do not move — neither code appears in them. Verdicts unchanged
+across all four (98.76% · 98.59% · 98.40% · 97.62%) and every partition closes.
+
+1265 is the **fourth** דמי הבראה variant on the list, after 1266, 1260 and
+1269; 5281 joins 4962 (מענק חד-פעמי). §15 now says so explicitly — one benefit
+occupying four codes is more evidence that scope is being decided code by code
+with no rule behind it.
+
+**What is left in the coverage gap, across the four historical files:**
+
+| file | codes | ₪ | largest |
+|---|---|---|---|
+| 12/2008 | 5 | ₪1,898 | 4140 משכ. בסיסית (₪1,035) |
+| 12/2009 | 2 | ₪323 | 507 (₪173) |
+| 12/2010 | 8 | ₪7,539 | 1104 שכר עבודה (₪3,539) |
+| 12/2011 | 2 | ₪915 | 1132 תוס. קלדנות (₪742) |
+
+**507 (השל. מהוראה) is in all four**, ₪173–₪251 every month, and it is the one
+marked "מוזכר כקלט בלבד" rather than "לא נמצא בכללים" — the workbook knows how
+to *read* it but not to *produce* it. That makes it a genuine coverage gap, not
+an out-of-scope candidate. Do not put it on `NON_PENSIONABLE` to make the
+number go away.
 
 ## 0x. The 12/2011 file — 808 pays an amount the table does not contain
 
