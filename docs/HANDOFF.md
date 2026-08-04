@@ -1,4 +1,4 @@
-<!-- head: 1fcd033 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -31,6 +31,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0ag. **The 12/2014 file checked** — biggest coverage gap yet; 4651 proves §11 is formula-only
 0af. **805 is complete** — table full and formula fixed; the first component closed both ends
 0ae. **808 split into two more pulses** — better justified than my retracted claim was
 0ad. **The 12/2013 file checked** — 805 matches 110/110; my 808 finding is retracted
@@ -52,6 +53,46 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ag. The 12/2014 file — 4651 shows §11 is a formula bug, not a data bug
+
+Eighth file: **December 2014**, **19,619 workers**. **98.04% · 14 true errors ·
+₪1,090** (₪854 under, ₪237 over); partition closes at 19,619. Lowest exposure of
+the eight. Docs only. Written up in `PROGIM_IMPROVEMENTS.md` under "בדיקת קובץ
+12/2014".
+
+**The useful finding: 4651 validates at 98.9% here** (176 of 178), is trusted,
+and even yields one true error (₪87.84). So the engine can check that component
+well — because it reads the correct column straight from the table. The workbook
+still returns 4453 for it, purely because of the hardcoded index in `BR2`. That
+makes §11 unambiguous: **the data in the table is fine, only the reference is
+broken.** A one-token fix opens a component that already works. Use this when
+arguing the priority — it is the cheapest high-value fix outstanding.
+
+**805 holds at 109 of 110** (99.1%), trusted, second month running since the
+table was completed. c+72 lands in 73-83, inside the 61-102 band — consistent,
+no narrowing.
+
+**The 875 bucket is empty again.** 875 sits at 96.3% (76 mismatches of 2,032),
+below the gate, so it is silenced and nobody reaches the column. **The column has
+fired in one file out of seven.** That reinforces what was recorded when it was
+built: it is not a stable category but a function of the 97% switch, and in six
+of seven months 875's gaps are already uncounted because the rule is silenced
+rather than because the bucket caught them.
+
+**Largest coverage gap measured: 10 codes / ₪16,633.** 4140 משכ.בסיסית (₪7,329),
+1104 שכר עבודה (₪3,429), 1731 חתימה/עד גט (₪2,149), 1229 (₪1,233), 5374 (₪755),
+5315 (₪617), 4123 100% ש.מחלה (₪392), 4978 נכ.העד-חרום (₪367), 1228 (₪190), 507
+(₪173). 4140 now appears in **five** files and 507 in all **seven**; both are pay
+components and a genuine gap.
+
+Four of the new ones look like out-of-scope candidates by the same logic the user
+applied to 5272 — 4123 (100% sick pay), 4978 (emergency absence), and 1228/1229
+(daily allowances). **Not added; that is the user's call**, and each still needs
+both checks first.
+
+Calibration silenced 31 of 48 rules; 5,146 workers (26.2%), ₪2,094,688, of which
+₪1.62M is 4550.
 
 ## 0af. 805 is finished — table full, formula fixed
 
