@@ -225,6 +225,19 @@ NON_PENSIONABLE = {
     4120,   # השלמת שכר — מוזן ידנית מקובץ משרד האוצר, ואינו פנסיוני
     1375,   # קצובת ביגוד — קצובה, אינה פנסיונית
     4133,   # תוספת יוקר — אינה פנסיונית ואינה משתתפת בחישוב
+    # Added 4.8.2026 on the user's instruction, off the 12/2010 coverage list.
+    # None of the seven appears anywhere in the workbook (SACHAR / tosafot /
+    # Netunei Gimlai / sminimum were all scanned), and none sits in any rule's
+    # codes, base_codes or deductions — so declaring them out of scope only
+    # states that their absence is by design. Three extend families already
+    # here: 1269 joins 1266/1260 (דמי הבראה) and 4264 joins 903/889 (הפרש ברוטו).
+    4962,   # מענק חד-פעמי — תשלום חד-פעמי
+    4122,   # 100% ש.חופש — שווי חופשה
+    4264,   # הפרש ברוטו — כמו 903/889
+    4443,   # נסיעות — קצובה
+    4121,   # 100% ש.זכ.שב — שווי זכאות שבתון
+    5271,   # ימי חג
+    1269,   # דמי הבראה — כמו 1266/1260
 }
 
 
