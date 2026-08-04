@@ -253,6 +253,7 @@ NON_PENSIONABLE = {
     # Same two checks again: absent from the workbook, absent from every rule.
     5281,   # מענק שנתי — מענק, כמו 4962
     1265,   # דמי הבראה — הווריאנט הרביעי, אחרי 1266/1260/1269
+    5272,   # ימי מחלה — היעדרות, לא רכיב שכר
 }
 
 

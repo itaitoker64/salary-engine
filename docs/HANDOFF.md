@@ -1,4 +1,4 @@
-<!-- head: 44b4857 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -29,6 +29,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0ac. **5272 out of scope** — fourth batch; the list is now 30
 0ab. **New 875 neutralization column** — asked for, built, and it has no justification
 0aa. **The workbook was corrected** — 805 codes 49-60 filled; verified, and what it did not fix
 0z. **The 12/2012 file checked** — it lands inside a hole in the 805 table and measures it
@@ -46,6 +47,25 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ac. 5272 out of scope — fourth batch
+
+Off the 12/2012 coverage list, on the user's instruction. Same two checks and
+both pass: 5272 (ימי מחלה) is absent from the workbook in every sheet and
+absent from `component_rules.json` in every field. It occurs once across all six
+sample files — 12/2012, one row, ₪73.53. `NON_PENSIONABLE` is now **30 codes**;
+Python and JS compared element-wise and in sync, 34 tests pass, `node --check`
+clean.
+
+12/2012's coverage gap goes **6 codes / ₪9,083 -> 5 codes / ₪9,010**. No other
+file moves, the partition closes, and the verdict is unchanged at 97.90%.
+
+**What is left in that gap, and should stay:** 4140 משכ.בסיסית (₪5,934), 5315
+(₪1,703), 1132 (₪945), 729 (₪255), 507 (₪173). 4140 is the recurring expensive
+one — it also appears in 12/2008 and 12/2010 — and 507 appears in all five
+historical months. Both are pay components rather than benefits, so neither is
+an out-of-scope candidate; they are a genuine coverage gap in the workbook and
+removing them from scope would only hide it.
 
 ## 0ab. A neutralization column for 875 — built as asked, and flagged
 

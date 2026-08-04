@@ -203,7 +203,9 @@
     1047, 4114, 4537, 4535, 4454, 4134,
     // Added 4.8.2026 on the user's instruction, off the 12/2011 coverage list:
     // מענק שנתי, דמי הבראה (הווריאנט הרביעי).
-    5281, 1265]);
+    5281, 1265,
+    // ימי מחלה — היעדרות, לא רכיב שכר (4.8.2026, מרשימת הכיסוי של 12/2012).
+    5272]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it
