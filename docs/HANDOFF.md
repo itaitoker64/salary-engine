@@ -1,4 +1,4 @@
-<!-- head: 9d4576e -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -28,6 +28,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0ab. **New 875 neutralization column** — asked for, built, and it has no justification
 0aa. **The workbook was corrected** — 805 codes 49-60 filled; verified, and what it did not fix
 0z. **The 12/2012 file checked** — it lands inside a hole in the 805 table and measures it
 0y. **5281 and 1265 out of scope** — third batch; the list is now 29
@@ -44,6 +45,44 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ab. A neutralization column for 875 — built as asked, and flagged
+
+The user asked for a **"שגויי תוספת בית משפט"** column immediately after
+"שגויי תוספת בית חולים". Delivered: new `err_cat` bucket `bmish` at exactly
+that point in the priority chain, in all three places that must agree —
+`tools/unified_report.py`, `index.html`, `salary_frontend.html`. The two HTML
+files were byte-identical before and after. The dashboard is now **20 columns**,
+so every column index shifted by one: the INT range, the warn-colour set, the
+real-error column, the % column, the `S`/`T` conditional-formatting ranges, the
+banner merge, and the side table's origin (now column `V`). Partitions close on
+all six files.
+
+**What it absorbs, measured before building it:** 25 workers, **all in
+12/2012**, and every one of them carries 875 **alone** — no other flagged code
+travels with them, so the bucket swallows nothing. Zero in the other five files.
+That is the `CLAUDE.md` check and it comes back clean.
+
+**What is not clean is the justification.** 741 (בוררות מיסים) and 705
+(מקצועית מיסים) were neutralized on evidence: their gaps are integer multiples
+of the component, the retro signature. I ran the same test on 875 and it fails
+— of 53 mismatches, **none** is an integer multiple (2×/3×/4×/12×). Ratios
+scatter from **−1.87 to 2.52**, median 1.0519, including a negative payment
+(₪−552.73 where ₪+295.69 was expected). There is no retro signature here.
+
+**The effect on the headline is large:** 12/2012 drops from **27 true errors to
+2**, and ₪2,924 leaves the count — **₪2,398 of it overpayment, money to
+recover**. Overpayment is not a retro pattern; it is exactly the category that
+must not be silently suppressed. The file now reads as nearly clean because of
+a suppression, not a fix.
+
+**What would retire the column:** carry out §4's existing instruction for 875 —
+sample 3-5 mismatching slips and determine whether the gap comes from the base
+composition in the חוקה (then the Progim needs a missing code and the bucket is
+unnecessary) or from genuine retro (then the bucket is justified and the
+evidence should be written down). Until that is done, this column makes the
+number look better than the evidence supports. Do not quote 12/2012's "2 true
+errors" without saying so.
 
 ## 0aa. The user corrected the workbook — 805 codes 49-60 = ₪104.61
 

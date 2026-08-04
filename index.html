@@ -1374,6 +1374,10 @@ async function runBulk(files){
             // תוספת בית חולים (600): סכום קבוע בחוקה; הסוטים ממנו הם ברובם
             // פעימה קודמת של הסכום, שהחוקה אינה שומרת.
             else if(gf[600]) errCat='bhol';
+            // תוספת בתי משפט (875): מיד אחרי תוספת בית חולים לפי בקשת המשתמש.
+            // נמדד לפני ההוספה: 25 עובדים בששת קבצי הדוגמה, כולם ב-12/2012,
+            // וכל אחד נושא את 875 לבדו — שום סמל אחר אינו נבלע בדלי הזה.
+            else if(gf[875]) errCat='bmish';
             else errCat='real';
             // Per-code gap tally for the exec summary: the base (when off) plus
             // every flagged component, each with its ₪ magnitude.
@@ -1406,14 +1410,14 @@ async function runBulk(files){
         // standing OUTSIDE the partition. (Mirror of collect() in unified_report.py.)
         const cnt=(cat)=>fr.filter(x=>x[STATUS_RAW_IDX]==='invalid'&&x[ERRCAT_IDX]===cat).length;
         const ftValid=ft.filter(x=>x[STATUS_RAW_IDX]==='valid').length;
-        const invStudent=cnt('student'),invVatek=cnt('vatek'),invBase=cnt('base'),invGmul=cnt('gmul'),invD1711=cnt('d1711'),invBrich=cnt('brich'),invMnhal=cnt('mnhal'),invBorerut=cnt('borerut'),invMikzoit=cnt('mikzoit'),invBhol=cnt('bhol'),invH1999=cnt('h1999'),invReal=cnt('real');
+        const invStudent=cnt('student'),invVatek=cnt('vatek'),invBase=cnt('base'),invGmul=cnt('gmul'),invD1711=cnt('d1711'),invBrich=cnt('brich'),invMnhal=cnt('mnhal'),invBorerut=cnt('borerut'),invMikzoit=cnt('mikzoit'),invBhol=cnt('bhol'),invBmish=cnt('bmish'),invH1999=cnt('h1999'),invReal=cnt('real');
         const ftNoBase=ft.filter(x=>x[STATUS_RAW_IDX]==='no_base').length;
         const ftMulti=ft.filter(x=>x[STATUS_RAW_IDX]==='multi_period').length;
         perFile.push({name:f.name.replace(/\.xlsx$/i,''), month, workers:results.length,
           valid:v, invalid:inv, no_base:nb, multi:mp, acc:active?SalaryEngine.round2(v/active*100):0,
           part_time:fr.length-ft.length, ft:ft.length, ft_valid:ftValid,
           ft_no_base:ftNoBase, ft_multi:ftMulti,
-          inv_student:invStudent, inv_vatek:invVatek, inv_base:invBase, inv_gmul:invGmul, inv_d1711:invD1711, inv_brich:invBrich, inv_mnhal:invMnhal, inv_borerut:invBorerut, inv_mikzoit:invMikzoit, inv_bhol:invBhol, inv_h1999:invH1999, inv_real:invReal,
+          inv_student:invStudent, inv_vatek:invVatek, inv_base:invBase, inv_gmul:invGmul, inv_d1711:invD1711, inv_brich:invBrich, inv_mnhal:invMnhal, inv_borerut:invBorerut, inv_mikzoit:invMikzoit, inv_bhol:invBhol, inv_bmish:invBmish, inv_h1999:invH1999, inv_real:invReal,
           real_pct:results.length?SalaryEngine.round2(invReal/results.length*100):0});
       }catch(fe){
         failed.push({name:f.name, msg:fe.message||String(fe)});
@@ -1578,7 +1582,7 @@ function renderTrend(perFile){
     const o=byMonth.get(s.month); o.v+=s.valid; o.i+=s.invalid;
     o.real+=(s.inv_real||0);
     o.act+=(s.valid||0)+(s.inv_student||0)+(s.inv_vatek||0)+(s.inv_base||0)
-          +(s.inv_gmul||0)+(s.inv_d1711||0)+(s.inv_brich||0)+(s.inv_mnhal||0)+(s.inv_borerut||0)+(s.inv_mikzoit||0)+(s.inv_bhol||0)+(s.inv_h1999||0)+(s.inv_real||0);
+          +(s.inv_gmul||0)+(s.inv_d1711||0)+(s.inv_brich||0)+(s.inv_mnhal||0)+(s.inv_borerut||0)+(s.inv_mikzoit||0)+(s.inv_bhol||0)+(s.inv_bmish||0)+(s.inv_h1999||0)+(s.inv_real||0);
   }
   const pts=[...byMonth.entries()]
     .map(([m,o])=>({m,acc:o.v+o.i?o.v/(o.v+o.i)*100:0,real:o.real}))
@@ -1734,7 +1738,7 @@ const MATERIALITY=100.0;
 // neutralized row is visible and filterable instead of silently dropped.
 const NEUTRAL_HE={student:'ותק סטודנט',vatek:'ותק קטוע',base:'שכר בסיס',d1711:'ניכוי 6% א"ע',
   gmul:'גמול השתלמות',brich:'דריכות בי"ח',mnhal:'גמול מנהל',
-  borerut:'בוררות מיסים',mikzoit:'מקצועית מיסים',h1999:'תוספת 1999',real:''};
+  borerut:'בוררות מיסים',mikzoit:'מקצועית מיסים',bhol:'תוספת בית חולים',bmish:'תוספת בית משפט',h1999:'תוספת 1999',real:''};
 const UNIFIED_EMP_HEAD=EMP_SPEC.map(c=>c.h);
 // Workbook palette (light surface; status colors always paired with a label)
 const XL={NAVY:'FF1E3A5F', WHITE:'FFFFFFFF', TILE:'FFF4F5F7', MUTED:'FF6B7280',
@@ -1803,7 +1807,7 @@ async function downloadUnified(btnId,labelId){
     title.font={size:16,bold:true,color:{argb:XL.NAVY}};
     ws.mergeCells('A2:R2');
     const sub=ws.getCell('A2');
-    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← מקצועית מיסים ← תוספת בית חולים ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = סה"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
+    sub.value=`${_bulkData.perFile.length} קבצים · הופק ${new Date().toLocaleDateString('he-IL')} · כל עובד נספר בעמודה אחת בדיוק: ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס ← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל ← בוררות מיסים ← מקצועית מיסים ← תוספת בית חולים ← תוספת בית משפט ← שגיאה אמיתית ← תקין. סכום העמודות (כולל 'תקין' בסוף, למעט 'משרה חלקית') = סה"כ העובדים. עמודת 'משרה חלקית (מתוכם)' היא תיאורית בלבד — אותם עובדים נספרים גם בעמודת הסיבה שלהם. % שגויים אמיתיים = אמיתיים חלקי סה"כ העובדים.`;
     sub.font={size:10,color:{argb:XL.MUTED}};
     // Coverage warning on the dashboard itself — the Progim is the product,
     // so a hole in it must be visible on page one, not only in its own sheet.
@@ -1820,7 +1824,7 @@ async function downloadUnified(btnId,labelId){
     }
     // Totals: sum the partition fields across files.
     const tot={workers:0,valid:0,part_time:0,ft:0,ft_valid:0,ft_no_base:0,ft_multi:0,inv_student:0,inv_vatek:0,inv_base:0,inv_gmul:0,inv_d1711:0,
-               inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_mikzoit:0,inv_bhol:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
+               inv_brich:0,inv_mnhal:0,inv_borerut:0,inv_mikzoit:0,inv_bhol:0,inv_bmish:0,inv_h1999:0,inv_real:0,no_base:0,multi:0};
     for(const s of _bulkData.perFile) for(const k in tot) tot[k]+=(s[k]||0);
     const realPct=tot.workers?tot.inv_real/tot.workers:0;
     // Direction split — money owed to workers vs money to recover (gross, so
@@ -1850,13 +1854,13 @@ async function downloadUnified(btnId,labelId){
     ws.addRow([]);
     // A clean PARTITION: columns D..O are mutually exclusive and sum to C.
     styleHeaderRow(ws,['חודש שכר','קובץ','עובדים','משרה חלקית (מתוכם)','ללא בסיס',
-      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי ניכוי 6% א"ע','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי מקצועית מיסים','שגויי תוספת בית חולים','שגויים אמיתיים','% שגויים אמיתיים','תקין'],
+      'שתי שורות שכר משולב','שגויי ותק סטודנט','שגויי ותק קטוע','שגויי בסיס','שגויי גמול','שגויי ניכוי 6% א"ע','שגויי תוספת 1999','שגויי דריכות','שגויי גמול מנהל','שגויי בוררות מיסים','שגויי מקצועית מיסים','שגויי תוספת בית חולים','שגויי תוספת בית משפט','שגויים אמיתיים','% שגויים אמיתיים','תקין'],
       [11,18,10,10,10,13,11,11,10,10,13,11,10,11,11,13,12,13,11]);
     const headR=ws.lastRow.number;
     for(const s of _bulkData.perFile){
       const rp=s.workers?s.inv_real/s.workers:0;
       const r=ws.addRow([s.month,s.name,s.workers,s.part_time,s.no_base||0,s.multi||0,
-        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_d1711||0,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_mikzoit||0,s.inv_bhol||0,s.inv_real,rp,s.valid]);
+        s.inv_student||0,s.inv_vatek||0,s.inv_base,s.inv_gmul,s.inv_d1711||0,s.inv_h1999||0,s.inv_brich,s.inv_mnhal,s.inv_borerut||0,s.inv_mikzoit||0,s.inv_bhol||0,s.inv_bmish||0,s.inv_real,rp,s.valid]);
       for(let ci=3;ci<=17;ci++) r.getCell(ci).numFmt=INT_FMT;
       r.getCell(19).numFmt=INT_FMT; r.getCell(19).font={color:{argb:XL.GOODT}};
       [7,8,9,10,11,12,13,14,15,16].forEach(ci=>{ if(r.getCell(ci).value) r.getCell(ci).font={color:{argb:XL.WARNT}}; });
@@ -1865,7 +1869,7 @@ async function downloadUnified(btnId,labelId){
     }
     const lastR=ws.lastRow.number;
     const trow=ws.addRow(['סה"כ','',tot.workers,tot.part_time,tot.no_base,tot.multi,
-      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_d1711,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_mikzoit,tot.inv_bhol,tot.inv_real,realPct,tot.valid]);
+      tot.inv_student,tot.inv_vatek,tot.inv_base,tot.inv_gmul,tot.inv_d1711,tot.inv_h1999,tot.inv_brich,tot.inv_mnhal,tot.inv_borerut,tot.inv_mikzoit,tot.inv_bhol,tot.inv_bmish,tot.inv_real,realPct,tot.valid]);
     trow.font={bold:true}; for(let ci=3;ci<=17;ci++) trow.getCell(ci).numFmt=INT_FMT;
     trow.getCell(19).numFmt=INT_FMT;
     trow.getCell(17).font={bold:true,color:{argb:XL.BADT}}; trow.getCell(18).numFmt='0.00%';
