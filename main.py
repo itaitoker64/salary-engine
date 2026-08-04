@@ -254,6 +254,16 @@ NON_PENSIONABLE = {
     5281,   # מענק שנתי — מענק, כמו 4962
     1265,   # דמי הבראה — הווריאנט הרביעי, אחרי 1266/1260/1269
     5272,   # ימי מחלה — היעדרות, לא רכיב שכר
+    # Added 4.8.2026 on the user's instruction, off the 12/2014 coverage list.
+    # 4123/4978 are absent from the workbook entirely. 1731 IS listed in
+    # `sminimum` (row 188) — but only in the minimum-wage table, which declares
+    # חוק מינימום / השלמה לשכר מינימום, not pensionability and not a formula.
+    # Same precedent as 1375, already on this list and also in that table.
+    1731,   # חתימה/עדות - גט
+    4123,   # 100% ש.מחלה — היעדרות
+    4978,   # נכ.העד-חרום
+    1228,   # שט.יומית א' — קצובה יומית
+    1229,   # שט.יומית ב' — קצובה יומית
 }
 
 

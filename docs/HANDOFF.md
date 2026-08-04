@@ -1,4 +1,4 @@
-<!-- head: 8c5d6d5 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -26,11 +26,16 @@ filled with 104.61 — 12 cells, nothing else). `component_rules.json` holds **1
 report `rules: 102`, `source: bundled`, `runtime_data_present: false`, meaning
 the site serves the חוקה from the repo rather than a `/tmp` upload.
 
-The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
-15 codes / ₪294K.
+The coverage gap **as of 4.8.2026, measured**: `golmi.xlsx` (the 1.2008 sample)
+alone is **19 codes / ₪622,483**, dominated by **738 ת. אחוז-יום at ₪568,238
+over 2,076 rows** — a code that appears in no December file. Across all eight
+files the union is **29 codes / ₪664,873**. (An earlier version of this line
+claimed "1 code / ₪251"; that was stale and is corrected here.)
 
 Newest topic first:
 
+0ai. **Unified report over all 8 files** — 5402+5524 are 77% of the money
+0ah. **Five more codes out of scope** — the list is now 35, and §15's fix already exists in the workbook
 0ag. **The 12/2014 file checked** — biggest coverage gap yet; 4651 proves §11 is formula-only
 0af. **805 is complete** — table full and formula fixed; the first component closed both ends
 0ae. **808 split into two more pulses** — better justified than my retracted claim was
@@ -53,6 +58,61 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ai. Unified report across all eight files
+
+One run over everything checked today plus the repo's 1.2008 sample. Written to
+`דוח_מאוחד_כל_הקבצים_04.08.2026.xlsx` and sent to the user.
+
+**154,568 workers · 145,431 valid · 108 true errors (0.0699%) · ₪36,158
+exposure** (₪18,182 under, ₪17,977 over). All nine partitions close.
+
+**The finding worth acting on: two components are 55% of the errors and 77% of
+the money.** 5402 (תוספת שקלית 2016) is 31 workers / ₪14,219 and 5524 (2023) is
+28 / ₪13,616 — together 59 of 108 and ₪27,835 of ₪36,158. These are exactly the
+components `PROGIM_FIXES.md` §7 says the workbook cannot price: `heskem 2016`
+carries only the percentage block and has no amount table at all. So **the single
+largest source of true errors across eight months and 154k slips is the one
+component the Progim cannot compute.** §7 moves to second priority behind §11.
+
+Union coverage gap: **29 codes / ₪664,873**, of which **738 (ת. אחוז-יום) is
+₪568,238 over 2,076 rows — 85% of the total, and entirely inside the 1.2008
+file.** It appears in none of the seven December files. Next are 4140 (₪30,013),
+1027 (₪11,529), 4221 (₪10,078), 4220 (₪9,642).
+
+**Caveat on the cross-month sheets — read before quoting them.** Two files
+(`golmi.xlsx` and 12/2013) have **no `תאריך שכר` column**, so they sort by
+filename rather than date. `שינויי סטטוס` (1,423 rows) and `שינויים בין חודשים`
+(1,741 rows) therefore contain non-chronological comparisons such as "12/2014 →
+golmi_1213". Those sheets do not represent real valid→invalid transitions over
+time while both files are included. Run without them, or give those files a date
+column, before drawing trend conclusions.
+
+## 0ah. Five more codes out of scope — and §15's fix already exists in the workbook
+
+Off the 12/2014 coverage list, on the user's instruction: **1731, 4123, 4978,
+1228, 1229**. `NON_PENSIONABLE` is now **35 codes**; Python and JS compared
+element-wise and in sync, 34 tests pass, `node --check` clean. 12/2014's gap goes
+**10 codes / ₪16,633 -> 5 codes / ₪12,303**; partition closes, verdict unchanged
+at 98.04%.
+
+Four passed both checks cleanly. **1731 did not, and it matters:** it *is* in the
+workbook, at `sminimum` row 188 — `1731 | חתימה/ עדות - גט | חוק מינימום: לא |
+השלמה לשכר מינימום: כן`. Those two columns declare **minimum-wage treatment, not
+pensionability**, and there is no formula computing the component, so it is still
+uncovered in the sense §15 means. Precedent: **1375 is already on the list and
+appears in that same table.** Added on that basis, and the docs say so — do not
+let a future reader think the workbook was contradicted.
+
+**The discovery that came out of checking it:** `sminimum` holds a **295-row
+table** with headers `סמל תוספת · שם תוספת · חוק מינימום · השלמה לשכר מינימום`
+and כן/לא values throughout. **That is exactly the shape §15 has been asking
+for** — a per-code attribute table in cells — just for a different question. §15's
+instruction is rewritten accordingly: **add a `פנסיוני` (כן/לא) column to that
+existing table.** No new sheet needed, and it retires the hardcoded 35-code list
+in `main.py` and `engine.js` in favour of one source of truth inside the product.
+This is the strongest version of that recommendation the repo has had; lead with
+it.
 
 ## 0ag. The 12/2014 file — 4651 shows §11 is a formula bug, not a data bug
 
