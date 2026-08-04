@@ -86,13 +86,34 @@ import re
 
 def _month_from_name(stem):
     """MM/YYYY from an MM.YYYY / YYYY.MM pattern in the file name, else the stem."""
-    m = re.search(r"(0?[1-9]|1[0-2])[._/](20\d{2})", stem) or \
-        re.search(r"(20\d{2})[._/](0?[1-9]|1[0-2])", stem)
+    # Longer alternative first: with (0?[1-9]|1[0-2]) the YYYY.MM form matched
+    # the single digit and read "2011.12" as month 1.
+    m = re.search(r"(1[0-2]|0?[1-9])[._/](20\d{2})", stem) or \
+        re.search(r"(20\d{2})[._/](1[0-2]|0?[1-9])", stem)
     if m:
         a, b = int(m.group(1)), int(m.group(2))
         mm, yy = (b, a) if a > 12 else (a, b)
         return f"{mm:02d}/{yy}"
+    # Compact MMYY as a standalone token (golmi_1213 -> 12/2013). Not every
+    # גולמי carries a תאריך שכר column — the 12/2013 and 1.2008 samples do not
+    # — and without this the dashboard labels those files by name, which also
+    # sorts them out of chronological order. Guarded: exactly four digits
+    # between non-digits, month 01-12, so a bare year like 2024 is rejected.
+    m = re.search(r"(?<!\d)(0[1-9]|1[0-2])(\d{2})(?!\d)", stem)
+    if m:
+        return f"{int(m.group(1)):02d}/{2000 + int(m.group(2))}"
     return stem.split("-", 1)[-1][:12] or stem[:12]
+
+
+def _sort_month(path):
+    """Chronological sort key. Falls back to the name-derived month when the
+    file has no תאריך שכר column, so a dateless גולמי sorts by its real month
+    instead of landing at the end of the dashboard."""
+    d = pay_month_of(path)
+    if d:
+        return d
+    m = re.fullmatch(r"(\d{2})/(\d{4})", _month_from_name(Path(path).stem))
+    return datetime(int(m.group(2)), int(m.group(1)), 1) if m else datetime(2099, 1, 1)
 
 
 def pay_month_of(path):
@@ -196,8 +217,7 @@ def collect(paths, pure=False):
     computable, referenced_only, reported_codes = engine.progim_coverage(rules)
     uncov = {}       # code -> {"name", "rows", "sum", "ministries", "known"}
     seen_codes = {}  # code -> name, every code that appeared on a slip
-    files = sorted(paths, key=lambda p: (pay_month_of(p) or datetime(2099, 1, 1),
-                                         Path(p).name))
+    files = sorted(paths, key=lambda p: (_sort_month(p), Path(p).name))
     summary, per_emp = [], []
     for path in files:
         d = pay_month_of(path)

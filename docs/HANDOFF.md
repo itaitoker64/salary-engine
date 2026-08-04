@@ -1,4 +1,4 @@
-<!-- head: 5614bf0 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,7 +35,8 @@ claimed "1 code / ₪251"; that was stale and is corrected here.)
 
 Newest topic first:
 
-0ai. **Unified report over all 8 files** — 5402+5524 are 77% of the money
+0aj. **Unified report redone without 1.2008** — and it retracts the 5402/5524 headline
+0ai. **Unified report over all 8 files** — 5402+5524 are 77% of the money (WRONG — see 0aj)
 0ah. **Five more codes out of scope** — the list is now 35, and §15's fix already exists in the workbook
 0ag. **The 12/2014 file checked** — biggest coverage gap yet; 4651 proves §11 is formula-only
 0af. **805 is complete** — table full and formula fixed; the first component closed both ends
@@ -59,6 +60,53 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0aj. Unified report without 1.2008 — retracting the 5402/5524 headline
+
+The user asked for the 1.2008 row (row 14) out of the unified report, and
+removing it exposed that **0ai's headline was misleading**. I wrote that 5402
+and 5524 are "the largest source of true errors across eight months and 154k
+slips". Carrier counts per file:
+
+| file | 5402 | 5524 |
+|---|---|---|
+| **1.2008** | **6,698** | **6,698** |
+| 12/2008–12/2014 | 0 | 0 |
+
+**Neither code appears in any December file.** All 59 true errors and all
+₪27,835 came from one file. Dropping it takes the total from 108 true errors /
+₪36,158 to **76 / ₪21,483**.
+
+What survives: §7's defect is real — `heskem 2016` genuinely has no amount
+table — but it concerns the **1.2008 population, not the December period**, so
+it is not the cross-cutting defect I called it. **§11 stays ahead of it** (4651:
+1,290 rows, ₪631,615, present in every December file). Do not repeat the "77% of
+the money" line without naming the single file it comes from.
+
+**The report (12/2008–12/2014):** 147,667 workers, 138,923 valid, **76 true
+errors (0.0515%), ₪21,483 exposure**, all eight partitions close. Leading codes:
+736 (17, ₪5,022), 697 (16, ₪1,604), **4651 (11, ₪3,627)**, 858 (7), 626 (6).
+Union coverage gap **15 codes / ₪42,390**, led by 4140 (₪27,003) and 1104
+(₪6,968).
+
+**Two fixes in `tools/unified_report.py`** (the only code changed):
+
+1. `_month_from_name` now also reads a compact **`MMYY` token** (`golmi_1213` →
+   12/2013). Not every גולמי has a `תאריך שכר` column — 12/2013 and 1.2008 do
+   not — and without this those files were labelled by filename. Guarded to
+   exactly four digits with month 01-12, so `golmi_2024` is rejected. A new
+   `_sort_month()` uses the same derivation, so a dateless file now sorts into
+   its real chronological position instead of being pushed to the end by the old
+   `datetime(2099,1,1)` fallback. 12/2013 now sits between 12/2012 and 12/2014.
+2. **A pre-existing bug found while testing that:** in `(0?[1-9]|1[0-2])` the
+   short alternative wins, so a `YYYY.MM` name with month ≥10 mis-parsed —
+   `report_2011.12` returned **`01/2011`**. Reordered to `(1[0-2]|0?[1-9])`. It
+   affected none of our files but would have failed silently on such a name.
+
+The `שינויי סטטוס` (1,690) and `שינויים בין חודשים` (1,707) sheets are now
+chronologically valid — 0ai's caveat about them no longer applies to this run.
+Their largest deltas are driven by 667 and 798, which is a retro signature
+rather than proof of error.
 
 ## 0ai. Unified report across all eight files
 
