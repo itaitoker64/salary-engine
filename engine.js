@@ -197,7 +197,10 @@
   const NON_PENSIONABLE = new Set([1927, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
     // Added 4.8.2026 on the user's instruction (see main.py for the checks):
     // מענק חד-פעמי, שווי חופשה, הפרש ברוטו, נסיעות, שווי זכאות שבתון, ימי חג, דמי הבראה.
-    4962, 4122, 4264, 4443, 4121, 5271, 1269]);
+    4962, 4122, 4264, 4443, 4121, 5271, 1269,
+    // Added 4.8.2026 on the user's instruction, off the 12/2008 coverage list:
+    // ימי עבודה, השתכרות חיצונית, ממוצעי שכר ×2, מילואים-מל"ח.
+    1047, 4114, 4537, 4535, 4454, 4134]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it

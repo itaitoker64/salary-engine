@@ -1,4 +1,4 @@
-<!-- head: 6ba4132 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -23,6 +23,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0u. **Six more codes out of scope** — the list is now 27, and 4535/4536 needs a human
 0t. **The 12/2008 file checked** — dates the pulse tables; ₪17.5M under code 669
 0s. **Seven codes declared non-pensionable** — user instruction, no Progim source
 0r. **The 12/2010 file checked** — confirms the 04.08 fill; 33 of 49 rules silenced
@@ -32,6 +33,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0u. Six more codes out of scope — 1047, 4114, 4537, 4535, 4454, 4134
+
+Second batch, off the 12/2008 coverage list, on the user's instruction (4134
+came as a follow-up mid-turn after I flagged it as 4133's sibling). Same two
+checks as batch one: none appears anywhere in the workbook, none appears in
+`component_rules.json` in any field. `NON_PENSIONABLE` is now **27 codes**.
+
+| file | coverage gap before | after |
+|---|---|---|
+| 12/2008 | 10 codes / ₪3,587 | **5 / ₪1,897.89** |
+| `golmi.xlsx` | 20 codes / ₪659,951.33 | **19 / ₪622,483.26** |
+| 12/2010 | 8 / ₪7,539.31 | unchanged — none of the six appears there |
+
+Verdicts identical on all three (264/98.76%, 324/98.40%, 168/97.48%), and
+"פר עובד", "שגויים לבדיקה", "ריכוז לפי סיבה", "פילוח משרדים" came out
+row-for-row identical. 34 tests pass, `node --check` clean, Python and JS sets
+compared element-wise and in sync at 27 each.
+
+**Two things left deliberately open, and the next session should not "tidy"
+them away:**
+
+1. **4535 appears in none of the three sample files** and not in the workbook.
+   It was added as asked — declaring an unobserved code is harmless — but it
+   does nothing today.
+2. **4536 (ממוצעי שכר) was not named and is still in the gap list.** It is
+   4537's twin: identical component name, 2 rows, ₪5.00, same file, adjacent
+   code number. Given 4535 was named and does not exist while 4536 exists and
+   was not, **4535 is plausibly a typo for 4536** — but that is a guess about
+   intent, so it was raised with the user rather than acted on. If they confirm,
+   add 4536; do not silently swap it for 4535.
+
+`golmi.xlsx` moved the most in shekel terms because **4114 alone is ₪37,468**
+there — it was that file's second-largest coverage-gap entry.
 
 ## 0t. The 12/2008 file — the pulse tables are now dated, and one code holds ₪17.5M
 

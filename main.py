@@ -238,6 +238,17 @@ NON_PENSIONABLE = {
     4121,   # 100% ש.זכ.שב — שווי זכאות שבתון
     5271,   # ימי חג
     1269,   # דמי הבראה — כמו 1266/1260
+    # Added 4.8.2026 on the user's instruction, off the 12/2008 coverage list.
+    # Same two checks as the batch above: absent from the workbook, absent from
+    # every rule. 4535 does not appear in any sample file — declared anyway, so
+    # that if it ever shows up it is already out of scope. Note 4536
+    # (ממוצעי שכר) is 4537's twin and was NOT named; it stays in the gap list.
+    1047,   # ימי עבודה
+    4114,   # השתכרות חיצונית
+    4537,   # ממוצעי שכר
+    4535,   # ממוצעי שכר — לא נצפה באף קובץ דוגמה
+    4454,   # מילואים-מל"ח
+    4134,   # ת.יוקר-הפסק — כמו 4133 (תוספת יוקר)
 }
 
 
