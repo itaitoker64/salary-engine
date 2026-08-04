@@ -1,4 +1,4 @@
-<!-- head: PENDING -->
+<!-- head: 9d4576e -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -13,11 +13,12 @@ commits, oldest first: `15d9499` (the 04.08 workbook upgrade), `155669e` (the
 (the 12/2008 file check; docs only), `550304d` (six more codes out of scope),
 `d2bef27` (the 705 neutralization column), `fdc2226` (the 12/2009 file check;
 docs only), `eb62419` (the 12/2011 file check; docs only), `0673e44` (two more codes out of
-scope), `d5527d8` (the 12/2012 file check; docs only). The rest are handoff
-stamps. `main` had nothing new for it at session start.
+scope), `d5527d8` (the 12/2012 file check; docs only), `9d4576e` (the corrected workbook
+installed + the 805 rule edit). The rest are handoff stamps. `main` had nothing new for it at session start.
 
-The workbook in `data/progim` is now **`Progim_04.08.2026.xlsm`**; the 01.08
-file was deleted in the same commit. `component_rules.json` holds **102** rules
+The workbook in `data/progim` is **`Progim_04.08.2026.xlsm`**, and as of
+`9d4576e` it is the user's **corrected** 04.08 file (805 codes 49-60
+filled with 104.61 — 12 cells, nothing else). `component_rules.json` holds **102** rules
 (unchanged count). Verify the deploy with `/api/progim/status` — it should
 report `rules: 102`, `source: bundled`, `runtime_data_present: false`, meaning
 the site serves the חוקה from the repo rather than a `/tmp` upload.
