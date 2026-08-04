@@ -1,4 +1,4 @@
-<!-- head: fdc2226 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -25,6 +25,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0x. **The 12/2011 file checked** — an 808 amount that is not in the table at all
 0w. **The 12/2009 file checked** — refutes my 0t dating; best coverage yet
 0v. **New 705 neutralization bucket** — asked for, delivered, and it hides 5402/5524
 0u. **Six more codes out of scope** — the list is now 27, and 4535/4536 needs a human
@@ -37,6 +38,51 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0x. The 12/2011 file — 808 pays an amount the table does not contain
+
+Fifth file: **December 2011** (184,552 rows, 20,371 workers, 39 bodies, 89
+codes). **97.62% · 11 true errors · ₪4,779**; partition closes at 20,371. Docs
+only. Written up in `PROGIM_IMPROVEMENTS.md` under "בדיקת קובץ 12/2011".
+
+**The finding worth carrying forward.** The file's single 808 carrier is paid
+**₪205.68**. The 808 pulse table — the one filled to 228 of 228 in the 04.08
+workbook — contains only 198.46, 201.15, 215.73, 217.89, 221.67, 224.90, 228.68
+and 232.78. **205.68 is not among them**, and by the code ranges December 2011
+sits in codes 24–48 where the table says 201.15: a ₪4.53 / 2.25% gap. So a
+table that looks complete may still be **missing a pulse** — a different defect
+from §9's empty cells. One carrier only, so it is an observation, not a claim;
+the rule is silenced below n=20 and nobody was flagged. Recheck on any file
+with a real 808 population.
+
+**Dating: consistent, no narrowing.** 805 pays 102.85 here (104 of 107), the
+codes 37–48 value. c+36 ∈ [37,48] gives 1 ≤ c ≤ 12, which adds nothing to the
+c ∈ [1,11] already established in 0w. Code 1 remains "some month between
+February and December 2008". The four Decembers do line up cleanly across the
+bands, which confirms the code axis advances month by month — but not where it
+starts.
+
+**4983 crosses the threshold here.** גמול מנהל matches 97.2% (8,087 of 8,317)
+and is therefore trusted, where it was silenced in 12/2008, 12/2009 and
+12/2010. Its bucket jumps from 0 to **164 workers**, all of whom leave the
+true-error count. Same fragility as 805 in 0w: a small movement around the 97%
+gate decides whether a whole component is checked or neutralized, and the
+headline moves with it. When reading a historical report, read the bucket
+columns, not just "שגיאות אמת".
+
+**1297 — fifth point, and do not straighten the story.** The three large
+samples agree (2026 n=55 → 1.0596; 2008 n=45 → 1.0594; 2009 n=21 → 1.0594).
+The two small ones disagree with the cluster *and with each other* (2010 n=11 →
+1.1131; 2011 n=6 → 1.1579). Having already corrected one conclusion about 1297
+this session, the careful statement is: stable at ~5.95% in the large samples,
+and 6–11 carriers is not enough to conclude anything. §10 stands, not
+strengthened further.
+
+Coverage gap: **4 codes / ₪1,296** — 1132 (₪742), 5281 (₪267), 507 (₪173) and
+**1265 דמי הבראה (₪114)**. Note 1265 is a *fourth* דמי הבראה variant; 1266,
+1260 and 1269 are already out of scope, so it probably belongs there too —
+not added without instruction. Calibration silenced 30 of 51 rules; 4,658
+workers (22.9%), ₪2,239,754, of which **₪1.86M is 4550** yet again.
 
 ## 0w. The 12/2009 file — my dating from 0t is wrong
 
