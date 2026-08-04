@@ -1,4 +1,4 @@
-<!-- head: d2bef27 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -24,6 +24,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0w. **The 12/2009 file checked** — refutes my 0t dating; best coverage yet
 0v. **New 705 neutralization bucket** — asked for, delivered, and it hides 5402/5524
 0u. **Six more codes out of scope** — the list is now 27, and 4535/4536 needs a human
 0t. **The 12/2008 file checked** — dates the pulse tables; ₪17.5M under code 669
@@ -35,6 +36,44 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0w. The 12/2009 file — my dating from 0t is wrong
+
+Fourth file: **December 2009** (136,292 rows, 21,842 workers, 35 bodies, 80
+codes). **98.59% · 12 true errors · ₪2,315**; partition closes at 21,842. Docs
+only. Written up in `PROGIM_IMPROVEMENTS.md` under "בדיקת קובץ 12/2009".
+
+**It refutes 0t.** I concluded from 12/2008 + 12/2010 that code 1 = January
+2008. Under that, Dec 2009 is code 24 and must pay 100.59. **It pays 95.80**
+(99 of 105), and 808 pays 198.46 — both codes 1–23 values.
+
+With c = the code of Dec 2008: c ≤ 11 (because c+12 is still in 1–23) and
+c ≥ 1 (because c+24 is in 24–36). So **code 1 is some month between February
+and December 2008**, and the 95.80 → 100.59 step happens somewhere in 2010.
+December-only files cannot narrow it further.
+
+The lesson is the one §14 already asks for: I tried to date the pulse table
+from payslips, got an answer that looked decisive from two files, and a third
+file broke it. **Do not derive a code→date map from data.** Fix the sheet.
+
+Three other things from this file:
+
+- **805 is silenced here at 95.2%** (100 of 105; the five outliers are 191.60
+  ×3 — double the amount — plus 169.26 and 95.73). It was trusted in 12/2008
+  and 12/2010 after the 04.08 fill. Two workers decide whether the component is
+  checked at all, which is worth remembering before quoting a threshold result.
+- **669 is back to normal**: ₪51.09 on 6,793 of 7,926 carriers, rule trusted at
+  98.7%, same as 12/2010. So the ₪17.5M in Dec 2008 is confined to that one
+  month and is not a code that changed meaning — good support for the one-off
+  arbitration reading, still unconfirmed by the user.
+- **1297 gives 1.0594 again** (n=21). Four points now: 2008 1.0594 (n=45), 2009
+  1.0594 (n=21), 2026 1.0596 (n=55), and 12/2010's 1.1131 (n=11) as the lone
+  outlier. The ~5.95% gap is stable; §10 stands.
+
+Coverage is the best measured so far: **2 codes / ₪323** (507 and 4124).
+Calibration silenced 29 of 48 rules; 5,814 workers (26.6%), ₪2,653,280 — of
+which **₪2.36M is 4550 alone**, the same period gap as every other historical
+file. Do not quote that total flat.
 
 ## 0v. A neutralization bucket for 705 — and what it swallows
 
@@ -137,6 +176,10 @@ So 805 is 95.80 through Nov 2009, 100.59 Dec 2009–Dec 2010, 102.85 from Jan
 2011. This is an inference from two months, **not** a workbook statement —
 `PROGIM_FIXES.md` §14 now records it as such and the fix request stands. Do not
 hard-code a code→date map off it.
+
+> **Refuted in 0w.** The 12/2009 file pays 95.80, where this dating requires
+> 100.59. With three points the answer is only that **code 1 falls somewhere in
+> Feb–Dec 2008**. The inference was wrong; the §14 fix request is the point.
 
 The 04.08 fill flipped 805 here too, by a hair: **103/107 = 96.3% (silenced) →
 104/107 = 97.2% (trusted)**. The worker who crossed it was paid 114.96; the new
