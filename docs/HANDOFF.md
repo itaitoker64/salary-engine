@@ -22,12 +22,79 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0r. **The 12/2010 file checked** — confirms the 04.08 fill; 33 of 49 rules silenced
 0q. **Progim 04.08.2026** — 805/808 pulse tables filled; four new workbook defects
 0. **Upgraded to the Progim 31.07.2026 workbook** — 956/957 newly defined there
 1. **חוקה amounts split into fixed vs period-varying** in the classification sheet
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0r. The 12/2010 file — the 04.08 fill is confirmed, and a caveat worth more
+
+The user then uploaded a **December 2010** גולמי (155,575 rows, 20,754 workers,
+39 bodies) and said "בדוק קובץ". Full write-up in `PROGIM_IMPROVEMENTS.md`
+under "בדיקת קובץ 12/2010". Result: **98.40% · 22 true errors · ₪6,214**,
+partition sums exactly to 20,754.
+
+**It closes the loose end from 0q.** 12/2010 pays 805 = **100.59** (105 of 109
+carriers, across 5 different part-time fractions) and 808 = **201.15** — both
+values that did not exist in the workbook before 04.08. Measured directly with
+`main.trusted_rule_codes`:
+
+| | old rules | new rules |
+|---|---|---|
+| 805 match | **1 / 108 (0.9%)** → silenced | **105 / 108 (97.2%)** → trusted |
+| 808 match | 0 / 1 (₪2.69 off) | 1 / 1 exact (still n<20, untrusted) |
+
+So the workbook fill **switched 805 from blind to checked** on this file and
+surfaced 3 gaps / ₪224 including one true error of ₪130 (worker 200526751).
+
+**The caveat is the bigger finding, and it is not about 805.** On this file the
+self-calibration gate silences **33 of 49 rules** — every large percent rule
+among them (4544 95.9%, 4934 94.8%, 4624 94.4%, 4983 94.9%, 798 96.7%, 741,
+875, 4550). **5,252 workers (25.3%) carry at least one failing check on a
+silenced rule, ₪2,567,553 in absolute gaps.** That is the gate working as
+designed — 2026 rates against 2010 slips would otherwise produce thousands of
+false positives — but it means the 98.40% was measured against 16 rules, not
+49, and **must not be quoted next to a 2026 file's percentage**. If you run
+another historical file, report the silenced-rule count with the headline.
+
+Two things fell out of the ratio analysis (`slip ÷ expected` per silenced rule):
+**920** fails with an IQR of 1.021–1.025 — a constant 2.4% offset, not noise,
+which is the embedded 257.37 constant being era-dependent; and **1297** sits at
+1.113 here versus 1.0596 on the 2026 file, so its gap is *not* a fixed constant
+and no single-constant fix closes it (supports §10).
+
+Also worth knowing: the top of the error queue is retro, not error — two
+workers paid 705 = ₪1,903.56 = exactly 12 × 158.63, another at 3 × 158.63.
+11 of the 22 true errors are 705. A **retro flag in the גולמי** would halve the
+work queue; nothing in the workbook can fix it.
+
+And a credit to the workbook: the 2026 `DARGA` table reproduces the 12/2010
+base for **20,177 of 20,247** workers with an active base (99.65%). The
+combined-salary scale has not moved since 2010; all raises are layered as
+separate תוספות. That is why checking a 16-year-old file works at all.
+
+### Open
+
+- **The 0108 reference file (22,422 slips) was still not available** —
+  `/root/.claude/uploads/<session-id>/` held only the workbook and the 12/2010
+  file. The 04.08 rule change was verified against the repo's `golmi.xlsx`
+  (6,901 workers, no change: 168 invalid / 97.48%) and then against the 12/2010
+  file, which is what actually exercised the new pulses.
+- **808's eight pulses still rest on two slips** — one in 12/2010 at 201.15,
+  none in `golmi.xlsx`. Below the n=20 trust threshold, so the rule is silent
+  wherever it appears. Worth re-checking on any file with real 808 population.
+- The engine labels a 12/2010 805 slip "תקני 116.41" (nearest pulse) rather
+  than the 100.59 in force. That is §14 biting operationally, not a rule bug —
+  do not "fix" it by guessing a code→date mapping.
+- §11 is worth putting in front of the user directly. It is the first defect
+  found in this repo that produces a **wrong number silently** rather than a
+  zero or a gap.
+- Nothing was said to the user about 805's two remaining holes (codes 49–60,
+  205–228) needing a decision — 205–228 is the current period, so a worker
+  retiring now still gets 0 from the workbook for תוספת ערבה.
 
 ## 0q. Progim 04.08.2026 — two tables filled, four defects found
 
@@ -125,22 +192,6 @@ lines in "סיווג סמלי שכר" — 808 moving fixed→varies, so the tall
 `pytest` needs **`httpx`** installed on top of `requirements.txt`; without it
 14 of the 34 tests error inside starlette's TestClient. `CLAUDE.md` said "20
 tests" — corrected to 34 in the same commit.
-
-### Open
-
-- **The 0108 reference file (22,422 slips) was not available this session** —
-  `/root/.claude/uploads/<session-id>/` held only the workbook. Everything was
-  verified against the repo's `golmi.xlsx` (6,901 workers) instead. That file
-  has **98 rows of 805, all 116.41** (already valid before the change, so the
-  widening moved nothing) and **zero rows of 808** — so the eight new 808
-  pulses have never been checked against a real slip. Do that when the 0108
-  file is next available; it is the one loose end here.
-- §11 is worth putting in front of the user directly. It is the first defect
-  found in this repo that produces a **wrong number silently** rather than a
-  zero or a gap.
-- Nothing was said to the user about 805's two remaining holes (codes 49–60,
-  205–228) needing a decision — 205–228 is the current period, so a worker
-  retiring now still gets 0 from the workbook for תוספת ערבה.
 
 ## 0. Progim 31.07.2026
 
