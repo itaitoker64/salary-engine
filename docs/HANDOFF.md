@@ -1,4 +1,4 @@
-<!-- head: b5c2476 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -23,6 +23,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0t. **The 12/2008 file checked** — dates the pulse tables; ₪17.5M under code 669
 0s. **Seven codes declared non-pensionable** — user instruction, no Progim source
 0r. **The 12/2010 file checked** — confirms the 04.08 fill; 33 of 49 rules silenced
 0q. **Progim 04.08.2026** — 805/808 pulse tables filled; four new workbook defects
@@ -31,6 +32,55 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0t. The 12/2008 file — the pulse tables are now dated, and one code holds ₪17.5M
+
+Third file this session: a **December 2008** גולמי (163,984 rows, 24,543
+workers, 34 bodies, 87 codes). **98.76% · 26 true errors · ₪18,823**; partition
+sums exactly to 24,543. Full write-up in `PROGIM_IMPROVEMENTS.md` under
+"בדיקת קובץ 12/2008". Docs only — no code changed.
+
+**It dates the 805/808 pulse tables.** 12/2008 pays 805 = 95.80 (103 of 107)
+and 808 = 198.46 — the codes 1–23 values. Only one of the two dating
+hypotheses survives both files:
+
+| hypothesis | Dec 2008 | Dec 2010 | fits |
+|---|---|---|---|
+| **code 1 = Jan 2008** | code 12 → 95.80 ✓ | code 36 → 100.59 ✓ | **yes** |
+| code 1 = Jan 2009 | falls off the table | code 24 → 100.59 ✓ | no |
+
+So 805 is 95.80 through Nov 2009, 100.59 Dec 2009–Dec 2010, 102.85 from Jan
+2011. This is an inference from two months, **not** a workbook statement —
+`PROGIM_FIXES.md` §14 now records it as such and the fix request stands. Do not
+hard-code a code→date map off it.
+
+The 04.08 fill flipped 805 here too, by a hair: **103/107 = 96.3% (silenced) →
+104/107 = 97.2% (trusted)**. The worker who crossed it was paid 114.96; the new
+114.36 pulse sits ₪0.60 away, inside tolerance.
+
+**⚠ Code 669 (בוררות) carries ₪17,530,235 in this one month.** 10,716 workers,
+10,384 of them משרד הבריאות, the modal amount a flat **₪2,596.31** — 50.8× the
+₪51.09 the חוקה defines (`tosafot!X3`). The same code in 12/2010 matches the
+חוקה almost perfectly: 6,682 workers at exactly 51.09, rule trusted at 98.4%.
+Their median 10002 is ₪2,571, so the 2008 amount is about one combined salary.
+Most likely a **one-off arbitration settlement to משרד הבריאות in Dec 2008** —
+in which case there is nothing to fix — but that needs the user's confirmation,
+because the alternative is a code that changed meaning and is unverified. The
+engine flagged nobody: the rule fell to 0.8% and self-silenced, as designed.
+
+**Calibration**: 28 of 47 rules silenced; 13,124 workers (53.5%) carry a
+failing check on one, ₪17,927,773 absolute. **Do not quote that total flat** —
+₪15.2M of it is code 669 alone and ₪2.2M is 4550 (median ratio 0.388, same as
+in 12/2010, a genuine period gap). The rest is ~₪0.5M scattered.
+
+Other notes: **756** shows a tight constant offset here (IQR 1.017–1.023, the
+same shape as 920 in 12/2010). **3,145 workers (12.8%) have no active base**,
+five times the 12/2010 rate — unexplained, worth a look. Coverage gap is tiny,
+**10 codes / ₪3,587**, and its largest entry is **4134 (ת.יוקר-הפסק, 1,074
+rows, ₪1,138.67)** — sibling of 4133 which is already out of scope. It looks
+like it belongs on `NON_PENSIONABLE` too; I did not add it without being told.
+Retro again dominates the queue: 705 paid ₪1,903.56 = 12 × 158.63 and ₪634.52 =
+4 × 158.63, and 11 of the 26 true errors are 705.
 
 ## 0s. Seven codes out of scope — 4962, 4122, 4264, 4443, 4121, 5271, 1269
 
@@ -103,8 +153,12 @@ another historical file, report the silenced-rule count with the headline.
 Two things fell out of the ratio analysis (`slip ÷ expected` per silenced rule):
 **920** fails with an IQR of 1.021–1.025 — a constant 2.4% offset, not noise,
 which is the embedded 257.37 constant being era-dependent; and **1297** sits at
-1.113 here versus 1.0596 on the 2026 file, so its gap is *not* a fixed constant
-and no single-constant fix closes it (supports §10).
+1.113 here versus 1.0596 on the 2026 file.
+
+> **Corrected in 0t.** I concluded from those two points that 1297's gap is not
+> a fixed constant. The 12/2008 file gives 1.0594 on n=45 — 2008 and 2026 agree
+> to four decimals and 12/2010 (n=11) is the outlier. The gap *is* stable, and
+> §10's stale-constant hypothesis gets stronger, not weaker.
 
 Also worth knowing: the top of the error queue is retro, not error — two
 workers paid 705 = ₪1,903.56 = exactly 12 × 158.63, another at 3 × 158.63.
