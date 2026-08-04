@@ -1,4 +1,4 @@
-<!-- head: d5bd031 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -29,6 +29,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0ad. **The 12/2013 file checked** — 805 matches 110/110; my 808 finding is retracted
 0ac. **5272 out of scope** — fourth batch; the list is now 30
 0ab. **New 875 neutralization column** — asked for, built, and it has no justification
 0aa. **The workbook was corrected** — 805 codes 49-60 filled; verified, and what it did not fix
@@ -47,6 +48,53 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ad. The 12/2013 file — 805 is perfect, and I retract the 808 finding
+
+Seventh file: **December 2013** (185,748 rows, 20,053 workers, 41 bodies, 93
+codes). **97.01% · 11 true errors · ₪2,157** (₪914 under, ₪1,243 over);
+partition closes at 20,053. Docs only. Written up in `PROGIM_IMPROVEMENTS.md`
+under "בדיקת קובץ 12/2013".
+
+**First external validation of the worker count.** This file arrives with three
+sheets — `גולמי`, `פיבוט`, `גולמי מעודכן` — so it already carries מנהלת
+הגמלאות's own pivot. The engine reads `גולמי`. Comparing IDs: **20,053 ours,
+20,053 theirs, zero difference in either direction**. Nothing else in the repo
+has had an outside check on this number before. *(The file has no `תאריך שכר`
+column, so the report labels the month `golmi_1213` rather than `12/2013`.)*
+
+**805 matches 110 of 110 — the first perfect score.** 107.88 for 102 carriers
+plus clean job fractions (0.75, 0.625, 0.6). c+60 lands in 61-71, inside the
+61-102 band, consistent and no narrowing of c ∈ [1,11]. It is the counter-example
+to last month: where the band exists the component validates completely; where
+it was missing it collapsed to 1.9% and was silenced.
+
+**I am retracting the 808 finding from 0z/0x.** The single carrier here is paid
+**215.73 — exactly** what the table gives for codes 49-102, the same band where
+12/2012 deviated. I had written that two observations straddling a boundary
+"is not noise" and implied the table has too few pulses; a third observation in
+that same band matches exactly, which the coarse-table story does not survive.
+There is also a premise I under-weighted: the pulse tables are indexed by
+**retirement month**, not by the payslip's month, so a lone carrier can reflect
+personal circumstances rather than a period. Three observations, one carrier
+each, support no claim about the 808 table. §9's instruction has been withdrawn
+and replaced with "not a finding — needs a file with a real 808 population".
+
+**Two buckets fire for the first time:** דריכות = 52 and בוררות מיסים = 52,
+both 0 in all five earlier files. גמול מנהל = 168 (4983 trusted at 97.5%).
+
+**The new 875 column reads 0 here — but not because there are no gaps.** 875 has
+68 mismatches out of 2,075, i.e. **96.7%, a hair under the 97% gate**, so the
+rule is silenced outright and nobody reaches the bucket. The column only fires
+in months where 875 clears the gate: 12/2012 it did and caught 25, here it did
+not and the column is empty. Worth knowing before reading the column as a stable
+neutralizer — it neutralizes when the switch happens to be on.
+
+Coverage gap: **3 codes / ₪10,401**, the largest sum measured but in only three
+codes — 4140 משכ.בסיסית (₪9,363 over 5 rows), 5315 (₪865), 507 (₪173). 4140 now
+appears in **four** files (12/2008, 12/2010, 12/2012, 12/2013) and 507 in all
+six historical months. Calibration silenced 29 of 50 rules; 5,282 workers
+(26.3%), ₪1,930,322, of which ₪1.71M is 4550.
 
 ## 0ac. 5272 out of scope — fourth batch
 
