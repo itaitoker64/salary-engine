@@ -1,4 +1,4 @@
-<!-- head: 155669e -->
+<!-- head: b5c2476 -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -7,10 +7,10 @@ Everything below section `0q` was written on 31.7.2026 on the earlier branch
 
 ## State
 
-Branch `claude/update-id4fvu`, **four commits ahead of `main`** and not yet
-merged — two content commits, `15d9499` (the 04.08 workbook upgrade) and
-`155669e` (the 12/2010 file check; docs only, no code), plus their two handoff
-stamps. `main` had nothing new for it at session start.
+Branch `claude/update-id4fvu`, **ahead of `main`** and not yet merged. Content
+commits, oldest first: `15d9499` (the 04.08 workbook upgrade), `155669e` (the
+12/2010 file check; docs only), `b5c2476` (seven codes out of scope). The rest
+are handoff stamps. `main` had nothing new for it at session start.
 
 The workbook in `data/progim` is now **`Progim_04.08.2026.xlsm`**; the 01.08
 file was deleted in the same commit. `component_rules.json` holds **102** rules
@@ -23,6 +23,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0s. **Seven codes declared non-pensionable** — user instruction, no Progim source
 0r. **The 12/2010 file checked** — confirms the 04.08 fill; 33 of 49 rules silenced
 0q. **Progim 04.08.2026** — 805/808 pulse tables filled; four new workbook defects
 0. **Upgraded to the Progim 31.07.2026 workbook** — 956/957 newly defined there
@@ -30,6 +31,44 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0s. Seven codes out of scope — 4962, 4122, 4264, 4443, 4121, 5271, 1269
+
+The user named these seven and said to define them as non-pensionable. Added to
+`NON_PENSIONABLE` in `main.py` and mirrored in `engine.js`. Commit `b5c2476`.
+
+**Why it was safe to apply directly.** Two checks before touching anything:
+none of the seven appears anywhere in the workbook (code rows of `SACHAR`,
+`tosafot `, `SACHAR4643`, plus `Netunei Gimlai` and `sminimum` were scanned),
+and none appears in `component_rules.json` — not as a rule key, not in any
+`codes` / `base_codes` / `deductions`. So the change cannot move a number; it
+only says the workbook's silence about them is deliberate. Three extend
+families already on the list: 1269 joins 1266/1260 (דמי הבראה), 4264 joins
+903/889 (הפרש ברוטו).
+
+| file | coverage gap before | after | verdicts |
+|---|---|---|---|
+| 12/2010 | 15 codes / ₪11,242.80 | **8 / ₪7,539.31** | 324 invalid / 98.40% — unchanged |
+| `golmi.xlsx` | 21 codes / ₪659,951.65 | 20 / ₪659,951.33 | 168 invalid / 97.48% — unchanged |
+
+Exactly the seven dropped and nothing else; "פר עובד", "שגויים לבדיקה",
+"ריכוז לפי סיבה" and "פילוח משרדים" came out row-for-row identical on both
+files. Classification tally: "לא משתתף בחישובים" 13 → 20, "לא מוגדר בחוברת"
+15 → 8. `golmi.xlsx` barely moves because only 5271 (₪0.32) appears in it.
+
+**The divergence, and where it is recorded.** `NON_PENSIONABLE` now holds 21
+codes and **not one of them has a Progim source** — the whole list came from
+the user verbally. `PROGIM_IMPROVEMENTS.md` carries what was added and why;
+`PROGIM_FIXES.md` **§15** carries the request that would retire it: a declared
+scope column in the workbook (`sminimum` alongside the existing כן/לא flags, or
+`Netunei Gimlai`). Do not reach for the גולמי's own "ביט פנסיוני" column as a
+substitute — on the 0108 file it reads 'כן' for all 124,818 rows, these codes
+included. Until the workbook declares scope, a code dropped from this list by
+mistake simply stops being checked, with nothing on screen to say so.
+
+When adding to the list, change **both** `main.py` and `engine.js`. To confirm
+they agree, parse the JS set and compare element-wise against
+`main.NON_PENSIONABLE` — a mismatch means the site and the CLI disagree.
 
 ## 0r. The 12/2010 file — the 04.08 fill is confirmed, and a caveat worth more
 
