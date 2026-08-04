@@ -1,4 +1,4 @@
-<!-- head: d5527d8 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -27,6 +27,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0aa. **The workbook was corrected** — 805 codes 49-60 filled; verified, and what it did not fix
 0z. **The 12/2012 file checked** — it lands inside a hole in the 805 table and measures it
 0y. **5281 and 1265 out of scope** — third batch; the list is now 29
 0x. **The 12/2011 file checked** — an 808 amount that is not in the table at all
@@ -42,6 +43,49 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0aa. The user corrected the workbook — 805 codes 49-60 = ₪104.61
+
+The user filled the value measured in 0z and uploaded a corrected workbook. It
+is installed as `data/progim/Progim_04.08.2026.xlsm`, replacing the previous
+file of the same name (same workbook, corrected — the git diff is the record).
+
+**What changed, verified:** a cell-level diff across all 54 sheets shows
+**exactly 12 cells** — rows 55-66 of column 55, i.e. codes 49-60, all set to
+104.61. Nothing else in the workbook moved.
+
+**What it bought:** 805 in 12/2012 goes from **1.9%** (2 of 104) to **95.2%**
+(99 of 104). 97 more slips now agree with the workbook.
+
+**What it did not buy:** 95.2% is **below the 97% trust gate**, so 805 stays
+silenced and the component is still not checked in that month. **No number in
+any report moved** — partitions, true-error counts and validity percentages are
+identical across all six files before and after. The fix is correct and
+verified; its value is agreement, not a changed result. Do not report it as
+having improved the numbers.
+
+The 5 residual mismatches are all **underpayments** that do not divide by job
+fraction (90.66, 87.17, 62.77, 73.90, 18.09) — the signature of a partial month,
+not a table defect. They should not be flagged.
+
+**Two things remain open on 805, and the first is the important one:**
+
+1. **The formula still does not reach the table.** `tosafot!BC2` is unchanged:
+   `VLOOKUP($C$4,$AR$7:$BC$234,8,0)`, while 805 is index **12** of that range
+   (AR=44 … BC=55; index 8 returns column 51, *תוספת פנימיה*). So **the workbook
+   itself still cannot produce 805** — only a consumer that reads the table
+   directly, like this engine, benefits from the fill. That is §11 and it is
+   still open. Say this plainly to the user; filling the table looks like a fix
+   and is only half of one.
+2. **Codes 205-228 are still empty**, and that is the current period.
+
+**Operational warning, now confirmed with numbers:** I did **not** re-run
+`tools/extract_rules.py`. Running it on the new workbook produces **32 rules
+instead of 102** and destroys **70 hand-edited rules**, including 805 and 808
+themselves plus the retro-code pairings (105/798, 1037/4544, 1054/4934,
+1057/4994, 1059/5216, 1077/5401). I hand-edited `component_rules.json` instead:
+805's `amounts` gained 104.61 and its notes were updated. This is exactly the
+`CLAUDE.md` warning, and it is now measured — never regenerate that file.
 
 ## 0z. The 12/2012 file — it falls inside a table hole and supplies the value
 
@@ -59,9 +103,13 @@ the same number. It is also monotone in the table: 102.85 (37–48) → **104.61
 agreement across six denominators is what makes this a measurement rather than
 a guess — do not weaken it to "probably".
 
-**And it prices the hole.** Without the value the engine drags the previous
-period's 102.85 forward, 805 matches **1.9%** (2 of 104), drops below the trust
-gate, and **the whole component goes unchecked**. The same component was at
+**And it prices the hole.** A `shekel` rule accepts **the closest of its listed
+amounts**, scaled by job% — there is no period logic and no code→date mapping in
+the engine at all. With 104.61 absent from the list the closest was 102.85, so
+805 matched **1.9%** (2 of 104), dropped below the trust gate, and **the whole
+component went unchecked**. *(Correcting my own earlier wording: nothing is
+"carried forward" — the conclusion holds, the mechanism is different. This also
+means the c ∈ [1,11] dating affects diagnosis only, never validation.)* The same component was at
 97.2% and checked one month earlier. Twelve empty cells switch a component off
 — and without the self-calibration they would instead have produced 104 false
 alarms. That is the clearest argument yet for why the calibration layer exists
