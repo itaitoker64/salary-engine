@@ -1,4 +1,4 @@
-<!-- head: 0673e44 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -26,6 +26,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0z. **The 12/2012 file checked** — it lands inside a hole in the 805 table and measures it
 0y. **5281 and 1265 out of scope** — third batch; the list is now 29
 0x. **The 12/2011 file checked** — an 808 amount that is not in the table at all
 0w. **The 12/2009 file checked** — refutes my 0t dating; best coverage yet
@@ -40,6 +41,59 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0z. The 12/2012 file — it falls inside a table hole and supplies the value
+
+Sixth file: **December 2012** (189,897 rows, 20,485 workers, 40 bodies, 97
+codes). **97.90% · 27 true errors · ₪3,049**; partition closes at 20,485. Docs
+only. Written up in `PROGIM_IMPROVEMENTS.md` under "בדיקת קובץ 12/2012".
+
+**The result that matters: 805 codes 49–60 = ₪104.61.** This is the first file
+that lands *inside* one of the two holes left in the 805 pulse table after the
+04.08 fill — c+48 ∈ [49,59] is exactly the 49–60 gap — and it measures the
+missing value. Of 105 carriers, **98 imply a full-time ₪104.61**, across six
+different job fractions (1.0, 0.875, 0.75, 0.625, 0.6, 0.5) that all reduce to
+the same number. It is also monotone in the table: 102.85 (37–48) → **104.61**
+→ 107.88 (61–102). The instruction is in `PROGIM_FIXES.md` §9. Job-fraction
+agreement across six denominators is what makes this a measurement rather than
+a guess — do not weaken it to "probably".
+
+**And it prices the hole.** Without the value the engine drags the previous
+period's 102.85 forward, 805 matches **1.9%** (2 of 104), drops below the trust
+gate, and **the whole component goes unchecked**. The same component was at
+97.2% and checked one month earlier. Twelve empty cells switch a component off
+— and without the self-calibration they would instead have produced 104 false
+alarms. That is the clearest argument yet for why the calibration layer exists
+and why the fix belongs in the workbook.
+
+**808 repeats, in the opposite direction.** The single carrier is paid ₪209.20
+where the table says 215.73 for codes 49–102. With last month: 201.15 < 205.68
+(12/2011) < 209.20 (12/2012) < 215.73 — two paid values falling *between* two
+table steps, *in ascending order*. The table makes one big jump at code 49
+where the real series takes two. Still one carrier per month, so it is an
+indication and §9 says so, but two independent observations straddling the same
+boundary in opposite directions is not noise.
+
+*Correction to an earlier note in this handoff:* the 808 table is **column 81**
+of `tosafot `, not 56. Column 56 holds a flat 237.16 and is a different
+component. The description of 808's contents (228 of 228, eight pulses) was
+right; only the column number was wrong.
+
+**4983 flips back to silenced** at 85.1% (7,489 of 8,798), so the גמול מנהל
+bucket goes 164 → **0**. One month up, one month down. Cleanest demonstration
+so far that the 97% gate is a switch, and that comparing "שגיאות אמת" across
+months without reading the bucket columns compares two different things.
+
+**True errors concentrate in one code:** 25 of 27 are **875 תוספת בתי משפט**
+(92.6%, ₪2,924). 875 is already in `PROGIM_FIXES.md` §4 as a near-match rule
+(2,819 carriers, 90 mismatches in 0108). Here it stops being a footnote and
+becomes nearly the whole result — it is the one of §4's five to sample first.
+
+Coverage gap: **6 codes / ₪9,083**, the largest since 12/2010 — 4140
+משכ.בסיסית (₪5,934), 5315 (₪1,703), 1132 (₪945), 729 (₪255), 507 (₪173), 5272
+(₪74). 4140 also appeared in 12/2008 and 12/2010; it is the recurring expensive
+one. Calibration silenced 35 of 51 rules; 5,943 workers (29.0%), ₪2,405,375, of
+which ₪1.82M is 4550.
 
 ## 0y. 5281 and 1265 out of scope — third batch
 
