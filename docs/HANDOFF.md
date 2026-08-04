@@ -1,4 +1,4 @@
-<!-- head: d0069cf -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -30,6 +30,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0ae. **808 split into two more pulses** — better justified than my retracted claim was
 0ad. **The 12/2013 file checked** — 805 matches 110/110; my 808 finding is retracted
 0ac. **5272 out of scope** — fourth batch; the list is now 30
 0ab. **New 875 neutralization column** — asked for, built, and it has no justification
@@ -49,6 +50,42 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ae. The user split 808 — and it is better justified than I said
+
+A second corrected workbook, installed over `data/progim/Progim_04.08.2026.xlsm`.
+**Exactly 24 cells** changed, all in the 808 column: codes **37-48 go 201.15 ->
+205.68** and codes **49-60 go 215.73 -> 209.20**. Nothing else moved.
+
+This is the finding I retracted in 0ad, and the retraction needs qualifying.
+What was wrong was my *reasoning* — "two observations straddling a boundary is
+not noise" — and that really did not hold. But the split has a better argument
+that I missed: **after it, 808's band boundaries are identical to 805's** —
+1-23, 24-36, 37-48, 49-60, 61-102. Two sibling components sharing one pulse
+schedule is a structural explanation, not an inference from two data points, and
+it is much stronger than what I originally claimed. The amended table also
+reproduces **all three** observations including the one that broke my story:
+12/2011 -> 205.68 ✓, 12/2012 -> 209.20 ✓, 12/2013 -> 215.73 ✓.
+
+What still stands from the retraction: the evidence per band is **one carrier**,
+and the table is indexed by retirement month rather than the payslip's month. The
+split contradicts nothing measured, but a file with a real 808 population is
+still the test. Do not upgrade this to "confirmed".
+
+`component_rules.json` was hand-edited again (never regenerate — see 0aa): 808's
+`amounts` goes from 8 to 10 values with 205.68 and 209.2 added, and the note
+records both the evidence and the 805 band alignment. **Effect on the reports:
+zero.** 808 is one carrier per file, far below the n=20 trust gate, so it stays
+silenced; partitions, true-error counts and validity are identical before and
+after on all three files. What changed is that the three carriers now match.
+
+**Still not fixed after two workbook updates: `tosafot!BC2` and `BR2`.** Verified
+in the new file — **`BC1` holds 12**, the correct index for 805, while `BC2`
+still hardcodes 8. The sibling does it right: `CC2` reads its index from `CC1`.
+So the two updates are not equal in value: **the 808 split actually reaches the
+formula, while the 805 fill does not.** The workbook still returns 681 (₪303.18)
+where 805 is due. §11 is the cheapest fix on the list — two cell references — and
+it is now the only blocking defect no update has touched. Keep saying so.
 
 ## 0ad. The 12/2013 file — 805 is perfect, and I retract the 808 finding
 
