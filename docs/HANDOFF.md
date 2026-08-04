@@ -1,28 +1,146 @@
-<!-- head: 92f4a6a -->
-# Handoff — branch `claude/employee-simulator-validation-pl128n`
+<!-- head: 15d9499 -->
+# Handoff — branch `claude/update-id4fvu`
 
-Written 31.7.2026. Read `CLAUDE.md` first; it carries the standing rules.
+Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
+Everything below section `0q` was written on 31.7.2026 on the earlier branch
+`claude/employee-simulator-validation-pl128n`, whose work is merged into `main`.
 
 ## State
 
-Everything on this branch is **merged into `main`**. The workbook in
-`data/progim` is `Progim_01.08.2026.xlsm` and `component_rules.json` holds 101
-rules. Verify the deploy with `/api/progim/status` — it should report
-`rules: 101`, `source: bundled`, `runtime_data_present: false`, meaning the
-site serves the חוקה from the repo rather than a `/tmp` upload.
+Branch `claude/update-id4fvu`, **one commit ahead of `main`** (`15d9499`) —
+the 04.08 workbook upgrade, not yet merged. `main` had nothing new for it at
+session start.
 
-The coverage gap is down to **1 code / ₪251** — 507 alone. It started this
-round at 15 codes / ₪294K. `component_rules.json` holds **102** rules and the
-workbook is the second `Progim_01.08.2026.xlsm` (the one whose `SACHAR!BZ11`
-reads `5.331`).
+The workbook in `data/progim` is now **`Progim_04.08.2026.xlsm`**; the 01.08
+file was deleted in the same commit. `component_rules.json` holds **102** rules
+(unchanged count). Verify the deploy with `/api/progim/status` — it should
+report `rules: 102`, `source: bundled`, `runtime_data_present: false`, meaning
+the site serves the חוקה from the repo rather than a `/tmp` upload.
 
-Five topics on this branch, newest first:
+The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
+15 codes / ₪294K.
 
+Newest topic first:
+
+0q. **Progim 04.08.2026** — 805/808 pulse tables filled; four new workbook defects
 0. **Upgraded to the Progim 31.07.2026 workbook** — 956/957 newly defined there
 1. **חוקה amounts split into fixed vs period-varying** in the classification sheet
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0q. Progim 04.08.2026 — two tables filled, four defects found
+
+The user uploaded `Progim_04.08.2026.xlsm` and said only "תעדכן". Installed it,
+deleted `Progim_01.08.2026.xlsm`, re-extracted, updated two rules, wrote up the
+defects. Commit `15d9499`.
+
+### What actually changed in the workbook
+
+A full formula-level diff over all 54 sheets (`data_only=False`, ArrayFormula
+compared by `.ref`/`.text`, not identity — comparing the objects directly gives
+11 false positives) shows changes in exactly **two** sheets: `Netunei Gimlai`
+(5 cells, all demo-worker scratch: ministry 18→22 and two eligibility toggles)
+and `tosafot ` (363 cells). Every other sheet differs only in cached values,
+which is the demo worker recalculating after the ministry change.
+
+**No columns moved this time** — the first version in a while where that is
+true. `lookups.json` re-extracts **byte-identical**; `progim_ingest.ingest`
+returns `base_changes: []`; `extract_rules.py` produces no rate change (it
+still emits only 32 of the 102 rules, so as always it was diffed, not applied).
+
+The 363 `tosafot` cells are:
+
+| Cells | What |
+|---|---|
+| `BC19:BC198` | 805's pulse table filled — 48 → **192 of 228** month codes |
+| `CC19:CC234` | 808's pulse table filled — 12 → **228 of 228** |
+| `BG2`, `BG6` | 875's four percentages inlined into the formula |
+| `AZ2` | 756 — missing false branch of the outer `IF` added |
+
+### The two rules I changed
+
+`component_rules.json`, 805 and 808 only:
+
+- **808** `amounts: [198.46]` → **8 pulses** `198.46, 201.15, 215.73, 217.89,
+  221.67, 224.9, 228.68, 232.78`; `amount_period` `fixed` → `varies`.
+- **805** `amounts` 4 → **9 pulses** `95.8, 100.59, 102.85, 107.88, 108.96,
+  110.85, 112.47, 114.36, 116.41`.
+
+Also corrected stale cell addresses in the `source` strings that column drift
+had invalidated: 805 is `SACHAR!BF11` (the note said BB11), 808 is
+`SACHAR!BG11` (said BF11), 4651 is `SACHAR!DD11 = DD7*(AA11+DB11)` (said
+DB11/CZ11). Those are text-only; no base or rate moved.
+
+**The divergence to keep in view:** the גולמי carries no retirement month, so
+the engine accepts *every* pulse in a table. Filling the tables therefore made
+the engine **more permissive** — 808 went from one accepted amount to a band
+spanning 17%. Every one of those amounts comes from the workbook, so this is
+not a heuristic, but detection power on those two codes did drop. Written up
+in `PROGIM_IMPROVEMENTS.md` under "עדכון 04.08" with the thing that retires
+it: a **retirement-month field** in the מנהלת הגמלאות file.
+
+### The defect that matters — `PROGIM_FIXES.md` §11
+
+`tosafot!BC2` is `VLOOKUP($C$4,$AR$7:$BC$234,8,0)`. `BC` is column **12** of
+that range — `BC1` says so itself. Column 8 is `AY` = **681 תוספת פנימיה**,
+a flat 303.18 ₪. So the workbook has been returning 303.18 for תוספת ערבה,
+2.6x–3.2x the real 95.8–116.41, **with no `#N/A` and no zero to notice**. And
+it means filling 805's table in 04.08 changed nothing in the workbook itself.
+
+Same bug in `tosafot!BR2` (4651): index 26 points at `BQ` = 4453. The two
+columns that reference their own index cell — `BQ1`, `CC1` — are correct. I
+audited every `VLOOKUP` in `tosafot` row 2; those are the only two with a
+hardcoded index, and both are wrong.
+
+Three more, same file: §12 `tosafot!BM2` (1358) searches `$AR$7:$BM$12`, 6 of
+228 codes, so the current 750 ₪ is outside the search range entirely. §13 875's
+percentages are now constants in the formula and `BATEI MISHPAT 875` is a dead
+sheet holding the same four numbers. §14 the `חודש פרישה` sheet is not
+one-to-one — 34 discontinuities and 124 duplicated calendar months in
+`A1:B693` (code 61 = 1.1.2002 then code 62 = 1.1.2001).
+
+§14 has a consequence for the docs: **pulse boundaries cannot be dated.** The
+older §9 text dated 805's pulses as "all of 2008 / 2011 / 2013 / 2024", which
+assumed code 1 = Jan 2008; the workbook's own sheet says code 1 = 1.1.1997, and
+the new fill (runs of 23, 13, 12, 42, 9, 14, 14, 4, 61 codes) is not
+year-aligned anyway. The new rule text documents pulses **by month code only**.
+Do not reintroduce calendar years for these without a fixed `חודש פרישה` sheet.
+
+### Verified how
+
+```
+python3 -m pytest tests/ -q      →  34 passed
+node --check engine.js           →  clean
+python3 tools/unified_report.py golmi.xlsx --out /tmp/after.xlsx
+                                 →  6,901 עובדים · 168 שגויים · 97.48%
+```
+
+Identical before and after the rule change: all 6,901 "פר עובד" rows byte-equal,
+"שגויים לבדיקה" unchanged, "ריכוז לפי סיבה" unchanged (5402=41, 5524=38,
+705=11, 4932=1). The only report deltas are the two intended classification
+lines in "סיווג סמלי שכר" — 808 moving fixed→varies, so the tally row goes
+`קבוע 49 · משתנה 6` → `קבוע 48 · משתנה 7`.
+
+`pytest` needs **`httpx`** installed on top of `requirements.txt`; without it
+14 of the 34 tests error inside starlette's TestClient. `CLAUDE.md` said "20
+tests" — corrected to 34 in the same commit.
+
+### Open
+
+- **The 0108 reference file (22,422 slips) was not available this session** —
+  `/root/.claude/uploads/<session-id>/` held only the workbook. Everything was
+  verified against the repo's `golmi.xlsx` (6,901 workers) instead. That file
+  has **98 rows of 805, all 116.41** (already valid before the change, so the
+  widening moved nothing) and **zero rows of 808** — so the eight new 808
+  pulses have never been checked against a real slip. Do that when the 0108
+  file is next available; it is the one loose end here.
+- §11 is worth putting in front of the user directly. It is the first defect
+  found in this repo that produces a **wrong number silently** rather than a
+  zero or a gap.
+- Nothing was said to the user about 805's two remaining holes (codes 49–60,
+  205–228) needing a decision — 205–228 is the current period, so a worker
+  retiring now still gets 0 from the workbook for תוספת ערבה.
 
 ## 0. Progim 31.07.2026
 
