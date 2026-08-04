@@ -1,4 +1,4 @@
-<!-- head: 550304d -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -24,6 +24,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0v. **New 705 neutralization bucket** — asked for, delivered, and it hides 5402/5524
 0u. **Six more codes out of scope** — the list is now 27, and 4535/4536 needs a human
 0t. **The 12/2008 file checked** — dates the pulse tables; ₪17.5M under code 669
 0s. **Seven codes declared non-pensionable** — user instruction, no Progim source
@@ -34,6 +35,53 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0v. A neutralization bucket for 705 — and what it swallows
+
+The user asked for a **"שגויי מקצועית מיסים"** column immediately after
+"שגויי בוררות מיסים". Delivered: new `err_cat` bucket `mikzoit`, placed at that
+exact point in the priority chain, in all three places that must agree —
+`tools/unified_report.py`, `index.html`, `salary_frontend.html`. The two HTML
+files were byte-identical before and after. The dashboard is now 20 columns, so
+every column index in the per-file table shifted by one (INT range, warn-colour
+set, real column, % column, the `R`/`S` conditional-formatting ranges and
+`cbase` for the second table). The partition still closes exactly on all three
+sample files: 24,543 · 20,754 · 6,901.
+
+| file | true errors before | after | moved |
+|---|---|---|---|
+| 12/2008 | 26 | **15** | 11 |
+| 12/2010 | 22 | **11** | 11 |
+| `golmi.xlsx` | 43 | **32** | 11 |
+
+**The widening check CLAUDE.md demands, and it matters here.** The bucket
+catches *any worker with a 705 gap*, carrying all their other gaps with them:
+
+| file | ₪ actually from 705 | ₪ from other components, swallowed |
+|---|---|---|
+| 12/2008 | ₪9,478 | ₪0 |
+| 12/2010 | ₪4,533 | ₪9 (805) |
+| **`golmi.xlsx`** | **₪3,035** | **₪6,121 — 5402 (₪2,851) + 5524 (₪3,270)** |
+
+In `golmi.xlsx` two thirds of the money behind the new column is not 705.
+**5402 and 5524 are that file's two largest error causes** (41 and 38 workers,
+₪21,005 and ₪20,402) and 10 of the 11 absorbed workers carry them. They left
+the true-error count without anyone deciding they were correct.
+
+The retro justification also only partly holds. Of the 33 absorbed workers
+across the three files, **7** pay a whole multiple of 158.63 (×12, ×4, ×3); the
+rest pay 227.37, 243.23, 195.64 and similar. In `golmi.xlsx` **none** of the 11
+is a multiple. The largest single error in 12/2008 — ₪5,676.96, worker
+25119409 paid ₪5,835.58 against ₪158.63 — is not a multiple either, and is now
+neutralized.
+
+**The narrow alternative, if the user wants it:** gate the bucket on the slip
+amount being a whole multiple of the חוקה amount. That neutralizes 7 workers
+instead of 33, keeps 5402/5524 in the count, and returns the ₪5,677 error to
+the queue. One condition, in the same three places.
+
+Nothing in the workbook needs fixing for this — 705 is defined correctly there
+as a fixed ₪158.63. What retires the bucket is a **retro flag in the גולמי**.
 
 ## 0u. Six more codes out of scope — 1047, 4114, 4537, 4535, 4454, 4134
 
