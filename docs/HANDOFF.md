@@ -7,10 +7,10 @@ Everything below section `0q` was written on 31.7.2026 on the earlier branch
 
 ## State
 
-Branch `claude/update-id4fvu`, **three commits ahead of `main`**, not yet
-merged — `15d9499` (the 04.08 workbook upgrade) and `155669e` (the 12/2010
-file check; docs only, no code). `main` had nothing new for it at session
-start.
+Branch `claude/update-id4fvu`, **four commits ahead of `main`** and not yet
+merged — two content commits, `15d9499` (the 04.08 workbook upgrade) and
+`155669e` (the 12/2010 file check; docs only, no code), plus their two handoff
+stamps. `main` had nothing new for it at session start.
 
 The workbook in `data/progim` is now **`Progim_04.08.2026.xlsm`**; the 01.08
 file was deleted in the same commit. `component_rules.json` holds **102** rules
