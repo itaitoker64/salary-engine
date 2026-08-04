@@ -70,7 +70,8 @@ Keep the `<!-- head: <sha> -->` marker on line 1 current; the hooks read it.
 
 ## Verify before you claim
 
-- `python3 -m pytest tests/ -q` — 20 tests.
+- `python3 -m pytest tests/ -q` — 34 tests. Needs `httpx` on top of
+  `requirements.txt`; without it 14 of them error out in the TestClient.
 - `node --check engine.js` — the browser engine has no test suite.
 - Re-run a real file and quote the bucket counts. Numbers from a run, never from
   reasoning about the code.
