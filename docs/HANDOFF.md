@@ -1,4 +1,4 @@
-<!-- head: 7480078 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -30,6 +30,7 @@ The coverage gap is **1 code / ₪251** — 507 alone. It started this round at
 
 Newest topic first:
 
+0af. **805 is complete** — table full and formula fixed; the first component closed both ends
 0ae. **808 split into two more pulses** — better justified than my retracted claim was
 0ad. **The 12/2013 file checked** — 805 matches 110/110; my 808 finding is retracted
 0ac. **5272 out of scope** — fourth batch; the list is now 30
@@ -50,6 +51,44 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0af. 805 is finished — table full, formula fixed
+
+Third corrected workbook, installed. **Exactly 25 cells** changed, all in
+`tosafot`:
+
+1. **`BC2` fixed** — now `VLOOKUP($C$4,$AR$7:$BC$234,BC1,0)` instead of the
+   hardcoded index 8. The formula finally reaches 805's table.
+2. **`BC211`-`BC234` filled** with 116.41 — codes 205-228, the second hole, which
+   is the current period.
+
+*(The first diff pass also showed ~10 other "changes"; those were ArrayFormula
+cells, where `openpyxl` builds a fresh object per load so `!=` compares identity.
+Normalizing on `.ref` + `.text` leaves exactly 25 real cells. Use that
+normalization when diffing these workbooks.)*
+
+**805 is now the first component in the report closed at both ends:** table
+228 of 228 (both holes gone), formula pointing at it. The workbook returns
+תוספת ערבה instead of 681's ₪303.18.
+
+**Effect on the engine: zero, and that is the point.** The engine reads the table
+directly and takes the closest listed amount with no period logic; 116.41 was
+already in the list from the 144-204 band, so filling 205-228 changes nothing
+here, and the formula fix does not touch us at all. All seven files produce
+identical numbers before and after. The entire value of this update is **in the
+workbook — the product** — where until today anyone entitled to 805 got another
+component's ₪303.18. Report it that way; do not dress it up as an engine
+improvement.
+
+805's match rate across the files, unchanged by this update: 0108 98/98, 12/2008
+104/107, 12/2009 100/105 (silenced), 12/2010 105/108, 12/2011 104/107, 12/2012
+99/104 (silenced), 12/2013 110/110.
+
+**What is left: `BR2`.** Half of §11 is done. `BR2` still hardcodes 26 against
+`BR1`=27, so **4651 (תוספת שכר) still returns 4453 (דריכות וכוננות)**. The
+affected population is not marginal — 189-244 carriers per month, **1,290 rows
+and ₪631,615** across the six historical files. The remaining instruction is one
+token: `tosafot!BR2` → replace `26` with `BR1`. Keep raising it until it is done.
 
 ## 0ae. The user split 808 — and it is better justified than I said
 
