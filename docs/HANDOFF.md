@@ -1,4 +1,4 @@
-<!-- head: PENDING -->
+<!-- head: 1fcd033 -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -16,7 +16,8 @@ docs only), `eb62419` (the 12/2011 file check; docs only), `0673e44` (two more c
 scope), `d5527d8` (the 12/2012 file check; docs only), `9d4576e` (the corrected workbook
 installed + the 805 rule edit), `44b4857` (the 875 neutralization column), `d5bd031` (one more code out of
 scope), `d0069cf` (the 12/2013 file check; docs only), `7480078` (the 808 split
-installed). The rest are handoff stamps. `main` had nothing new for it at session start.
+installed), `1fcd033` (805 completed: table filled + BC2 fixed). The rest are
+handoff stamps. `main` had nothing new for it at session start.
 
 The workbook in `data/progim` is **`Progim_04.08.2026.xlsm`**, and as of
 `9d4576e` it is the user's **corrected** 04.08 file (805 codes 49-60
