@@ -1,4 +1,4 @@
-<!-- head: 1ec377e -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0au. **The full 13-file unified report** — the series is complete; 12/2013+12/2014 recovered
 0at. **Unified report over 11 files** — 229,426 slips; 94% of the coverage gap is 4 codes
 0as. **The 12/2019 file checked** — my dating model is refuted outright; fourth 5402 anchor
 0ar. **New 4140 neutralization column** — asked for, justified, and it moves no headline
@@ -69,6 +70,36 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0au. The complete 13-file unified report
+
+The user re-uploaded 12/2013 and 12/2014, so the series is whole: the 0108
+reference plus **twelve consecutive Decembers, 2008 through 2019**. Written to
+`דוח_מאוחד_13_קבצים_05.08.2026.xlsx` and sent.
+
+**269,098 workers · 254,266 valid · 175 true errors (0.0650%) · ₪48,260
+exposure** (₪28,399 under, ₪19,861 over). **All 14 partitions close.**
+
+**The two recovered files confirm the prose written while they were lost.**
+12/2013 gives 11 true errors and ₪2,157; 12/2014 gives 14 and ₪1,090 — exactly
+the figures documented in 0ad and 0ag before the uploads vanished. The
+documentation held up; the coverage gaps are now smaller (12/2013 3 codes /
+₪10,401, 12/2014 4 / ₪11,548) purely because of the scope batches added since.
+
+**True errors, count vs money.** By count: 697 (45), 736 (31), 626 (18), 756
+(17), 4651 (14). By exposure: **736 ₪12,550**, 756 ₪7,199, 4651 ₪6,781, 697
+₪4,543, 858 ₪1,126. 626 makes the point — 18 workers but ₪387 in total, about ₪21
+each. **Work the money, not the count**; the docs say so in both files.
+
+**Coverage gap: 21 codes / ₪1,874,571, and 93% of it is four codes.** 738 ת.
+אחוז-יום is ₪1,202,498 over 5,041 rows — **64% alone** — then 1622 (₪261,436),
+1631 (₪207,244), 4140 (₪90,200 over 42 rows) and 1623 (₪77,082). This remains the
+shortest, highest-return work list in the workbook and is what to lead with when
+asked what to fix next.
+
+Across the whole series the two new neutralization columns catch: **875 → 64
+workers** in 3 of 13 files (12/2012, 12/2016, 12/2018), **4140 → 6 workers** in 5
+files. Both behave as measured when they were built.
 
 ## 0at. Unified report across all 11 available files
 
