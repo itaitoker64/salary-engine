@@ -217,7 +217,10 @@
     // ימי חופשה / ימי מחלה — תאומים של 4122 ו-5272 (5.8.2026).
     4436, 4437,
     // תוספת מו"מ (5.8.2026).
-    5374]);
+    5374,
+    // 4140 — נוסף 5.8.2026 בהוראת המשתמש, בניגוד לחוברת: `מאפייני רכיבי שכר`
+    // מצהיר עליו `משכורת קובעת = כן` (פנסיוני). ראו docs/PROGIM_FIXES.md §17.
+    4140]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it

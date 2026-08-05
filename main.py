@@ -271,6 +271,13 @@ NON_PENSIONABLE = {
     4436,   # ימי חופשה — כמו 4122 (100% ש.חופש)
     4437,   # ימי מחלה — תאום של 5272
     5374,   # תוספת מו"מ
+    # 4140 — added 5.8.2026 on the user's explicit instruction, AGAINST the
+    # workbook. `מאפייני רכיבי שכר` declares 4140 "משכורת בסיסית שעתיים" with
+    # **משכורת קובעת = כן**, i.e. pensionable. Declaring it out of scope
+    # contradicts the Progim and removes ~₪90,200 (42 rows across 13 files)
+    # from the coverage gap and from any check. The user was shown that flag
+    # and chose to proceed. See docs/PROGIM_FIXES.md §17.
+    4140,   # משכ. בסיסית — מוצהר פנסיוני בחוברת; הוצא בהוראת המשתמש
 }
 
 

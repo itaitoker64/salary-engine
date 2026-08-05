@@ -1,4 +1,4 @@
-<!-- head: ce9aa1d -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ba. **⚠ 4140 out of scope against the workbook** — the one entry that contradicts the Progim
 0az. **5340 was never checked** — fixed amount, now validated; a fifth misclassified component
 0ay. **The 12/2020 file checked** — the converted rules already find errors; two costly new gaps
 0ax. **737, 5251, 5253 converted to pulse tables** — two were never checked at all
@@ -75,6 +76,33 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ba. ⚠ 4140 declared out of scope, against the workbook's own flag
+
+On the user's instruction, and **contradicting the Progim** — the only entry on
+the 41-code list that does. Recorded separately as `PROGIM_FIXES.md` §17.
+
+`מאפייני רכיבי שכר` declares 4140 "משכורת בסיסית שעתיים" with **משכורת קובעת =
+כן**, i.e. **pensionable**. I put that flag in front of the user before changing
+anything and asked whether to proceed, skip, or fix the workbook first; the
+answer was to add it anyway. That is their call and it is done — but it must not
+be quietly inherited as fact.
+
+**Consequences, on the record:**
+- **42 rows / ₪90,200** across 13 files leave the coverage gap **and every
+  check**. 4140 had been the most persistent coverage-gap item, in eight files.
+- The report's `סיווג סמלי שכר` sheet now labels 4140 **"מחוץ לתחולת ה-Progim —
+  רכיב שאינו פנסיוני (תקין)"**, which is **the opposite** of what the workbook
+  says. A future reader will assume the workbook agrees. **It does not.**
+- The "שגויי משכ. בסיסית 4140" neutralization column **still works** —
+  `NON_PENSIONABLE` is applied only in `tools/unified_report.py`'s reporting
+  layer and never filters components off the slip. Verified after the change:
+  the column still catches 1, 1 and 2 workers in 12/2018-12/2020.
+
+**Resolve it one way or the other:** either set `משכורת קובעת = לא` in the
+workbook so code and product agree, or drop 4140 from the list and give it a
+formula as was done for 738. Leaving both as they are means the product and the
+software state opposite things about the same code.
 
 ## 0az. 5340 — a fixed amount that was never checked at all
 
