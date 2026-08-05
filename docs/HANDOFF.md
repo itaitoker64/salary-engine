@@ -1,4 +1,4 @@
-<!-- head: bdf6098 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0aq. **Four more codes out of scope** — the list is now 39; whole benefit families spread across it
 0ap. **The 12/2018 file checked** — coverage gap explodes to ₪1.06M; third 5402 anchor
 0ao. **The 12/2017 file checked** — a second 5402 anchor; the component ramps
 0an. **The 12/2016 file checked** — 5402 measured on 18,578 slips; the dating narrows
@@ -65,6 +66,39 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0aq. 5438, 5273, 4436, 4437 out of scope — batches six and seven
+
+On the user's instruction, off the 12/2016-12/2018 coverage lists. Both pass the
+two checks cleanly: absent from the workbook in every sheet, absent from
+`component_rules.json` in every field. 5438 סטודנט לומד appears in 12/2016
+(₪781), 12/2017 (₪297) and 12/2018 (₪779); 5273 ימי בחירה only in 12/2016
+(₪116). 4436 ימי חופשה appears in 12/2017 (₪75) and 12/2018 (₪2,505); 4437 ימי
+מחלה only in 12/2017 (₪74). `NON_PENSIONABLE` is now **39 codes**; Python and JS compared
+element-wise and in sync, 34 tests pass, `node --check` clean.
+
+Coverage gaps: 12/2016 **6 → 4 codes, ₪12,042 → ₪11,145**; 12/2017 **7 → 4,
+₪5,128 → ₪4,682**; 12/2018 **12 → 10, ₪1,059,174 → ₪1,055,890**. Partitions close
+and verdicts are unchanged (97.85% · 97.65% · 97.89%).
+
+**5273 completes a whole family:** 5271 (ימי חג), 5272 (ימי מחלה), 5273 (ימי
+בחירה) — three consecutive codes, one category, added in **three separate
+batches** over the course of the day. That is the cleanest demonstration yet that
+scope is decided code by code rather than by rule, and that each new file
+uncovers another family member. §15 records it.
+
+**What remains in 12/2018's gap is not out-of-scope material:** 738 (₪472,663),
+1622 (₪261,436), 1631 (₪207,244), 1623 (₪74,629), 4140 (₪26,309), 1703
+(₪10,630). These are pay components — **₪1.06M of genuine coverage gap in the
+workbook**, which declaring codes out of scope will not solve.
+
+**The family pattern is now unmistakable.** "ימי מחלה" occupies **two** codes on
+the list (5272 and 4437) and "ימי חופשה" two others (4122 and 4436), on top of
+דמי הבראה's four (1260/1265/1266/1269) and the 5271/5272/5273 run. **Four
+benefit families spread across 11 of the 39 codes**, each added a code at a time
+as a new file surfaced it. That is the argument for §15's `פנסיוני` column in
+`sminimum` — the list will keep growing one code per file until the workbook
+declares scope itself.
 
 ## 0ap. The 12/2018 file — the coverage gap explodes to ₪1.06M
 
