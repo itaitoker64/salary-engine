@@ -1,4 +1,4 @@
-<!-- head: 2516a05 -->
+<!-- head: c6e59d1 -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bq. **✅ 5270 fixed by the user** — five-tier pulse table; gaps collapse, two defects left
 0bp. **5270 ותק פעילות is defined and unchecked** — the seventh such component; report in progress
 0bo. **Seventh neutralization column: 697** — the most effective bucket yet, and the most consequential
 0bn. **Sixth neutralization column: 1063** — built as asked, and it reads 0 everywhere
@@ -91,6 +92,55 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bq. 5270 fixed — and the fix confirms the dating a second time
+
+The user shipped a workbook that does exactly what `PROGIM_FIXES` §21 asked.
+`tosafot` CW3/CX3/CY3 went from flat literals to
+`VLOOKUP($C$4,$CV$6:$DA$234,n,0)` over a new month-code pulse table, and the two
+tiers the measurement had found missing — 0.66 and 0.80 — are now levels 3 and
+4. The component has five levels, not three.
+
+**Effect, measured month-aware (each slip against the band in force for its own
+month):**
+
+| file | carriers | gaps before | gaps after |
+|---|---|---|---|
+| 12/2013 | 86 | 86 | **2** |
+| 12/2014 | 79 | 79 | **2** |
+| 12/2015 | 89 | 89 | **4** |
+| 12/2016 | 90 | 90 | **6** |
+| 12/2017 | 83 | 83 | **4** |
+| 12/2018 | 226 | 226 | **48** (₪405 total) |
+
+**Two independent confirmations fall out of the table itself**, from a source I
+did not write: it lands exactly on `code = (year−2008)×12 + month` (61 = 1.2013,
+181 = 1.2023, 228 = 12.2026), and ₪904.99 — which §21 had flagged as a *guessed*
+2024 value — sits in the 1.2024–12.2024 band.
+
+**Two defects remain, both in §21:**
+
+1. **Circular reference across all of 2024.** Rows 199–210 hold `=+$CW$3` and
+   `=+$CX$3` in levels 1 and 2 — pointing at the VLOOKUP cells that read this
+   very table. `'Netunei Gimlai'!B6` is currently **204 = 12.2024**, so those two
+   levels are broken in the workbook as shipped.
+2. **Codes 1–60 (1.2008–12.2012) are still empty** while 164 slips live there —
+   83 in 12/2011 at ₪200, 81 in 12/2012 at ₪300. They report "לא ניתן לבדוק".
+
+**Rule change:** 5270 moved `reported` → `shekel`, 103 rules. Its `amounts` is
+the **flat union** of all pulses, so it catches gross errors but *cannot* catch a
+correct amount from the wrong era — the engine still has no month-aware check.
+The per-band table is stored beside it as `amounts_by_code` for when that lands.
+The gap report is month-aware in its own script, so its numbers are sound; the
+engine's are weaker. This is the same architectural gap as 0bm.
+
+**Workbook side-effects handled:** three columns were inserted in `tosafot`,
+moving 22 components. Four rules cited old addresses in prose (4180, 4244, 5536,
+5548); each was repointed and the new address verified to hold the expected
+value. `tosafot!B4` still mislabels `C4` as "חודש פרישה" — §14's finding stands.
+
+**Verified how:** `python3 -m pytest tests/ -q` → 34 passed; `node --check
+engine.js` → clean.
 
 ## 0bp. 5270 ותק פעילות — defined in the workbook, never checked, and nothing matches
 
