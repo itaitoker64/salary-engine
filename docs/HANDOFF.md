@@ -1,4 +1,4 @@
-<!-- head: 553fcde -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0as. **The 12/2019 file checked** — my dating model is refuted outright; fourth 5402 anchor
 0ar. **New 4140 neutralization column** — asked for, justified, and it moves no headline
 0aq. **Four more codes out of scope** — the list is now 39; whole benefit families spread across it
 0ap. **The 12/2018 file checked** — coverage gap explodes to ₪1.06M; third 5402 anchor
@@ -67,6 +68,51 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0as. The 12/2019 file — the dating model is dead, and it cannot be revived
+
+Thirteenth file: **December 2019**, **20,041 workers**. **98.21% · 19 true errors
+· ₪3,308**; partition closes. Best verdict of any December file. Docs only.
+
+**‼ The pulse-table dating is refuted — the constraint set is empty.** 805 pays
+**116.41** here (107 of 107, a perfect match), which is the codes **144-228**
+value, so c+132 ≥ 144 requires **c ≥ 12**. But 12/2009 requires **c ≤ 11**. No c
+satisfies both. Running all twelve months together yields **no solution at all**,
+and 12/2019 also skips the 140-143 band entirely.
+
+**This is not imprecision, it is a contradiction, and it kills the model.** The
+assumption that the pulse value tracks the *payslip* month is simply wrong. The
+tables are keyed on **`חודש פרישה`** — retirement month — so a December file's
+modal 805 value reflects the retirement cohort of its carriers, which drifts but
+need not advance 12 codes a year.
+
+**Second retraction on this, and this one is final.** I retracted a dating claim
+at 12/2009, then in 0an said 12/2016 narrowed c to [7,11] — **that was also
+wrong**, resting on the same assumption that has now collapsed. Do not attempt
+this again from payslip data; §14 (fix the `חודש פרישה` sheet) is the only route,
+and `PROGIM_FIXES.md` §14 now says so with the empty-constraint proof.
+
+**5402 gets a fourth anchor — and the growth rate I flagged breaks:**
+
+| month | ratio | measured full-time | growth |
+|---|---|---|---|
+| 12/2016 | 0.19905 | ₪66.88 | — |
+| 12/2017 | 0.30571 | ₪102.72 | ×1.536 |
+| 12/2018 | 0.47054 | ₪158.10 | ×1.539 |
+| **12/2019** | **0.89836** | **₪301.85** | **×1.909** |
+
+The measurement itself is as strong as ever — 97.7% of 19,430 carriers within
+±0.0005 of the ratio. But in 0ap I wrote that the growth rate "looks like a
+defined schedule" after two matching factors; **the fourth point refutes that.**
+Good thing no formula was derived from it. What does strengthen: **₪301.85 is
+89.8% of the ₪336 the workbook knows**, supporting the reading that ₪336 is the
+mature pulse the component climbs toward. §7 now has **four measured rows**.
+
+Coverage gap **5 codes / ₪756,489**, of which **738 alone is ₪729,835 over 2,475
+rows** — the second consecutive month where 738 is nearly the whole gap. Then
+4140 (₪19,076), 1132 (₪3,803), 1623 (₪2,453), 5315 (₪1,321). The new 4140 column
+caught one worker. 805 is 107/107 and trusted; 875 is 96.8% and silenced; 4651 is
+97.0%, exactly on the line, silenced.
 
 ## 0ar. A neutralization column for 4140 — and 5374 out of scope
 
