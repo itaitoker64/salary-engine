@@ -1,4 +1,4 @@
-<!-- head: a3e041b -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ax. **737, 5251, 5253 converted to pulse tables** — two were never checked at all
 0aw. **‼ 738 correction** — the workbook was right, our extractor was wrong; rule added
 0av. **738 analysed** — the workbook has everything but the formula; two conflicting rates
 0au. **The full 13-file unified report** — the series is complete; 12/2013+12/2014 recovered
@@ -72,6 +73,50 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ax. 737, 5251, 5253: fixed amounts were actually period tables
+
+Third 05.08 workbook, installed. The user flagged that several components marked
+as fixed amounts are really period-varying, and the workbook now replaces each
+literal with a `VLOOKUP` over a month-code table. Rules updated to match.
+
+| code | name | was | now |
+|---|---|---|---|
+| **737** | הטמעת פריון | literal 405.18 | **8 pulses** 121.3-418.3 (codes 109-228) |
+| **5251** | ת. מבקר חשב' | literal 286.63 | **14 pulses** 250-303.73 (codes 52-228) |
+| **5253** | תוספת שכר מיסים | `=+CM6` → 546.33 | **14 pulses** 475-578.93 (codes 52-228) |
+
+**5251 and 5253 were typed `reported`** — accepted as-is and **never validated**.
+Both are now `shekel` and checked. 5253 alone is ~2,300 slips a month that went
+unexamined until now.
+
+**The tables are exact.** The modal full-time value each month lands precisely on
+the table step, five months running for each component: 5253 gives
+491/486/485/487/490.8 against table 491/486/485/487/490.8; 5251 gives
+258/255/254/255.5/257.5 matching; 737 gives 242.6 and 364 in 12/2018-12/2019
+matching. After the update all are trusted — 737 at 99%, 5251 at 99-100%, 5253
+at 99%.
+
+**Also in this workbook: 738's base shrank.** `SACHAR!AY11` dropped **600 (תוספת
+בית חולים) and 626 (ס. פסיכיאטריה)**, so the rule's base goes from 18 codes to
+16. 738 still validates at 97%.
+
+**1062 added per the workbook, with no effect.** Column CM is tagged "1062 /
+5253", so 1062 joins that rule's codes. It appears in **none of the 13 sample
+files**, so the addition is faithful to the workbook and changes nothing.
+
+Effects: 12/2015 true errors 13 → **20**, 12/2016 19 → **20**, 12/2019 19 → **20**;
+12/2017 and 12/2018 unchanged at 19 and 33. Coverage gaps 12/2015 3/₪6,883,
+12/2016 3/₪10,365, 12/2017 3/₪3,880, 12/2018 8/₪582,406, 12/2019 4/₪26,654. All
+partitions close. **The small rise in true errors is the desired outcome** —
+components that were previously waved through are now checked.
+
+**The pattern of the day, worth carrying forward:** 738, 737, 5251 and 5253 all
+looked "missing" or "fixed" and all four were **fully defined in the workbook**.
+They failed to reach the engine only because `tosafot` row 3 held a literal or a
+formula instead of pointing at a table. Now that all four use `VLOOKUP`, the
+structure is uniform — which is exactly §11's prevention rule. **When a component
+looks undefined, open its `tosafot` column before saying so.**
 
 ## 0aw. ‼ 738: the workbook was right and I was wrong — rule added
 
