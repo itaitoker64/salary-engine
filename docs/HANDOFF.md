@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bw. **✅ 1631 out of scope — workbook-backed** — 49 codes; the elections family is now two
 0bv. **607 extended to 12/2010 + 12/2010 engineers** — 607 is engineers-only, measured
 0bu. **607 added to the workbook + 12/2009 engineers** — first file with a zero coverage gap
 0bt. **12/2008 engineers checked + 669 traced** — the anomaly is one month, not the track
@@ -97,6 +98,32 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bw. 1631 out of scope — the second batch the workbook backs
+
+On the user's instruction. Passes all three checks cleanly — no column in
+tosafot/SACHAR/SACHAR4643, no rule of its own, referenced by no other rule — and
+the workbook states it outright: `מאפייני רכיבי שכר` row 380 declares
+**הכנה לבחירות** with משכורת קובעת = לא, and לא for both minimum tiers and both
+gross columns. `NON_PENSIONABLE` reaches **49**, py/js element-wise equal.
+
+**The elections family is now two codes**, 1622 (מנהל בחירות) and 1631
+(הכנה לבחירות) — and they are **the only two of fourteen batches with an
+explicit pensionability declaration in the workbook**. Every other batch rests
+on the workbook's silence. That sharpens §15: the fix is a declared `פנסיוני`
+column over all 295 codes, not a list that grows one file at a time.
+
+**Footprint, measured across all sixteen files:** 1631 appears in **exactly one
+— 12/2018, 46 rows, ₪207,244** — and has zero rows in the other fifteen. 2018
+was a municipal-election year in Israel, which is consistent with a
+"preparation for elections" component paid once and gone, but that is an
+observed coincidence, not a verified explanation.
+
+After the change, 12/2018's coverage gap reads **4 codes / ₪87,136** and 1631 is
+no longer in it.
+
+**Verified how:** `pytest tests/ -q` → 34 passed; `node --check engine.js` →
+clean; NON_PENSIONABLE 49/49 with no symmetric difference.
 
 ## 0bv. 607 extended through 12/2010, and that file checked
 
