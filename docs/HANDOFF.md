@@ -1,4 +1,4 @@
-<!-- head: 8402528 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0aw. **‼ 738 correction** — the workbook was right, our extractor was wrong; rule added
 0av. **738 analysed** — the workbook has everything but the formula; two conflicting rates
 0au. **The full 13-file unified report** — the series is complete; 12/2013+12/2014 recovered
 0at. **Unified report over 11 files** — 229,426 slips; 94% of the coverage gap is 4 codes
@@ -71,6 +72,54 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0aw. ‼ 738: the workbook was right and I was wrong — rule added
+
+**Retracting 0av entirely.** I reported that 738 has no formula in the workbook
+and presented ₪1.2M as a product coverage gap. The user pointed me at
+`tosafot!BZ` and the component is **fully defined there**:
+
+```
+tosafot!BZ3  rate, VLOOKUP(C4,BV7:BZ234,5,0)   0.94% / 2.44% / 3.94% by month code
+tosafot!BZ2  eligibility: MISRAD!I2=1 AND 'Netunei Gimlai'!G11=TRUE
+SACHAR!AY11  = (AA11+DB11+AC11+AD11+AE11+AF11+AR11+AZ11+BM11+CB11+CE11
+                +DG11+CZ11+DH11+DK11+DA11+DJ11) * AY7      — a 17-component base
+```
+
+**How I got it wrong:** my sweep *did* find 738 in `tosafot` — it printed the
+sheet — but I rendered the row context badly, read it as incidental, and never
+opened the column. Detection worked; interpretation failed. Open the column
+before concluding a component is undefined.
+
+**The real defect was ours.** `tools/extract_rules.py` reads the rate from
+`tosafot` row 3 as a literal; that cell held a conditional formula resolving to
+0 in an unpopulated workbook, `valid_rate` rejected it, no rule was produced,
+and 738 was classified not-computable. **₪1.2M was reported as a Progim gap
+while the Progim was correct.**
+
+**Verification against the workbook's own base and rates:** 12/2018 — median
+ratio **2.4400%**, **97.2% of 2,565 carriers** exactly on 2.44%; 12/2019 —
+median **3.9400%**, **96.3% of 2,471** exactly on 3.94%. Quartiles flat.
+Eligibility matches 100%: all 5,041 rows are מס הכנסה and מכס ומע"מ. The "two
+conflicting rates" I reported in 0av are also withdrawn — 0.94% and 3.94% are
+two steps of one schedule.
+
+**Rule added by hand** to `component_rules.json` (now **103 rules**): three
+rates, 18 base codes. Effect: 12/2018 coverage gap **₪1,059,174 → ₪582,406**
+with true errors **19 → 33**; 12/2019 **₪756,489 → ₪26,654**, true errors
+unchanged at 19. 738 now validates at 97.4% (trusted) and 96.8% (just under the
+gate). The rise to 33 is checking working, not a regression — say it that way.
+
+**The corrected workbook (second 05.08 upload, 57 cells):** `BZ3` moves from a
+hardcoded `IF` chain to **`VLOOKUP(C4,BV7:BZ234,5,0)`** — a per-month-code table
+like 805/808, which is exactly §11's prevention rule; rates unchanged.
+`tos reforma 4147` gains five values that were 0 (4147 is `reported` with no
+rule, so no result changes). `Netunei Gimlai`'s 48 cells are sample-worker data.
+
+**⚠ New trap: never regenerate.** After the fix `BZ3` resolves to **0.0244**,
+because the sample worker's month code lands in 121-132. The extractor would now
+pick up **a single rate chosen at random by the demo data** and be wrong for
+every other year. The hand-written rule holds all three.
 
 ## 0av. What the 738 gap actually is — new `PROGIM_FIXES.md` §16
 
