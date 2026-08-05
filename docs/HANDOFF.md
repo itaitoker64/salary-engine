@@ -1,4 +1,4 @@
-<!-- head: c598c27 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0am. **The 12/2015 file checked** — 4140 recurs for the sixth time
 0al. **Progim 05.08.2026 installed** — §11 closed; 0108 reference run; a checkout rollback
 0aj. **Unified report redone without 1.2008** — and it retracts the 5402/5524 headline
 0ai. **Unified report over all 8 files** — 5402+5524 are 77% of the money (WRONG — see 0aj)
@@ -61,6 +62,37 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0am. The 12/2015 file — 4140 recurs for the sixth time
+
+Ninth file: **December 2015**, **19,305 workers**. **97.21% · 13 true errors ·
+₪1,606** (₪402 under, ₪1,204 over); partition closes. Second-lowest exposure of
+the nine — 13 errors, all small in shekels. Docs only.
+
+**True errors are spread, not concentrated:** 756 (4, ₪113), 5216 (4, ₪181),
+4169 (2, ₪539), 4932 (2, ₪426), 736 (1, ₪346), 626 (1). Unlike 12/2012 where 875
+alone was 25 of 27.
+
+**805 holds for a third month since the table was completed:** 104 of 105
+(99.0%), trusted, at 107.88. c+84 lands in 85-95, inside the 61-102 band —
+consistent, no narrowing of c ∈ [1,11].
+
+**4140 (משכ.בסיסית) is now the most persistent item in the coverage gap.** The
+gap here is 4 codes / ₪7,646: 4140 (₪6,269), 5374 (₪763), 5315 (₪440), 507
+(₪173). 4140 has appeared in **six files** — 12/2008, 12/2010, 12/2012, 12/2013,
+12/2014, 12/2015 — always few rows but ₪3-9.4k each time, and **507 appears in
+all nine**. Both are pay components rather than benefits, so neither is an
+out-of-scope candidate; they are a real coverage gap and worth putting to the
+user as a decision.
+
+**The 875 bucket has fired in one file out of nine.** 875 is at 95.0% here (100
+mismatches of 2,002), silenced, so the column reads 0. The note made when it was
+built stands: it tracks the 97% switch rather than being a stable category. **4651
+also slipped to 96.4% and is silenced here**, having been 98.9% and trusted in
+12/2014 — the same threshold sensitivity.
+
+Calibration silenced 32 of 48 rules; 4,896 workers (25.4%), ₪1,835,521, of which
+₪1.55M is 4550 — sitting at exactly 50.0% matching.
 
 ## 0al. Progim 05.08.2026, the 0108 reference, and a checkout rollback
 
