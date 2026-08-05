@@ -1,4 +1,4 @@
-<!-- head: 1af3820 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ao. **The 12/2017 file checked** — a second 5402 anchor; the component ramps
 0an. **The 12/2016 file checked** — 5402 measured on 18,578 slips; the dating narrows
 0am. **The 12/2015 file checked** — 4140 recurs for the sixth time
 0al. **Progim 05.08.2026 installed** — §11 closed; 0108 reference run; a checkout rollback
@@ -63,6 +64,47 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ao. The 12/2017 file — a second 5402 anchor, and it ramps
+
+Eleventh file: **December 2017**, **20,135 workers**. **97.65% · 19 true errors ·
+₪6,752** (₪5,663 under, ₪1,088 over); partition closes. Docs only.
+
+**5402 gets its second anchor, and the two together settle §7.** Same test, same
+clean result: **0 of 19,671 match**, ₪4,334,696 silenced, and the ratio is
+constant across every tier — 0.30571 at ₪336 (16,413 carriers), ₪252 (1,598),
+₪168 (836) and ₪268.80 (108).
+
+| month | ratio | **measured full-time amount** |
+|---|---|---|
+| 12/2016 | 0.19905 | **₪66.88** |
+| 12/2017 | 0.30571 | **₪102.72** |
+
+**The amount climbs year over year** — exactly how a phased agreement behaves.
+That confirms §7 unambiguously: 5402 is a period-varying shekel component with
+no amount table, and the single ₪336 the workbook knows is a later pulse. There
+are now **two measured rows** to fill that table with, each backed by ~19k slips.
+
+**Dating: consistent, no further narrowing.** 805 pays 110.85 (96 carriers), the
+codes 112-125 value. c+108 ∈ [112,125] gives c ∈ [4,17], which adds nothing to
+c ∈ [7,11]. Code 1 stays **August-December 2008**.
+
+**⚠ One flagged 805 worker is almost certainly not an error.** 805 is trusted
+here (98.1%) so it is checked, and one carrier was reported as a true error at
+**₪332.55**. But 332.55 ÷ 110.85 = **exactly 3.0000** — three months compressed
+into one line, the classic retro signature. The גולמי carries no retro flag so
+the engine cannot separate it. Under the standing rule about never flagging a
+correctly-paid worker, **an exact integer multiple on a trusted component
+deserves a manual look before it reaches a work queue.** Worth considering as a
+general check.
+
+Coverage gap **7 codes / ₪5,128**: 4140 (₪1,791 — its **eighth** file), 1132
+(₪1,649), 5374 (₪802), 5315 (₪440), 5438 (₪297), **4436 ימי חופשה** (₪75),
+**4437 ימי מחלה** (₪74). The last two look like out-of-scope candidates by the
+user's own earlier logic — 4437 is a twin of 5272 (already listed) and 4436 of
+4122 — but neither was added; that is the user's call.
+
+The 875 bucket is empty again (94.9%, silenced): it has fired in 2 of 11 files.
 
 ## 0an. The 12/2016 file — 5402 gets a measured anchor, and the dating narrows
 
