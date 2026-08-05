@@ -1,4 +1,4 @@
-<!-- head: 7cd5e08 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0an. **The 12/2016 file checked** — 5402 measured on 18,578 slips; the dating narrows
 0am. **The 12/2015 file checked** — 4140 recurs for the sixth time
 0al. **Progim 05.08.2026 installed** — §11 closed; 0108 reference run; a checkout rollback
 0aj. **Unified report redone without 1.2008** — and it retracts the 5402/5524 headline
@@ -62,6 +63,57 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0an. The 12/2016 file — 5402 gets a measured anchor, and the dating narrows
+
+Tenth file: **December 2016**, **19,141 workers**. **97.85% · 19 true errors ·
+₪2,820**; partition closes. Docs only.
+
+**The result to act on: 5402's amount is off by a constant factor of 5.0239.**
+This is the first December file that contains 5402 at all — **18,634 carriers,
+97% of the file** — where every other December file and the 0108 reference have
+**zero**. That fits the component's name: "תוספת שקלית **2016**" starts in 2016.
+
+**None of the 18,578 checked match — 0.0%**, ₪4,733,498 silenced, the largest
+silenced figure measured in any single file, larger than 4550. But the gap is
+perfectly constant:
+
+| expected | carriers | paid/expected |
+|---|---|---|
+| ₪336.00 | 15,732 | 0.19905 |
+| ₪252.00 | 1,423 | 0.19905 |
+| ₪168.00 | 804 | 0.19905 |
+| ₪294.00 | 98 | 0.19905 |
+| ₪210.00 | 29 | 0.19905 |
+
+**98.4% of carriers sit within ±0.0005 of 0.19905.** The tier structure (₪336 ×
+job fraction) is **right**; only the scale is wrong, by one uniform factor.
+
+So **5402's full-time amount in December 2016 is ₪66.88, not ₪336** — which is
+exactly what §7 claims: the component varies by period and has no amount table,
+and ₪336 is presumably a later pulse. §7 now has a measured anchor to fill one
+row with: **12/2016 = ₪66.88 full-time.** With 18,578 slips behind it this is by
+far the strongest evidence collected today — compare the single carrier behind
+every 808 observation.
+
+**The dating narrows for the first time since 12/2009.** 805 pays **108.96** here
+(97 carriers plus clean job fractions 81.72 = 0.75 and 68.10 = 0.625) — the
+codes **103-111** value, a band not seen before. c+96 ∈ [103,111] gives
+c ∈ [7,15]; with the existing c ∈ [1,11]:
+
+> **c ∈ [7,11] — code 1 is a month between August and December 2008.**
+
+Five possibilities instead of eleven. Still not certainty, and §14 (fix the
+sheet) remains the right answer, but it is the first file since 12/2009 to add a
+constraint.
+
+**The 875 bucket fired for the second time:** 875 matches 98.2%, is trusted, and
+the column catches **15 workers**. Two files out of ten (12/2012, 12/2016). 4651
+is back to 98.1% and trusted after 96.4% and silenced in 12/2015.
+
+Coverage gap **6 codes / ₪12,042**: 4140 (₪9,751 — its **seventh** file), 5438
+סטודנט לומד (₪781), 5374 (₪780), 5315 (₪440), 507 (₪173 — **all ten files**),
+5273 ימי בחירה (₪116).
 
 ## 0am. The 12/2015 file — 4140 recurs for the sixth time
 
