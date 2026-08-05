@@ -1,4 +1,4 @@
-<!-- head: f43b5a1 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -21,21 +21,21 @@ check; docs only), `5614bf0` (five more codes out of scope + the unified report)
 `f43b5a1` (unified report redone without 1.2008 + two month-parsing fixes). The
 rest are handoff stamps. `main` had nothing new for it at session start.
 
-The workbook in `data/progim` is **`Progim_04.08.2026.xlsm`**, and as of
-`9d4576e` it is the user's **corrected** 04.08 file (805 codes 49-60
-filled with 104.61 — 12 cells, nothing else). `component_rules.json` holds **102** rules
+The workbook in `data/progim` is **`Progim_05.08.2026.xlsm`** (04.08 deleted in
+the same commit) — 805 complete at 228/228, 808 split into 10 pulses, and both
+§11 formulas fixed. `component_rules.json` holds **102** rules
 (unchanged count). Verify the deploy with `/api/progim/status` — it should
 report `rules: 102`, `source: bundled`, `runtime_data_present: false`, meaning
 the site serves the חוקה from the repo rather than a `/tmp` upload.
 
-The coverage gap **as of 4.8.2026, measured**: `golmi.xlsx` (the 1.2008 sample)
-alone is **19 codes / ₪622,483**, dominated by **738 ת. אחוז-יום at ₪568,238
-over 2,076 rows** — a code that appears in no December file. Across all eight
-files the union is **29 codes / ₪664,873**. (An earlier version of this line
-claimed "1 code / ₪251"; that was stale and is corrected here.)
+The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
+₪251** — 507 alone. Separately, `golmi.xlsx` — a 6,901-worker sample that is
+**not** the 0108 file, though I conflated the two earlier — measures 19 codes /
+₪622,483, dominated by 738 at ₪568,238.
 
 Newest topic first:
 
+0al. **Progim 05.08.2026 installed** — §11 closed; 0108 reference run; a checkout rollback
 0aj. **Unified report redone without 1.2008** — and it retracts the 5402/5524 headline
 0ai. **Unified report over all 8 files** — 5402+5524 are 77% of the money (WRONG — see 0aj)
 0ah. **Five more codes out of scope** — the list is now 35, and §15's fix already exists in the workbook
@@ -61,6 +61,47 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0al. Progim 05.08.2026, the 0108 reference, and a checkout rollback
+
+**Read this first if history looks wrong.** On 5.8.2026 this *checkout* reverted
+to `769ce42` — working tree, `git log` and reflog all rolled back about eight
+commits. **The remote was never affected:** `origin/claude/update-id4fvu` still
+held everything at `15679a9`. I initially misread this as data loss because I
+checked `git log origin/...` before fetching, which reports the stale local ref.
+The fix was `git fetch` then `git reset --hard origin/claude/update-id4fvu`; a
+push attempt in between was correctly rejected as non-fast-forward. **If this
+recurs: fetch first, read the remote, never force-push.** Two source uploads
+(12/2013, 12/2014) did disappear from the uploads directory and cannot be
+re-run; their findings survive only as prose in `PROGIM_IMPROVEMENTS.md`.
+
+**Progim 05.08.2026 installed**, 04.08 deleted. Against the *original* 04.08 it
+changes 62 cells in `tosafot`: yesterday's three corrections plus **`BR2` →
+`BR1`**, which was the piece still missing.
+
+**§11 is now closed in full.** Both `BC2` (BC1=12) and `BR2` (BR1=27) read their
+index cell. This was the only silent defect on the list — the workbook returned a
+plausible amount belonging to a different component. Closing `BR2` opens **4651:
+1,290 slips, ₪631,615** across the December files, a component the engine had
+already measured at 98.9%, so the table data was always fine and only the
+reference was broken. §9 and §11 are both closed; `PROGIM_FIXES.md` records both
+with the evidence retained.
+
+**The 0108 reference file run:** **22,422 workers — the partition closes exactly
+on the number `CLAUDE.md` specifies.** 21,163 valid (98.21%), **10 true errors,
+₪9,750**, coverage gap **1 code / ₪251 (507)**. Leading codes 756 (4, ₪6,670),
+628 (3, ₪6,341), 630/853 (2 each), 736 (2).
+
+**A correction I owe.** In 0aj I rewrote this file's State line — which said the
+coverage gap is "1 code / ₪251 — 507 alone" — claiming it was stale and the real
+figure was 19 codes / ₪622,483. **The original was right.** I had been measuring
+`golmi.xlsx` (6,901 workers) and calling it "0108" all session. The reference file
+has 22,422 slips and gives exactly 1 code / ₪251. The State line is restored.
+
+This propagates: the findings attributed to "1.2008" — **738 at ₪568K** and
+**5402/5524 as 77% of the exposure** — belong to `golmi.xlsx`, a separate smaller
+sample, **not** to the reference file. Do not cite them as 0108 results, and do
+not repeat my conflation of the two files.
 
 ## 0aj. Unified report without 1.2008 — retracting the 5402/5524 headline
 
