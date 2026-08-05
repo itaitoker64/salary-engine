@@ -372,6 +372,15 @@ def collect(paths, pure=False):
                     # תוספת בית חולים (600): סכום קבוע בחוקה (75.26); הסוטים
                     # ממנו הם ברובם פעימה קודמת של הסכום, שהחוקה אינה שומרת.
                     err_cat = "bhol"
+                elif 5340 in flags:
+                    # בית חולים מאוחדת (5340): סכום קבוע 480.1 בחוקה. הרכיב
+                    # הומר מ-`reported` ל-`shekel` ב-5.8.2026 ולכן נבדק לראשונה;
+                    # ממוקם מיד אחרי תוספת בית חולים לפי בקשת המשתמש.
+                    # ‼ נמדד לפני ההוספה: הדלי קולט 64 עובדים ו-₪18,424 בחמישה
+                    # קבצים, ומתוכם 27 נושאים סמל כושל נוסף — 626 (15), 728 (8),
+                    # 959 (2), 736 (1), 5216 (1). כלומר הוא **בולע** שגיאות של
+                    # רכיבים אחרים, בניגוד לדלי 4140. ראו PROGIM_IMPROVEMENTS.md.
+                    err_cat = "bmeuhedet"
                 elif 875 in flags:
                     # תוספת בתי משפט (875): ממוקם מיד אחרי תוספת בית חולים לפי
                     # בקשת המשתמש. הכלל רשום ב-PROGIM_FIXES.md §4 כ"כמעט-מתאמת"
@@ -444,7 +453,8 @@ def collect(paths, pure=False):
                          ("h1999", "inv_h1999"), ("brich", "inv_brich"),
                          ("mnhal", "inv_mnhal"), ("borerut", "inv_borerut"),
                          ("mikzoit", "inv_mikzoit"),
-                         ("bhol", "inv_bhol"), ("bmish", "inv_bmish"),
+                         ("bhol", "inv_bhol"), ("bmeuhedet", "inv_bmeuhedet"),
+                         ("bmish", "inv_bmish"),
                          ("real", "inv_real")):
             s[key] = sum(1 for x in rows_f
                          if x["status"] == "invalid" and x["err_cat"] == cat)
@@ -534,7 +544,7 @@ def collect(paths, pure=False):
 CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← ותק סטודנט ← ותק קטוע ← בסיס '
             '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל '
             '← בוררות מיסים ← מקצועית מיסים ← תוספת בית חולים '
-            '← תוספת בית משפט ← שגיאה אמיתית ← תקין')
+            '← בית חולים מאוחדת ← תוספת בית משפט ← שגיאה אמיתית ← תקין')
 
 NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
@@ -542,6 +552,7 @@ NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטוד�
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
               "mikzoit": "מקצועית מיסים",
               "bhol": "תוספת בית חולים",
+              "bmeuhedet": "בית חולים מאוחדת",
               "bmish": "תוספת בית משפט",
               "h1999": "תוספת 1999", "real": ""}
 
@@ -682,7 +693,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         _gap = [u for u in uncovered if not u.get("reported")]
         s_gap = round(sum(u["sum"] for u in _gap))
         s_rep = round(sum(u["sum"] for u in _rep))
-        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=21)
+        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=22)
         w = ws.cell(row=3, column=1,
                     value=(f"\u26a0 {len(_gap)} סמלים (₪{s_gap:,}) ללא נוסחה ב-Progim "
                            f"ואינם מוצהרים כמוזנים — חור בכיסוי החוברת. "
@@ -704,7 +715,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "inv_b4140", "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
               "inv_h1999",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_mikzoit",
-              "inv_bhol", "inv_bmish", "inv_real"):
+              "inv_bhol", "inv_bmeuhedet", "inv_bmish", "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
     _kpi(ws, 4, 3, 1, "שגויים אמיתיים", tot["inv_real"], BAD_TXT, INT)
@@ -741,10 +752,10 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "שגויי תוספת 1999", "שגויי דריכות",
               "שגויי גמול מנהל", "שגויי בוררות מיסים",
               "שגויי מקצועית מיסים", "שגויי תוספת בית חולים",
-              "שגויי תוספת בית משפט",
+              "שגויי בית חולים מאוחדת", "שגויי תוספת בית משפט",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 13, 13, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 13, 14, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
@@ -753,21 +764,22 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                 r.get("inv_d1711", 0), r.get("inv_h1999", 0),
                 r.get("inv_brich", 0), r.get("inv_mnhal", 0),
                 r.get("inv_borerut", 0), r.get("inv_mikzoit", 0),
-                r.get("inv_bhol", 0), r.get("inv_bmish", 0),
+                r.get("inv_bhol", 0), r.get("inv_bmeuhedet", 0),
+                r.get("inv_bmish", 0),
                 r.get("inv_real", 0),
                 r.get("real_pct", 0.0) / 100, r.get("valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 20 or c_i == 22:
+            if 3 <= c_i <= 21 or c_i == 23:
                 cell.number_format = INT
-            if c_i == 22:
+            if c_i == 23:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) and v:
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 20 and v:
+            if c_i == 21 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 21:
+            if c_i == 22:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
@@ -778,20 +790,21 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
              tot["inv_base"], tot["inv_gmul"], tot["inv_d1711"],
              tot["inv_h1999"],
              tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
-             tot["inv_mikzoit"], tot["inv_bhol"], tot["inv_bmish"],
+             tot["inv_mikzoit"], tot["inv_bhol"], tot["inv_bmeuhedet"],
+             tot["inv_bmish"],
              tot["inv_real"],
              real_pct_tot, tot["valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 20 or c_i == 22:
+        if 3 <= c_i <= 21 or c_i == 23:
             cell.number_format = INT
-        if c_i == 21:
+        if c_i == 22:
             cell.number_format = "0.00%"
-        if c_i == 20:
+        if c_i == 21:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"U{head_r + 1}:U{last}"    # % שגויים אמיתיים
+    rng = f"V{head_r + 1}:V{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -806,13 +819,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"T{head_r + 1}:T{last}",          # שגויים אמיתיים
+        f"U{head_r + 1}:U{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
     # ---- פערים לפי סמל שכר (a second table, to the right of the per-file one) ---
     if code_gaps:
-        cbase = 23   # column W (leaves a gap after the 21-column per-file table)
+        cbase = 24   # column X (leaves a gap after the 22-column per-file table)
         heads = ["סמל", "שם רכיב", "כמות פערים", "שווי ₪", "הסיבה לפער"]
         widths = [9, 22, 12, 13, 40]
         for j, (h, w) in enumerate(zip(heads, widths)):

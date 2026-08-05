@@ -1,4 +1,4 @@
-<!-- head: 7b73fb7 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bc. **New 14-file unified report** — 288,640 slips, 212 true errors, all fixes in
+0bb. **New 5340 neutralization column** — asked for, built, and it swallows 626/728/959
 0ba. **⚠ 4140 out of scope against the workbook** — the one entry that contradicts the Progim
 0az. **5340 was never checked** — fixed amount, now validated; a fifth misclassified component
 0ay. **The 12/2020 file checked** — the converted rules already find errors; two costly new gaps
@@ -76,6 +78,55 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bc. New unified report over 14 files, with everything applied
+
+**288,640 workers · 272,059 valid · 212 true errors (0.0734%) · ₪64,247
+exposure** (₪40,299 under, ₪23,948 over). **All 15 partitions close.** Written to
+`דוח_מאוחד_14_קבצים_05.08.2026.xlsx`.
+
+Per file true errors: 01/2008 10, 12/2008 15, 12/2009 12, 12/2010 11, 12/2011 11,
+12/2012 15, 12/2013 11, 12/2014 17, 12/2015 17, 12/2016 18, 12/2017 19, 12/2018
+30, 12/2019 11, 12/2020 15. Bucket totals across the series: **4140 → 8, 5340 →
+70, 875 → 64**.
+
+**The components reclassified today now lead the error list.** By count: 697 (46),
+**5253 (38)**, 736 (35), 756 (17), 4651 (15), **738 (14)**. By exposure: 736
+(₪15,276), **5253 (₪11,831)**, 4651 (₪7,832), 756 (₪7,199). 5253 is second on
+both lists and **was not checked at all before this morning**; 738 is new to the
+list too. That is the day's work showing up as findings.
+
+**Coverage gap: 29 codes / ₪1,201,165, down from ₪1,874,571.** 738 alone removed
+₪1.2M by becoming a checked component, while 12/2018 and 12/2020 contributed 633
+(₪478,579), 1622 (₪261,436), 1631 (₪207,244), 4192 (₪115,412) and 1623 (₪77,082).
+**Four codes are ₪1.06M of the ₪1.2M — 88%** — and remain the highest-return fix
+list.
+
+## 0bb. A neutralization column for 5340 — and this one swallows
+
+The user asked for a **"שגויי בית חולים מאוחדת"** column immediately after
+"שגויי תוספת בית חולים". Delivered in all three places, HTML files
+byte-identical, dashboard now **23 columns** with indices, the `U`/`V` formatting
+ranges, the banner merge and the side table at `X` all shifted. Partitions close.
+
+**Measured before building: 64 workers / ₪18,424** — 17 in 12/2014, 16 in
+12/2016, 14 in 12/2018, 16 in 12/2019, 1 in 12/2020.
+
+**‼ Unlike the 4140 bucket, this one swallows other components' errors.** Of the
+64, **27 carry another failing code**: **626 (15), 728 (8), 959 (2), 736 (1),
+5216 (1)**. Those errors leave the headline not because they were neutralized on
+their own merits but because 5340 precedes them in the chain. 626 appears
+consistently in the true-error list across the whole series, and **15 of its
+cases are now hidden**.
+
+**What would reduce it:** move 5340 later in the chain, after 626 and 728, so it
+only catches workers carrying 5340 alone. Offered to the user; not done
+unilaterally.
+
+**Context worth keeping:** 5340 only became checkable today (`reported` →
+`shekel`), and this bucket cancels most of what that conversion surfaced — 64 of
+roughly 70 errors it added. A legitimate choice, but the two changes should be
+read together, not separately.
 
 ## 0ba. ⚠ 4140 declared out of scope, against the workbook's own flag
 
