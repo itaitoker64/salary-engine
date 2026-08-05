@@ -1,4 +1,4 @@
-<!-- head: 7651c4f -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bd. **The 12/2021 file checked** — both new buckets fire together; 738 is 52% of errors
 0bc. **New 14-file unified report** — 288,640 slips, 212 true errors, all fixes in
 0bb. **New 5340 neutralization column** — asked for, built, and it swallows 626/728/959
 0ba. **⚠ 4140 out of scope against the workbook** — the one entry that contradicts the Progim
@@ -78,6 +79,34 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bd. The 12/2021 file — and a `--no-per-employee` flag
+
+Fifteenth file: **December 2021**, **19,048 workers**. **97.50% · 23 true errors ·
+₪3,488**; partition closes. Docs only apart from the flag below.
+
+**First file where both new buckets fire together:** בית חולים מאוחדת = **24**
+and תוספת בית משפט = **7**, so 31 workers leave the true-error count in one file.
+
+**738 is the largest error source at 52%** — 12 of 23 true errors, ₪669. That is
+the component I reported yesterday as "₪1.2M of coverage gap in the workbook"
+when it was in fact fully defined and merely unreachable by our extractor. Since
+it became checkable it produces most of this file's findings. Then 736 (5,
+₪2,098), 756 (2), 805 (2, ₪547), 858 (1).
+
+Coverage gap **14 codes / ₪41,199**: 651 (₪19,815 over 141 rows), 634 (₪6,971),
+633 (₪4,875), 4536 (₪4,172), 4951 (₪2,500). **633 fell from ₪478k in 12/2020 to
+₪4,875 here**, its population dropping from 249 rows to 14 — a reminder that the
+expensive coverage codes are **not stable month to month**, so no single file
+should drive the priority list. 4536 remains the open question raised on 4.8 (it
+is 4537's twin, and 4537 is already out of scope).
+
+**New tool flag: `--no-per-employee`.** The 14-file unified report came to
+**31.5 MB** and could not be delivered (30 MB limit); the `פר עובד` sheet alone
+was 288,641 rows and ~307 MB of XML. The flag skips that sheet and the same run
+produces **2 MB** with dashboard, coverage, classification, work queue,
+status-changes, by-cause, ministries and month-over-month all intact. Use it for
+any multi-year run.
 
 ## 0bc. New unified report over 14 files, with everything applied
 

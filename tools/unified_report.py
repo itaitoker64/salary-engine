@@ -657,7 +657,7 @@ def compute_flips(per_emp):
 
 
 def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
-                   uncovered=None, codes_index=None):
+                   uncovered=None, codes_index=None, skip_per_employee=False):
     wb = openpyxl.Workbook()
     anom_by_file = defaultdict(float)
     anom_total = 0.0
@@ -989,7 +989,12 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         wsf.auto_filter.ref = f"A1:F{len(flips) + 1}"
 
     # ---- פר עובד ---------------------------------------------------------------
-    _emp_sheet(wb, "פר עובד", per_emp, "PerEmployee", highlight_invalid=True)
+    # One row per employee per file. On a many-file run this sheet is the whole
+    # file size — 288k rows is ~307 MB of XML and pushes the workbook past the
+    # 30 MB that can be sent to the user — so it can be omitted. Everything
+    # else (dashboard, coverage, work queue, month-over-month) is unaffected.
+    if not skip_per_employee:
+        _emp_sheet(wb, "פר עובד", per_emp, "PerEmployee", highlight_invalid=True)
 
     # ---- המלצות ל-Progim (מצב "Progim בלבד") ---------------------------------
     if recs:
@@ -1210,6 +1215,8 @@ def main_cli():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("files", nargs="+", help="גולמי .xlsx files")
     ap.add_argument("--out", default="unified.xlsx")
+    ap.add_argument("--no-per-employee", action="store_true",
+                    help="לדלג על גיליון 'פר עובד' — מקטין דרמטית קובץ של ריצה רב-חודשית")
     ap.add_argument("--pure", action="store_true",
                     help="הרצת ה-Progim כפי-שהוא (ללא תוספות התוכנה) + גיליון המלצות")
     args = ap.parse_args()
@@ -1219,7 +1226,8 @@ def main_cli():
     print(f"עיבוד: {time.time() - t0:.0f}ש · כותב workbook ({len(per_emp):,} שורות)...")
     write_workbook(summary, per_emp, args.out, code_gaps,
                    recs=recs if args.pure else None, uncovered=uncovered,
-                   codes_index=codes_index)
+                   codes_index=codes_index,
+                   skip_per_employee=args.no_per_employee)
     inv = sum(1 for r in per_emp if r["status"] == "invalid")
     mode = "Progim בלבד" if args.pure else "רגיל"
     print(f"נכתב: {args.out} · {len(per_emp):,} רשומות · {inv:,} שגויים · מצב {mode}")
