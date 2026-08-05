@@ -1,4 +1,4 @@
-<!-- head: 1029c34 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bi. **4438 out of scope** — 47 codes; the "ימי X" family is now six of them
 0bh. **657 filled and now checked** — 90%, and one missing tier explains the rest; 12/2022 run
 0bg. **4538 out of scope (2nd contradiction) + 657 reclassified** — 657's table is empty
 0bf. **Four more codes out of scope** — 45 now, and three are backed by the workbook
@@ -83,6 +84,24 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bi. 4438 ימי אבל out of scope — and the family argument is now overwhelming
+
+Passes all three checks **cleanly**: not in `component_rules.json`, no column in
+`tosafot`, `SACHAR` or `SACHAR4643`, and **no entry in `מאפייני רכיבי שכר` at
+all**, so no pensionability declaration either way. `NON_PENSIONABLE` is now
+**47 codes**, Python and JS in sync. Footprint: one row, ₪3.95, in 12/2022 only.
+
+**The "ימי X" absence family now occupies six codes** — 4436 (חופשה), 4437
+(מחלה), 4438 (אבל), 5271 (חג), 5272 (מחלה), 5273 (בחירה) — added across **five
+separate batches over two days**, plus 4123 (100% ש.מחלה) making "sick days"
+alone span three codes.
+
+That is the strongest form of §15's argument. After **47 codes in 12 batches**,
+the list will keep growing one code per file for as long as the workbook has no
+declared `פנסיוני` column. The vehicle already exists — the 295-row table in
+`sminimum` — and needs exactly one more column. **Lead with this whenever the
+user asks what to fix; it is the only change that stops the list growing.**
 
 ## 0bh. 657's table filled — and the 12/2022 file
 

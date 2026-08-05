@@ -293,6 +293,10 @@ NON_PENSIONABLE = {
     # 4140 to contradict the Progim. Footprint is small: 1 row / ₪281.44 across
     # 15 files. See docs/PROGIM_FIXES.md §17.
     4538,   # שבת 100% — מוצהר פנסיוני בחוברת ובשמו; הוצא בהוראת המשתמש
+    # 4438 — clean: no rule, no tosafot/SACHAR column, and no entry in
+    # `מאפייני רכיבי שכר`, so no pensionability declaration either way.
+    # Sixth member of the "ימי X" absence family on this list.
+    4438,   # ימי אבל
 }
 
 

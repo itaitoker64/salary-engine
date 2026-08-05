@@ -226,7 +226,9 @@
     4192, 1152, 1153, 651,
     // 4538 — בניגוד לחוברת: מוצהר `משכורת קובעת = כן`, ושמו בגולמי
     // "שבת%100-פנס". נוסף בהוראת המשתמש. ראו docs/PROGIM_FIXES.md §17.
-    4538]);
+    4538,
+    // ימי אבל — נקי: אין כלל, אין עמודה בחוברת, אין הצהרת פנסיוניות (5.8.2026).
+    4438]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it
