@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0by. **12/2012 engineers + correction** — the pay-agreement stall is retro, not a 4550-style bug
 0bx. **607 extended to 12/2012 + 12/2011 engineers** — the pay-agreement family stalls at 94-97%
 0bw. **✅ 1631 out of scope — workbook-backed** — 49 codes; the elections family is now two
 0bv. **607 extended to 12/2010 + 12/2010 engineers** — 607 is engineers-only, measured
@@ -99,6 +100,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0by. 12/2012 engineers — and a correction to my own read of the stall
+
+**Run:** 1,233 workers, all דירוג 12 · 1,186 valid · **1 true error** (0.08%) ·
+₪136 exposure, all overpayment. Partition closes. **Coverage gap 0 / ₪0 —
+fourth consecutive file.** 669 reads 97.9%, a fifth §23 confirmation. Trust gate:
+**10 of 29 checked**, the lowest ratio yet.
+
+### ‼ Correction to 0bx
+
+In 0bx I wrote that digging into 4544/4934/4994 would likely turn up a formula
+bug like 4550's. **Measured, and that is probably wrong.** The failure signatures
+are opposite:
+
+| | direction | slip/expected spread |
+|---|---|---|
+| **4550 before §22** | **628 of 628 the same way** (slip < expected) | tight, 0.39-0.61 |
+| 4544 (12/2012) | 18 under vs 26 over | wide: 0.92, 1.18, 1.23, 1.26, 1.59 |
+| 4934 | 14 under vs 46 over | 0.98, 1.04, 1.21, 1.25 |
+| 4994 | 23 under vs 38 over | 0.93-1.23 |
+
+One-directional failure in a tight ratio band is the signature of a wrong
+formula — that is exactly what led to the 4550 fix. **Bidirectional failure with
+a wide spread is the signature of retro adjustments folded into the component.**
+
+**So the recommendation changes:** do not hunt a formula bug in these three. Find
+out whether the גולמי carries a **retro flag** that would let those rows be
+identified and neutralized deliberately, instead of dragging the match rate to
+95% and silencing the component outright — the same remedy §7 already records
+for 705.
+
+**What stands from 0bx:** the four components really do sit under the gate in
+every one of the six engineers files, really are carried by almost the whole
+file, and really are never checked. Only the suspected cause has changed.
 
 ## 0bx. 607 extended through 12/2012, 12/2011 checked, and a pattern worth chasing
 
