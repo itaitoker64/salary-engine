@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bn. **Sixth neutralization column: 1063** — built as asked, and it reads 0 everywhere
 0bm. **‼✅ The pulse dating is SOLVED** — it was in the workbook all along; §14 reversed
 0bl. **✅ 1063 was never checked — ₪10.1M** — the biggest one yet, now at 98.6%
 0bk. **Fifth neutralization column: 5524** — justified, and it swallows 1096 whole
@@ -88,6 +89,41 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bn. Sixth neutralization column — 1063, and it reads zero in every file
+
+The user asked for a "שגויי מנמ"ש 2022" bucket for 1063, placed immediately
+after "שגויי בית חולים מאוחדת". Built in all four places (`mnmsh22` in the
+`err_cat` chain right after `bmeuhedet`, the dashboard order, and both
+front-ends). Dashboard is now **26 columns**; trailing indices shifted again
+(אמיתיים 23→24, % 24→25 so the CF range moved X→Y, תקין 25→26, and the
+front-end's own red data bar W→X). The gap table's anchor is derived from
+`len(labels)`, so it followed automatically this time.
+
+**Measured before shipping: at that position the bucket catches 0 workers** — in
+12/2023 and in 12/2022, the only two files where 1063 exists. True errors are
+unchanged (8 and 24).
+
+It swallows nothing, but it also shows nothing, because all of 1063's failures
+are already claimed by buckets **earlier** in the chain:
+
+| claimed today by | 12/2023 | 12/2022 |
+|---|---|---|
+| תוספת 1999 | 98 | 77 |
+| בית חולים מאוחדת | 15 | 16 |
+| גמול השתלמות | 14 | 15 |
+| גמול מנהל | 5 | 1 |
+| שכר בסיס | 1 | 4 |
+| **total 1063 failures** | **133** | **113** |
+
+**Do not read the 0 as "1063 is clean."** The same dashboard's gap table lists
+1063 at 133 gaps / ₪29,619 for 12/2023. This is the 738 trap again — a zero in a
+neutralization column means "nobody landed here", never "no errors".
+
+**To make the column show a number** it has to move ahead of `h1999` in the
+chain. Measured: it would then take 118 workers in 12/2023, 98 of them out of
+the תוספת 1999 column, which would nearly empty it. Not done — that is the
+user's call.
 
 ## 0bm. ‼ The pulse-table dating is solved — and my earlier "refutation" was wrong
 
