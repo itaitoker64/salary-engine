@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bo. **Seventh neutralization column: 697** — the most effective bucket yet, and the most consequential
 0bn. **Sixth neutralization column: 1063** — built as asked, and it reads 0 everywhere
 0bm. **‼✅ The pulse dating is SOLVED** — it was in the workbook all along; §14 reversed
 0bl. **✅ 1063 was never checked — ₪10.1M** — the biggest one yet, now at 98.6%
@@ -89,6 +90,38 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bo. Seventh neutralization column — 697, and it moves the headline more than any other
+
+The user asked for a "שגויי תוספת מיוחדת" bucket for 697, placed immediately
+after "שגויי תוספת 1999". Built in all four places (`meyuhedet` after `h1999`
+in the `err_cat` chain, the dashboard order, both front-ends). Dashboard is now
+**27 columns**; trailing indices shifted again (אמיתיים 24→25, % 25→26 so the CF
+range moved Y→Z, תקין 26→27, front-end red bar X→Y).
+
+This is the **earliest slot** any component bucket has been given — position 8
+of 19 — so it pulls from many later buckets. Measured on four files first:
+
+| file | catches | ₪ | taken from | true errors before → after |
+|---|---|---|---|---|
+| 12/2023 | 8 | ₪3,050 | 7 real, 1 גמול מנהל | **8 → 1** |
+| 12/2022 | 12 | ₪1,703 | 12 real | **24 → 12** |
+| 12/2016 | 8 | ₪2,400 | 7 real, 1 גמול מנהל | **18 → 11** |
+| 12/2020 | 1 | ₪105 | 1 real | 15 → 14 |
+
+**It swallows almost nothing** — unlike the 5340 and 5524 buckets. Of the 29
+workers it takes across the four files, only **2** carry a second failing code,
+both of them 4983 (גמול מינהל), one in 12/2023 and one in 12/2016. Separately,
+697 keeps failing for workers claimed *earlier* in the chain (2 / 1 / 6 in those
+files, under גמול and תוספת 1999); the bucket never sees them.
+
+**The open question, and it is the important one.** 697's rule is sourced —
+7.5% in the חוקה — so the workers this bucket takes are genuinely failing a
+validated check. The bucket does not prove them innocent; it relabels them from
+"true error" to "known cause". **If 697 really is being mispaid, this bucket
+hides ₪7,258 across those four files alone.** Nobody has checked whether 697's
+deviations are retro multiples (neutralizing is right) or arbitrary amounts
+(neutralizing hides money). That check is not done and should be.
 
 ## 0bn. Sixth neutralization column — 1063, and it reads zero in every file
 
