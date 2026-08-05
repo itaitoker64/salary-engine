@@ -1,4 +1,4 @@
-<!-- head: b3ad359 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ay. **The 12/2020 file checked** — the converted rules already find errors; two costly new gaps
 0ax. **737, 5251, 5253 converted to pulse tables** — two were never checked at all
 0aw. **‼ 738 correction** — the workbook was right, our extractor was wrong; rule added
 0av. **738 analysed** — the workbook has everything but the formula; two conflicting rates
@@ -73,6 +74,45 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ay. The 12/2020 file — the conversions pay off immediately
+
+Fourteenth file: **December 2020**, **19,542 workers**. **96.71% · 16 true
+errors · ₪6,159**; partition closes. Docs only.
+
+**Yesterday's conversions validate and already find money.** 737 is 97.2%
+trusted with modal full-time 364.00 against a table step of 364; 5251 is 98.5%
+at 257.50; 5253 is 97.3% at 490.80 — all exact. And **737 (4 workers, ₪1,603)
+and 5253 (4, ₪1,603) are now 8 of the file's 16 true errors**, on components that
+were accepted unchecked until yesterday. That is what the reclassification was
+for.
+
+Worth noting: 737, 5251 and 5253 show **the same table steps in 12/2020 as in
+12/2019** — the cohort did not advance. More evidence the tables are keyed on
+**retirement month**, not payslip month, consistent with §14 and with the dating
+model that was refuted in 0as.
+
+**5402's fifth anchor — the ramp has stopped.** 0.90375 → **₪303.66**, against
+₪301.85 in 12/2019: a growth factor of **×1.006** after 1.536, 1.539 and 1.909.
+The component climbed and then plateaued at ~₪303, which is 90.4% of the ₪336 the
+workbook knows — strengthening the reading that ₪336 is the mature value. §7 now
+has five measured rows.
+
+**Coverage gap: 12 codes / ₪626,202, with two expensive newcomers.** **633
+ת.מפ. בזק ב at ₪478,579 over 249 rows** and **4192 ימים סגורים at ₪115,412 over
+195 rows**, then 890 (₪11,429), 651 (₪9,364) and 4140 (₪6,911). 633 had appeared
+in the union list at just ₪59.68 over two rows; here it is ₪478k.
+
+**This time I checked before claiming.** After the 738 mistake I opened the
+`tosafot` code row and the `SACHAR`/`SACHAR4643` component rows for all twelve
+codes: **none has a `tosafot` column and none has a component column in either
+SACHAR sheet.** These are genuine coverage gaps, not extractor misses. Do the
+same check before reporting any future gap.
+
+Other: 805 is 97.1% trusted at 116.41; 738 slipped to 95.8% and is silenced; 875
+is 96.9% and silenced, so its bucket is empty — 3 of 14 files. **דריכות errors
+hit 112**, the highest measured, and גמול 174. Calibration silenced 27 of 51
+rules, ₪2,144,127, led by 4550 at ₪1.28M (50.2%, as always) and 5402 at ₪636k.
 
 ## 0ax. 737, 5251, 5253: fixed amounts were actually period tables
 
