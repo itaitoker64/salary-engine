@@ -1,4 +1,4 @@
-<!-- head: 9c8d6e9 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0at. **Unified report over 11 files** — 229,426 slips; 94% of the coverage gap is 4 codes
 0as. **The 12/2019 file checked** — my dating model is refuted outright; fourth 5402 anchor
 0ar. **New 4140 neutralization column** — asked for, justified, and it moves no headline
 0aq. **Four more codes out of scope** — the list is now 39; whole benefit families spread across it
@@ -68,6 +69,41 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0at. Unified report across all 11 available files
+
+One run over everything on hand: the 0108 reference plus ten Decembers from 2008
+to 2019. Written to `דוח_מאוחד_11_קבצים_05.08.2026.xlsx` and sent to the user.
+
+**229,426 workers · 216,509 valid · 150 true errors (0.0654%) · ₪45,013
+exposure** (₪26,631 under, ₪18,381 over). **All 12 partitions close.**
+
+Per file: 01/2008 98.21% (10 errors), 12/2008 98.76% (15), 12/2009 98.59% (12),
+12/2010 98.40% (11), 12/2011 97.62% (11), 12/2012 97.90% (2), 12/2015 97.21%
+(13), 12/2016 97.85% (19), 12/2017 97.65% (19), 12/2018 97.89% (19), 12/2019
+98.21% (19).
+
+**12/2013 and 12/2014 are missing** — their גולמי uploads vanished in the
+rollback described in 0al and cannot be re-run. Their findings survive only as
+prose.
+
+**True errors rank differently by count and by money — use money.** By count:
+697 (38), 736 (26), 756 (17), 4651 (13), 626 (12). By exposure: **628 at ₪14,926
+across only 8 workers** (~₪1,866 each), 736 ₪11,254, 756 ₪7,199, 4651 ₪6,693,
+4169 ₪3,809. 626 is the opposite extreme — 12 workers, ₪121 total. 4651 appearing
+at 13 workers / ₪6,693 is the §11 component the workbook could not compute at all
+until yesterday.
+
+**Union coverage gap: 21 codes / ₪1,852,622 — and 94% of it is four codes.**
+738 ת. אחוז-יום is **₪1,202,498 over 5,041 rows, 65% on its own**, then 1622
+(₪261,436), 1631 (₪207,244) and 1623 (₪77,082); 4140 follows at ₪73,508 across 33
+rows. That is a four-line work list and currently the highest-return investment
+available in the workbook — worth leading with when the user asks what to fix
+next.
+
+The new 4140 column caught **6 workers** across all 11 files. The cross-month
+sheets hold 2,811 and 2,844 rows and are chronologically valid, since every file
+now has either a date column or an MMYY name.
 
 ## 0as. The 12/2019 file — the dating model is dead, and it cannot be revived
 
