@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bx. **607 extended to 12/2012 + 12/2011 engineers** — the pay-agreement family stalls at 94-97%
 0bw. **✅ 1631 out of scope — workbook-backed** — 49 codes; the elections family is now two
 0bv. **607 extended to 12/2010 + 12/2010 engineers** — 607 is engineers-only, measured
 0bu. **607 added to the workbook + 12/2009 engineers** — first file with a zero coverage gap
@@ -98,6 +99,44 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bx. 607 extended through 12/2012, 12/2011 checked, and a pattern worth chasing
+
+A 24-cell diff fills `tosafot!AS43:AS66` — codes 37-60 (1.2011-12.2012) — with
+₪1,943.23. The table now covers **codes 1-60**, empty from code 61. Third
+extension of the day: 1-24 → 1-36 → 1-60.
+
+**12/2011 engineers:** 1,226 workers, all דירוג 12 · 1,176 valid · **4 true
+errors** (0.33%) · ₪314 exposure. Partition closes. **Coverage gap 0 / ₪0 —
+third consecutive file.** 669 reads 98.9% (fourth §23 confirmation); 607 has one
+carrier left, matching.
+
+### ‼ The pattern across all five engineers files
+
+The same components sit under the 97% gate every single time, so they are never
+checked:
+
+| code | name | 01/2008 | 12/2008 | 12/2009 | 12/2010 | 12/2011 |
+|---|---|---|---|---|---|---|
+| 4544 | הסכם 2001 / תוספת 3.6 | 96.8% | — | 95.4% | 96.8% | 95.9% |
+| 4550 | הסכם 2001 אישי | 94.2%* | 95.2% | 93.4% | 94.9% | 94.2% |
+| 4934 | הסכם 2009 | — | — | — | 95.7% | 94.5% |
+| 4994 | הסכם 2011 | — | — | — | — | 94.5% |
+
+<sub>* after §22's fix; 42.1% before it.</sub>
+
+All four are the **pay-agreement family** (2001 / 2009 / 2011), each carried by
+1,000-1,250 of the ~1,225 workers — essentially the whole file — and all four
+stall in a narrow 94-97% band. Four related components, five files, always the
+same range: that does not read as noise.
+
+**Practical meaning:** in these files the components covering almost every
+worker are precisely the ones not being checked. Every "0 true errors" on this
+track must be read next to this table.
+
+**Next step, not yet done:** find out why the pay-agreement family stalls at ~95%
+for engineers, exactly as §22 did for 4550 and found a wrong formula. This is
+now the largest open item on the track.
 
 ## 0bw. 1631 out of scope — the second batch the workbook backs
 
