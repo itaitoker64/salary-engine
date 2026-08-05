@@ -305,6 +305,16 @@ def collect(paths, pure=False):
             # ניכוי 6% א"ע — see the bucket below.
             has_1711 = any(cp.code == 1711 and (cp.amount or 0) != 0
                            for cp in r.components)
+            # משכ. בסיסית (4140): a basic-salary component with NO formula in
+            # the workbook — the most persistent item in the coverage gap
+            # (eight files). A slip carrying it has a base the חוקה cannot
+            # reproduce, so the recompute is expectedly off. Placed FIRST in
+            # the chain at the user's request. Measured before adding: across
+            # eight files it catches 5 invalid workers — 4 currently in the
+            # base bucket, 1 in 1999, none in "real" — so the true-error count
+            # does not move; it only re-attributes.
+            has_4140 = any(cp.code == 4140 and (cp.amount or 0) != 0
+                           for cp in r.components)
             # ותק קטוע: the file's 2-decimal ותק is not on the quarter grid, so
             # the base recompute rests on a restored (+0.005) value — when the
             # slip still mismatches, the truncated source data is the known
@@ -316,7 +326,9 @@ def collect(paths, pure=False):
             # neutralizing each known cause leaves only the true unknowns.
             err_cat = None
             if r.status == "invalid":
-                if has_student:
+                if has_4140:
+                    err_cat = "b4140"
+                elif has_student:
                     err_cat = "student"
                 elif vatek_trunc:
                     err_cat = "vatek"
@@ -425,7 +437,8 @@ def collect(paths, pure=False):
         # column swallowed them. Now: no-base + retro + the buckets + valid =
         # the worker total, and משרה חלקית is a descriptive "of which" column
         # standing OUTSIDE the partition.
-        for cat, key in (("student", "inv_student"), ("vatek", "inv_vatek"),
+        for cat, key in (("b4140", "inv_b4140"),
+                         ("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
                          ("d1711", "inv_d1711"),
                          ("h1999", "inv_h1999"), ("brich", "inv_brich"),
@@ -518,12 +531,12 @@ def collect(paths, pure=False):
 # The neutralization chain in display order — must match the err_cat priority
 # in collect() and the dashboard column order. Stated on the report itself so
 # a reader can see which bucket claimed a worker first.
-CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← ותק סטודנט ← ותק קטוע ← בסיס '
+CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← ותק סטודנט ← ותק קטוע ← בסיס '
             '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל '
             '← בוררות מיסים ← מקצועית מיסים ← תוספת בית חולים '
             '← תוספת בית משפט ← שגיאה אמיתית ← תקין')
 
-NEUTRAL_HE = {"student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
+NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
               "brich": "דריכות בי\"ח",
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
@@ -669,7 +682,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         _gap = [u for u in uncovered if not u.get("reported")]
         s_gap = round(sum(u["sum"] for u in _gap))
         s_rep = round(sum(u["sum"] for u in _rep))
-        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=20)
+        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=21)
         w = ws.cell(row=3, column=1,
                     value=(f"\u26a0 {len(_gap)} סמלים (₪{s_gap:,}) ללא נוסחה ב-Progim "
                            f"ואינם מוצהרים כמוזנים — חור בכיסוי החוברת. "
@@ -688,7 +701,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
     for k in ("part_time", "ft", "ft_valid", "ft_no_base", "ft_multi",
-              "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
+              "inv_b4140", "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
               "inv_h1999",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_mikzoit",
               "inv_bhol", "inv_bmish", "inv_real"):
@@ -722,7 +735,8 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # The partition is unchanged — it is simply no longer contiguous: the
     # categories are D..O plus Q.
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
-              "שתי שורות שכר משולב", "שגויי ותק סטודנט", "שגויי ותק קטוע",
+              "שתי שורות שכר משולב", "שגויי משכ. בסיסית 4140",
+              "שגויי ותק סטודנט", "שגויי ותק קטוע",
               "שגויי בסיס", "שגויי גמול", "שגויי ניכוי 6% א\"ע",
               "שגויי תוספת 1999", "שגויי דריכות",
               "שגויי גמול מנהל", "שגויי בוררות מיסים",
@@ -730,11 +744,11 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "שגויי תוספת בית משפט",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 13, 13, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 13, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
-                r.get("inv_student", 0), r.get("inv_vatek", 0),
+                r.get("inv_b4140", 0), r.get("inv_student", 0), r.get("inv_vatek", 0),
                 r.get("inv_base", 0), r.get("inv_gmul", 0),
                 r.get("inv_d1711", 0), r.get("inv_h1999", 0),
                 r.get("inv_brich", 0), r.get("inv_mnhal", 0),
@@ -745,22 +759,22 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 19 or c_i == 21:
+            if 3 <= c_i <= 20 or c_i == 22:
                 cell.number_format = INT
-            if c_i == 21:
+            if c_i == 22:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18) and v:
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 19 and v:
+            if c_i == 20 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 20:
+            if c_i == 21:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
     real_pct_tot = _real_pct
     # Same order as `labels`: תקין is the LAST column, % second to last.
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["no_base"],
-             tot["multi"], tot["inv_student"], tot["inv_vatek"],
+             tot["multi"], tot["inv_b4140"], tot["inv_student"], tot["inv_vatek"],
              tot["inv_base"], tot["inv_gmul"], tot["inv_d1711"],
              tot["inv_h1999"],
              tot["inv_brich"], tot["inv_mnhal"], tot["inv_borerut"],
@@ -771,13 +785,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 19 or c_i == 21:
+        if 3 <= c_i <= 20 or c_i == 22:
             cell.number_format = INT
-        if c_i == 20:
+        if c_i == 21:
             cell.number_format = "0.00%"
-        if c_i == 19:
+        if c_i == 20:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"T{head_r + 1}:T{last}"    # % שגויים אמיתיים
+    rng = f"U{head_r + 1}:U{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
@@ -792,13 +806,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color=BAR_BLUE, showValue=True))
     ws.conditional_formatting.add(
-        f"S{head_r + 1}:S{last}",          # שגויים אמיתיים
+        f"T{head_r + 1}:T{last}",          # שגויים אמיתיים
         DataBarRule(start_type="num", start_value=0, end_type="max",
                     color="FFD03B3B", showValue=True))
 
     # ---- פערים לפי סמל שכר (a second table, to the right of the per-file one) ---
     if code_gaps:
-        cbase = 22   # column V (leaves a gap after the 20-column per-file table)
+        cbase = 23   # column W (leaves a gap after the 21-column per-file table)
         heads = ["סמל", "שם רכיב", "כמות פערים", "שווי ₪", "הסיבה לפער"]
         widths = [9, 22, 12, 13, 40]
         for j, (h, w) in enumerate(zip(heads, widths)):

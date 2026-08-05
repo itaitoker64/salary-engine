@@ -1,4 +1,4 @@
-<!-- head: 7835f9d -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ar. **New 4140 neutralization column** — asked for, justified, and it moves no headline
 0aq. **Four more codes out of scope** — the list is now 39; whole benefit families spread across it
 0ap. **The 12/2018 file checked** — coverage gap explodes to ₪1.06M; third 5402 anchor
 0ao. **The 12/2017 file checked** — a second 5402 anchor; the component ramps
@@ -66,6 +67,45 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ar. A neutralization column for 4140 — and 5374 out of scope
+
+The user asked for a **"שגויי משכ. בסיסית 4140"** column immediately after
+"שתי שורות שכר משולב" — i.e. **first in the neutralization chain**. Delivered in
+all three places that must agree: `tools/unified_report.py`, `index.html`,
+`salary_frontend.html`, with the HTML files byte-identical. The dashboard is now
+**22 columns**; every index shifted, the conditional-formatting ranges moved to
+`T`/`U`, the banner merge to 21 and the side table to `W`. Partitions close.
+
+**How it detects:** not by a failing rule — 4140 has no formula in the workbook
+so it can never fail — but by **the code being present on the slip**, the same
+pattern already used for 5527 and 1711.
+
+**What it absorbs, measured before building:** 5 invalid workers across eight
+files — 12/2012 (1, from 1999), 12/2015 (1, from base), 12/2016 (2, from base),
+12/2018 (1, from base). Zero in 12/2008, 12/2010, 12/2017 and 0108.
+
+**None of them is currently a "real" error.** All five are already neutralized
+elsewhere, so **the true-error count does not move in any file** — 13, 19 and 19
+for 12/2015, 12/2016 and 12/2018 before and after. The column **re-attributes**;
+it does not neutralize anything new. Say that plainly if anyone reads the new
+column as an improvement in the headline.
+
+**Unlike the 875 column, this one has a justification.** 4140 is a *base-salary*
+component with no formula, so a slip carrying it has a base the חוקה cannot
+reproduce — attributing the gap to 4140 instead of to "שגויי בסיס" points at the
+root rather than the symptom. It also swallows nothing: every worker it takes was
+already in a neutralization bucket. **What retires it:** giving 4140 a formula in
+the workbook. It is the most persistent coverage-gap item there is (eight files).
+
+**5374 (תוספת מו"מ) out of scope**, eighth batch, passing both checks — absent
+from the workbook and from every rule, seen in 12/2016 (₪780), 12/2017 (₪802)
+and 12/2018 (₪821). `NON_PENSIONABLE` is now **40 codes**, Python and JS in sync.
+
+Coverage gaps after the last two batches: 12/2015 **3 / ₪6,883**, 12/2016 **3 /
+₪10,365**, 12/2018 **9 / ₪1,055,069**. What remains in 12/2018 cannot be solved
+by declaring scope: 738 (₪472,663), 1622 (₪261,436), 1631 (₪207,244), 1623
+(₪74,629) and 4140 (₪26,309) are pay components — **₪1.04M of real coverage gap.**
 
 ## 0aq. 5438, 5273, 4436, 4437 out of scope — batches six and seven
 

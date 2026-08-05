@@ -215,7 +215,9 @@
     // 5.8.2026: סטודנט לומד, ימי בחירה (משלים את 5271/5272).
     5438, 5273,
     // ימי חופשה / ימי מחלה — תאומים של 4122 ו-5272 (5.8.2026).
-    4436, 4437]);
+    4436, 4437,
+    // תוספת מו"מ (5.8.2026).
+    5374]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it
