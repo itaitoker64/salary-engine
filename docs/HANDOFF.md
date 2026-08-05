@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bp. **5270 ותק פעילות is defined and unchecked** — the seventh such component; report in progress
 0bo. **Seventh neutralization column: 697** — the most effective bucket yet, and the most consequential
 0bn. **Sixth neutralization column: 1063** — built as asked, and it reads 0 everywhere
 0bm. **‼✅ The pulse dating is SOLVED** — it was in the workbook all along; §14 reversed
@@ -90,6 +91,42 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bp. 5270 ותק פעילות — defined in the workbook, never checked, and nothing matches
+
+The user asked for a per-employee gap report on 5270. Building it needed a
+standard value, so I opened `tosafot!CV` — and it is there in full:
+
+```
+CV2 = IF(MISRAD!W2=1, IF('Netunei Gimlai'!G28=TRUE, CV3,
+                      IF(G29=TRUE, CW3, IF(G30=TRUE, CX3, 0))), 0)
+```
+
+`CV3 = 181` (רמה 1), `CW3 = 362` (רמה 2, exactly 2×181), `CX3 = 904.99`
+(רמה 3 — 5×181 is 905, so the workbook is one agora short). All three are
+declared fixed across all 228 month codes (`CV6:CX6 = =+$CV$3`).
+
+The engine's rule was nevertheless `reported` — accepted as-is, never
+validated, carrying the same wrong auto-note about an unresolvable VLOOKUP.
+**Seventh component found this way**, after 738, 737, 5251, 5253, 5340, 1063.
+
+**Measured against those three levels, essentially nothing matches:** 12/2011
+1 of 83; 12/2012 0 of 81; 12/2013 0 of 86; 12/2014 0 of 79; 12/2015 0 of 89;
+12/2016 0 of 90; 12/2017 0 of 83; 12/2018 0 of 226. The component is absent
+before 12/2011. Per-worker gaps are small (₪55–₪90 average), which points at the
+column holding **today's amount only** while declaring itself constant for all
+228 codes — the same defect 805 had before its table was filled, and written up
+as `PROGIM_FIXES` §21.
+
+Do not convert 5270 to a `shekel` rule on these three values. At a ~0% match it
+would be silenced by the trust gate anyway, and if it ever passed it would flag
+every carrier. What it needs first is a pulse table, or confirmation from the
+user that 181/362/904.99 are era-specific.
+
+**Also unresolved:** the level (1/2/3) comes from three manually-ticked flags in
+`Netunei Gimlai`, and the גולמי file carries no field saying which level a
+worker is on. The report infers the level from the amount paid, which cannot
+catch a worker placed on the wrong level — stated in §21 as a gap to close.
 
 ## 0bo. Seventh neutralization column — 697, and it moves the headline more than any other
 
