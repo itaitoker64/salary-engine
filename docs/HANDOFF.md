@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0br. **🔧 Engineers track opened + 4550 corrected** — the gate hides 14 of 22 rules on a small file
 0bq. **✅ 5270 fixed by the user** — five-tier pulse table; gaps collapse, two defects left
 0bp. **5270 ותק פעילות is defined and unchecked** — the seventh such component; report in progress
 0bo. **Seventh neutralization column: 697** — the most effective bucket yet, and the most consequential
@@ -92,6 +93,46 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0br. Engineers track opened — and it immediately found a bug in our 4550
+
+The user sent an 01/2008 extract that is **100% engineers** — 1,275 workers, all
+דירוג 12 — to start a track-specific workstream. Result: 1,275 workers, 1,230
+valid, **0 true errors**, ₪0 exposure. Partition closes (24 no-base + 7 ותק קטוע
++ 3 base + 10 gmul + 1 דריכות + 1,230 valid).
+
+**Do not report that 0 as "engineers are paid correctly."** On this file only
+**8 of 22 components are actually checked**. Eight are silenced for `n < 20`
+(626, 630, 642, 728, 805, 853, 907, 4406 — the file is too small for a
+population signal) and six for falling under 97%: **4550 at 42.1% on 1,084
+carriers**, 4544 at 96.8% on 1,251, 4651 96.7%, 756 95.6%, 628 93.6%, 4624
+92.3%. The two most-carried components in the file are both muted. **A
+track-scoped file trips the trust gate far harder than a full monthly file** —
+that is the standing lesson for this workstream.
+
+**What it found: our 4550 was wrong.** 42.1% with *every* failure in the same
+direction (slip below computed) reads as a bad formula, not mass underpayment.
+The `4550` sheet says
+`D13 = IF(K14=1, 0, MAX(D9-D11, 0, K4-D11))` — the floor term is the ministry
+maximum **minus the same deductions**. We used `ministry max × job%`, never
+subtracting them and scaling where the sheet does not. Fixed in `main.py` and
+`engine.js`; `base_codes` also corrected from `[1, 2, 10002, 4624]` (1 and 2
+were extraction debris) to `[10002, 658, 678, 4624]`.
+
+Measured: engineers 42.1% → **94.2%**, 12/2023 54.4% → **76.8%**, 12/2018 49.0%
+→ **71.8%**. The base_codes half changed nothing (658/678 are zero for these
+engineers) — the whole gain is the floor term. It clears 97% nowhere, so **no
+worker changed verdict**: the re-run gave the same 21 invalid and the same
+98.32%. Fidelity, not new flags. `PROGIM_FIXES` §22.
+
+**Open on this track:** the 24 no-base workers are not a pay-table gap (0 grades
+missing from lookups) and are undiagnosed; `ותק מקסימלי` is blank for engineers
+in `DERUG` (filled only for tracks 1, 2, 7) so no seniority ceiling is enforced;
+and 4550 still has `K14` (not-entitled ministries → 0) unimplemented, plus an
+unexplained `K` vs `L` column pair in its ministry table.
+
+**Verified how:** `python3 -m pytest tests/ -q` → 34 passed; `node --check
+engine.js` → clean; engineers file re-run unchanged at 21/98.32%.
 
 ## 0bq. 5270 fixed — and the fix confirms the dating a second time
 

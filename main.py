@@ -407,16 +407,25 @@ def check_worker_components(components, job_pct, rules, ministry_code=0,
             best = min(rates, key=lambda r: abs(base * r - slip))
             expected = round(base * best, 2)
         elif rtype == "max22":
-            # 4550 (הסכם 2001 אישי), per the Progim '4550' sheet: the higher of
-            # 22% × (שכר משולב + הסכם 99) minus the listed deductions, and the
-            # ministry floor (714.7 default; per-ministry overrides) × job%.
+            # 4550 (הסכם 2001 אישי), transcribed from the Progim '4550' sheet:
+            #   D13 = IF(K14=1, 0, MAX(D9 - D11, 0, K4 - D11))
+            # i.e. the greatest of 22% × base minus deductions, zero, and the
+            # ministry maximum ALSO minus the same deductions.
+            # Corrected 5.8.2026: the floor used to be `ministry max × job%`,
+            # which is not what D13 says — it never subtracted the deductions
+            # and it scaled by job% where the sheet does not. Measured on the
+            # engineers file (1,275 slips, all דירוג 12) the fix moves 4550 from
+            # 42.1% to 94.2%; on 12/2023 from 54.4% to 76.8% and on 12/2018 from
+            # 49.0% to 71.8%. It clears the 97% gate on none of them, so no
+            # worker changes verdict — this buys fidelity to the חוקה, not new
+            # flags. See docs/PROGIM_FIXES.md §22.
             base = sum(amounts.get(c, 0.0) for c in rule["base_codes"])
             if base <= 0:
                 continue
             ded = sum(amounts.get(c, 0.0) for c in rule["deductions"])
             floor = rule["floors"].get(str(ministry_code or 0),
-                                       rule["floor_default"]) * jp
-            expected = round(max(rule["pct"] * base - ded, floor), 2)
+                                       rule["floor_default"]) - ded
+            expected = round(max(rule["pct"] * base - ded, 0.0, floor), 2)
         else:
             # shekel: the component is one of a fixed set of flat amounts, scaled
             # by job%. Expected = the closest admissible amount × job% (e.g.

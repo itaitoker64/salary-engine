@@ -160,16 +160,19 @@
         okOverride = Math.abs(expected - slip) <= MATCH_THRESHOLD ||
           (!pure && best > 0 && Math.abs(slip / best - base) <= PERCENT_BASE_TOL);
       } else if (rule.type === 'max22') {
-        // 4550: the higher of 22% × (משולב + הסכם 99) minus deductions, and the
-        // ministry floor × job% (Progim '4550' sheet). Self-calibration keeps
-        // this silent on files where the personal/frozen amounts dominate.
+        // 4550, transcribed from the Progim '4550' sheet:
+        //   D13 = IF(K14=1, 0, MAX(D9 - D11, 0, K4 - D11))
+        // the greatest of 22% × base minus deductions, zero, and the ministry
+        // maximum ALSO minus the same deductions. Corrected 5.8.2026 — the
+        // floor used to be `ministry max × job%`, which the sheet never says.
+        // See main.py and docs/PROGIM_FIXES.md §22 for the measurements.
         let base = 0;
         for (const c of rule.base_codes) base += (amounts.get(c) || 0);
         if (base <= 0) continue;
         let ded = 0;
         for (const c of rule.deductions) ded += (amounts.get(c) || 0);
-        const floor = (rule.floors[String(ministryCode || 0)] || rule.floor_default) * jp;
-        expected = round2(Math.max(rule.pct * base - ded, floor));
+        const floor = (rule.floors[String(ministryCode || 0)] || rule.floor_default) - ded;
+        expected = round2(Math.max(rule.pct * base - ded, 0, floor));
       } else {
         // shekel: one of a fixed set of flat amounts × job% (e.g. גמול מינהל
         // 4983 ∈ {105,210,315}). The closest admissible amount is the standard.
