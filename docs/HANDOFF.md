@@ -113,10 +113,23 @@ validated, carrying the same wrong auto-note about an unresolvable VLOOKUP.
 **Measured against those three levels, essentially nothing matches:** 12/2011
 1 of 83; 12/2012 0 of 81; 12/2013 0 of 86; 12/2014 0 of 79; 12/2015 0 of 89;
 12/2016 0 of 90; 12/2017 0 of 83; 12/2018 0 of 226. The component is absent
-before 12/2011. Per-worker gaps are small (₪55–₪90 average), which points at the
-column holding **today's amount only** while declaring itself constant for all
-228 codes — the same defect 805 had before its table was filled, and written up
-as `PROGIM_FIXES` §21.
+before 12/2011. **The full 1,771-slip measurement then explained it, and the
+structure in the workbook turns out to be half right:**
+
+- The **tier ratios are correct** — 181/904.99 = 0.20 and 362/904.99 = 0.40, and
+  ratios of 0.2 / 0.4 / 1.0 do recur in every file.
+- The **base is not constant**. Measured on full-timers: ₪200 (12/2011) → ₪300
+  → ₪640 → ₪815 → ₪813 → ₪805 → ₪803 → ₪806.60 → ₪813 (12/2019–21) → ₪835.05
+  (12/2022) → ₪878.97 (12/2023). **₪904.99 appears in no file at all**; the
+  trend suggests it is a 2024+ value, but that is a guess, not a measurement.
+- **Two tiers are missing from the workbook**: 0.80 (₪646.30 of ₪806.60, ₪704.26
+  of ₪878.97 — and in 12/2018 it is the *largest* group, 103 workers) and 0.66
+  (₪533 of ₪803, ₪583.06 of ₪878.97). The חוקה declares three levels; five are
+  paid.
+- From 12/2018 on, ₪803 and ₪813 run **side by side** (35–40 workers vs
+  139–155). Frozen cohort or payment error — undetermined.
+
+All of it is written up as `PROGIM_FIXES` §21 with the measured table.
 
 Do not convert 5270 to a `shekel` rule on these three values. At a ~0% match it
 would be silenced by the trust gate anyway, and if it ever passed it would flag
