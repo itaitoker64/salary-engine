@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bs. **✅ 1622 out of scope — backed by the workbook** — 48 codes; clears the biggest 12/2023 hole
 0br. **🔧 Engineers track opened + 4550 corrected** — the gate hides 14 of 22 rules on a small file
 0bq. **✅ 5270 fixed by the user** — five-tier pulse table; gaps collapse, two defects left
 0bp. **5270 ותק פעילות is defined and unchecked** — the seventh such component; report in progress
@@ -93,6 +94,24 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bs. 1622 out of scope — the first batch the workbook explicitly backs
+
+On the user's instruction. Unlike the previous twelve batches, this one is not
+justified by the workbook's silence — `מאפייני רכיבי שכר` row 375 declares 1622
+with **משכורת קובעת = לא** (and לא for both minimum tiers and both gross
+columns). The other checks are clean too: no column in tosafot/SACHAR/
+SACHAR4643, no rule of its own, referenced by no other rule.
+`NON_PENSIONABLE` is now **48**, py/js element-wise equal.
+
+**Measured effect:** 1622 was the single largest item in 12/2023's coverage
+gap. Re-running that file takes it from **11 codes / ₪101,369** to **10 codes /
+₪56,088** — a ₪45,281 drop, exactly 1622.
+
+**⚠ Name mismatch, unresolved:** the workbook calls 1622 "מנהל בחירות"; the
+גולמי files call it "15% ש.ממושך". Same code, two unrelated names. If the code
+was repurposed, someone should confirm the `משכורת קובעת = לא` declaration
+describes the *current* use and not the old one.
 
 ## 0br. Engineers track opened — and it immediately found a bug in our 4550
 

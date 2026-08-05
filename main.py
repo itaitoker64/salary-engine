@@ -211,6 +211,16 @@ TRUST_MIN_N = 20
 # cannot be used instead — on the 0108 file it reads 'כן' for all 124,818 rows,
 # including for every code below, so it carries no signal.
 NON_PENSIONABLE = {
+    # Added 5.8.2026 on the user's instruction. Backed by the workbook rather
+    # than merely unmentioned by it: `מאפייני רכיבי שכר` row 375 declares
+    # 1622 with משכורת קובעת = לא (and לא for both minimum tiers and both
+    # gross columns). It has no column in tosafot/SACHAR/SACHAR4643, no rule of
+    # its own, and is referenced by no other rule's codes/base/deductions.
+    # NOTE: the workbook names 1622 "מנהל בחירות" while the גולמי files call it
+    # "15% ש.ממושך" — same code, two names. Flagged, not resolved.
+    # This clears the largest single hole in the 12/2023 coverage gap:
+    # 26 rows / ₪45,281.
+    1622,   # 15% ש.ממושך / מנהל בחירות — משכורת קובעת = לא בחוברת
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה
