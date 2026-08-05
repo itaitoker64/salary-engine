@@ -1,4 +1,4 @@
-<!-- head: b820b3d -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0be. **Fourth neutralization column: 738** — clean, swallows nothing
 0bd. **The 12/2021 file checked** — both new buckets fire together; 738 is 52% of errors
 0bc. **New 14-file unified report** — 288,640 slips, 212 true errors, all fixes in
 0bb. **New 5340 neutralization column** — asked for, built, and it swallows 626/728/959
@@ -79,6 +80,37 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0be. A neutralization column for 738 — the clean kind
+
+Requested: a **"שגויי תוספת אחוז יום"** column immediately after "שגויי מקצועית
+מיסים". Delivered in all three places, HTML files byte-identical. The dashboard
+is now **24 columns**; indices, the `V`/`W` formatting ranges, the banner merge
+and the side table at `Y` all shifted. Partitions close.
+
+**Measured before building: 26 workers / ₪1,132** — 14 in 12/2018, 12 in 12/2021,
+zero in 12/2019 and 12/2020. **It swallows nothing**: every one of the 26 carries
+738 alone, like the 4140 bucket and unlike 5340. After it, 12/2018 goes 30 → 16
+true errors and 12/2021 goes 23 → 11.
+
+**All four buckets added today, side by side:**
+
+| column | code | absorbs | swallows? |
+|---|---|---|---|
+| תוספת בית משפט | 875 | 64 | no (each carried 875 alone) |
+| משכ. בסיסית | 4140 | 8 | **no** |
+| בית חולים מאוחדת | 5340 | 70 | **yes — 27 workers with 626/728/959** |
+| תוספת אחוז יום | 738 | 26 | **no** |
+
+Three of four are clean; **5340 is the only one that swallows**, and the offer to
+move it later in the chain is still open.
+
+**Context that matters when reading any of these:** 738 and 5340 only became
+checkable today, and their two columns neutralize most of what those conversions
+surfaced. That is a legitimate choice, but **those components are not "clean" —
+they are neutralized.** Anyone reading the dashboard must look at the bucket
+columns, not only at "שגיאות אמת". This is now true of four columns, so it is
+worth stating in any summary sent to the user.
 
 ## 0bd. The 12/2021 file — and a `--no-per-employee` flag
 
