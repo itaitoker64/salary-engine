@@ -1,4 +1,4 @@
-<!-- head: bf9fc6f -->
+<!-- head: 70bbd7c -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
