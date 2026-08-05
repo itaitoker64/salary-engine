@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bk. **Fifth neutralization column: 5524** — justified, and it swallows 1096 whole
 0bj. **The 12/2023 file checked** — the trust gate silences 805 and 738; 80% of "true errors" are day-proration
 0bi. **4438 out of scope** — 47 codes; the "ימי X" family is now six of them
 0bh. **657 filled and now checked** — 90%, and one missing tier explains the rest; 12/2022 run
@@ -85,6 +86,43 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bk. Fifth neutralization column — 5524, and what it costs
+
+The user asked for a bucket for **5524 תוספת שקלית 2023**, placed immediately
+after "שגויי תוספת בית משפט". Built in all four places: the `err_cat` chain in
+`tools/unified_report.py` (`shk2023`, right after `bmish`), the dashboard column
+order, and the mirrored chain in `index.html` and `salary_frontend.html`.
+Adding one column shifted the dashboard's trailing indices — אמיתיים 22→23,
+% 23→24 (`rng` moved `W`→`X`), תקין 24→25 — and both formatting loops were
+updated to match. The dashboard is now **25 columns**.
+
+**Why it is justified.** 5524's tariff is right: 14,623 of 14,816 full-timers
+pay exactly the חוקה's ₪400. Its 279 gaps are 77 retro reversals plus 131 exact
+multiples of ₪400/30 — day proration the workbook never defines (`PROGIM_FIXES`
+§19). None of them is a wrong amount.
+
+**‼ What it costs — measured before shipping, on 12/2023:**
+
+| | before | after |
+|---|---|---|
+| true errors | 40 | **8** |
+| true-error exposure | ₪10,967 | ₪1,092 |
+
+The bucket takes **32 workers / ₪9,875**. Two of those 32 carry a second
+failing code, and that is the damage:
+
+- **1096 (תוס מנמ"ש מטה 2022) had 2 workers in the true-error list; both are
+  swallowed. It now shows zero.**
+- 736 (תוספת מנהל) goes 3 → 1.
+
+After the change the entire true-error list for 12/2023 is 697 (7 workers) and
+736 (1). Anyone investigating 736 or 1096 must filter the per-employee sheet on
+`neutral_he = "תוספת שקלית 2023"`, not read the אמיתיים column.
+
+**Blast radius:** 5524 exists **only in 12/2023** — 17,922 carriers there, 0 in
+each of the other fifteen files (measured directly off the raw rows). The column
+changes exactly one row of the unified report.
 
 ## 0bj. The 12/2023 file — the trust gate is the story, not the error count
 

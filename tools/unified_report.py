@@ -395,6 +395,17 @@ def collect(paths, pure=False):
                     # הדלי קולט 25 עובדים בסך כל ששת הקבצים, כולם ב-12/2012,
                     # וכל אחד מהם נושא את 875 לבדו — שום סמל אחר אינו נבלע איתו.
                     err_cat = "bmish"
+                elif 5524 in flags:
+                    # תוספת שקלית 2023 (5524): ממוקם מיד אחרי תוספת בית משפט
+                    # לפי בקשת המשתמש. הרכיב עצמו תקין — ‎14,623‎ מתוך ‎14,816‎
+                    # עובדי משרה מלאה ב-12/2023 משלמים בדיוק את ‎₪400‎ שבחוקה.
+                    # הסטיות אינן תעריף שגוי אלא **יחסיות ימים**: מתוך ‎279‎
+                    # פערים, ‎77‎ שליליים (היפוכי רטרו) ו-‎131‎ כפולות מדויקות
+                    # של ‎₪400/30 = ₪13.33‎. החוברת מגדירה את ‎5524‎ כסכום קבוע
+                    # בלי כלל לחודש חלקי, ולכן כל תלוש חלקי נראה כסטייה.
+                    # ראו PROGIM_FIXES.md §19 — מה שיבטל את הדלי הזה הוא
+                    # הצהרת יחסיות ‎1/30‎ ליום בחוברת.
+                    err_cat = "shk2023"
                 else:
                     err_cat = "real"
                 # Per-code gap tally for the exec dashboard: base (when off) plus
@@ -463,6 +474,7 @@ def collect(paths, pure=False):
                          ("ahuz_yom", "inv_ahuz_yom"),
                          ("bhol", "inv_bhol"), ("bmeuhedet", "inv_bmeuhedet"),
                          ("bmish", "inv_bmish"),
+                         ("shk2023", "inv_shk2023"),
                          ("real", "inv_real")):
             s[key] = sum(1 for x in rows_f
                          if x["status"] == "invalid" and x["err_cat"] == cat)
@@ -552,7 +564,7 @@ def collect(paths, pure=False):
 CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← ותק סטודנט ← ותק קטוע ← בסיס '
             '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← דריכות ← גמול מנהל '
             '← בוררות מיסים ← מקצועית מיסים ← תוספת אחוז יום ← תוספת בית חולים '
-            '← בית חולים מאוחדת ← תוספת בית משפט ← שגיאה אמיתית ← תקין')
+            '← בית חולים מאוחדת ← תוספת בית משפט ← תוספת שקלית 2023 ← שגיאה אמיתית ← תקין')
 
 NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
@@ -563,6 +575,7 @@ NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטוד�
               "ahuz_yom": "תוספת אחוז יום",
               "bmeuhedet": "בית חולים מאוחדת",
               "bmish": "תוספת בית משפט",
+              "shk2023": "תוספת שקלית 2023",
               "h1999": "תוספת 1999", "real": ""}
 
 # A gap below this is real but not worth opening a case for — the report keeps
@@ -764,9 +777,10 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "שגויי מקצועית מיסים", "שגויי תוספת אחוז יום",
               "שגויי תוספת בית חולים",
               "שגויי בית חולים מאוחדת", "שגויי תוספת בית משפט",
+              "שגויי תוספת שקלית 2023",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 14, 13, 14, 13, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 10, 11, 11, 13, 14, 13, 14, 13, 15, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
@@ -778,20 +792,21 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                 r.get("inv_ahuz_yom", 0), r.get("inv_bhol", 0),
                 r.get("inv_bmeuhedet", 0),
                 r.get("inv_bmish", 0),
+                r.get("inv_shk2023", 0),
                 r.get("inv_real", 0),
                 r.get("real_pct", 0.0) / 100, r.get("valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 22 or c_i == 24:
+            if 3 <= c_i <= 23 or c_i == 25:
                 cell.number_format = INT
-            if c_i == 24:
+            if c_i == 25:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21) and v:
+            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 22 and v:
+            if c_i == 23 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 23:
+            if c_i == 24:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
@@ -805,19 +820,20 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
              tot["inv_mikzoit"], tot["inv_ahuz_yom"], tot["inv_bhol"],
              tot["inv_bmeuhedet"],
              tot["inv_bmish"],
+             tot["inv_shk2023"],
              tot["inv_real"],
              real_pct_tot, tot["valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 22 or c_i == 24:
+        if 3 <= c_i <= 23 or c_i == 25:
             cell.number_format = INT
-        if c_i == 23:
+        if c_i == 24:
             cell.number_format = "0.00%"
-        if c_i == 22:
+        if c_i == 23:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"W{head_r + 1}:W{last}"    # % שגויים אמיתיים
+    rng = f"X{head_r + 1}:X{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
