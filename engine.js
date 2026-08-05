@@ -223,7 +223,10 @@
     4140,
     // 5.8.2026 — שלושת הראשונים מוצהרים `משכורת קובעת = לא` בחוברת (בניגוד
     // ל-4140): ביטוח מקיף/ימים סגורים, ש.נ. 125%, ש.נ. 150%, מקדמה 93-96.
-    4192, 1152, 1153, 651]);
+    4192, 1152, 1153, 651,
+    // 4538 — בניגוד לחוברת: מוצהר `משכורת קובעת = כן`, ושמו בגולמי
+    // "שבת%100-פנס". נוסף בהוראת המשתמש. ראו docs/PROGIM_FIXES.md §17.
+    4538]);
 
   // Progim coverage split (mirror of progim_coverage in main.py; keep in sync):
   // computable = codes the workbook can produce; referencedOnly = codes it

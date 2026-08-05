@@ -1,4 +1,4 @@
-<!-- head: 75ee808 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bg. **4538 out of scope (2nd contradiction) + 657 reclassified** — 657's table is empty
 0bf. **Four more codes out of scope** — 45 now, and three are backed by the workbook
 0be. **Fourth neutralization column: 738** — clean, swallows nothing
 0bd. **The 12/2021 file checked** — both new buckets fire together; 738 is 52% of errors
@@ -81,6 +82,45 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bg. 4538 out of scope against the workbook, and 657 reclassified
+
+**4538 — the second entry that contradicts the Progim.** `מאפייני רכיבי שכר`
+declares 4538 "שבת 100%" with **משכורת קובעת = כן**, and the גולמי label is
+**"שבת%100-פנס"** — the `-פנס` suffix says pensionable too. Added on the user's
+instruction, as with 4140, and recorded alongside it in §17. **Footprint is
+negligible: 1 row / ₪281.44 across 15 files** (12/2018 only), so the practical
+effect is nil while the contradiction is identical. `NON_PENSIONABLE` is now
+**46 codes**, two of which contradict the workbook.
+
+Note the routine that catches these: check `מאפייני רכיבי שכר` for
+`משכורת קובעת` before adding any code. It cleared 4192/1152/1153 and flagged
+4140 and 4538.
+
+**657 תוספת מעונות reclassified to `varies`,** as instructed — and the reason it
+matters is that **its table is completely empty**: `tosafot!AV3` holds 0 and
+`AV7:AV234` is blank in all 228 rows, while eligibility is defined and points at
+that non-existent amount.
+
+Measured from the slips, it genuinely varies, and there are **two tiers**:
+
+| month | main tier | carriers | second tier | carriers |
+|---|---|---|---|---|
+| 12/2018 | **₪833.33** | 411 | ₪500.00 | 35 |
+| 12/2019 | **₪839.66** | 409 | ₪504.00 | 34 |
+| 12/2020 | **₪844.70** | 363 | ₪507.02 | 32 |
+| 12/2021 | **₪844.70** | 376 | ₪507.02 | 32 |
+
+The second tier is **exactly 60% of the first** in every month, on values already
+normalised to full-time, so it is a defined entitlement rather than a job-fraction
+artefact.
+
+**Deliberately not done:** these numbers were **not** turned into a validation
+rule. They come from payslips with no Progim source, and `CLAUDE.md` forbids
+deriving a rule from the data — the same trap as the pulse-table dating. 657 stays
+`reported`, so **417-466 slips a month remain unchecked**, and the numbers are
+filed in `PROGIM_FIXES.md` §18 as the evidence for filling `AV7:AV234`. Fill the
+table and the component becomes checkable; do not shortcut it in the engine.
 
 ## 0bf. 4192, 1152, 1153, 651 out of scope — three backed by the workbook
 

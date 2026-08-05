@@ -286,6 +286,13 @@ NON_PENSIONABLE = {
     1152,   # ש.נ. 125% — מוצהר משכורת קובעת: לא
     1153,   # ש.נ. 150% — מוצהר משכורת קובעת: לא
     651,    # מקדמה 93-96
+    # 4538 — added 5.8.2026 on the user's instruction, AGAINST the workbook and
+    # against the code's own name. `מאפייני רכיבי שכר` declares 4538 "שבת 100%"
+    # with **משכורת קובעת = כן** (pensionable), and the גולמי label is
+    # "שבת%100-פנס" — the -פנס suffix says pensionable too. Second entry after
+    # 4140 to contradict the Progim. Footprint is small: 1 row / ₪281.44 across
+    # 15 files. See docs/PROGIM_FIXES.md §17.
+    4538,   # שבת 100% — מוצהר פנסיוני בחוברת ובשמו; הוצא בהוראת המשתמש
 }
 
 
