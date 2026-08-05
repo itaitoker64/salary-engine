@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bv. **607 extended to 12/2010 + 12/2010 engineers** — 607 is engineers-only, measured
 0bu. **607 added to the workbook + 12/2009 engineers** — first file with a zero coverage gap
 0bt. **12/2008 engineers checked + 669 traced** — the anomaly is one month, not the track
 0bs. **✅ 1622 out of scope — backed by the workbook** — 48 codes; clears the biggest 12/2023 hole
@@ -96,6 +97,36 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bv. 607 extended through 12/2010, and that file checked
+
+A clean 12-cell diff: `tosafot!AS31:AS42`, codes 25-36 (1.2010-12.2010), all
+₪1,943.23. The table now covers **codes 1-36** and is empty from code 37 on.
+
+**607 is an engineers-only component — measured, not assumed.** Exactly 2
+carriers at ₪1,943.23 in each of the four engineers files (01/2008, 12/2008,
+12/2009, 12/2010) and **zero carriers in all sixteen full-population December
+files**. The same two workers pay the identical amount across three years, so
+607 is flat rather than pulsing and the table describes it correctly.
+
+**What cannot be settled yet:** where the table should end. There is no
+engineers file from 2011 or later, so whether 607 continued past 12/2010 is
+unanswerable from the data in hand. The next file answers it.
+
+**12/2010 engineers run:** 1,225 workers, all דירוג 12 - 1,182 valid - **0 true
+errors** - ₪0 exposure. Partition closes (24 no-base + 2 ותק קטוע + 2 base + 13
+gmul + 1 תוספת 1999 + 1 דריכות + 1,182 valid). **Coverage gap 0 codes / ₪0** —
+two consecutive files with none.
+
+**Third confirmation of §23:** 669 reads **100%** here (84 of 84). 12/2008
+remains the only anomaly in the whole series.
+
+**4550 after §22's fix:** 94.9% on 1,043 carriers — improving on every file
+checked (42.1% -> 95.2% -> 93.4% -> 94.9%).
+
+**Trust gate: 11 of 26 checked.** Silenced above n=20 again include the three
+most-carried components in the file — 4544 (1,201 carriers, 96.8%), 4934 (1,201,
+95.7%) and 4550 (94.9%). The 0 is not a clean bill of health.
 
 ## 0bu. 607 gets a workbook column, and the 12/2009 engineers file
 
