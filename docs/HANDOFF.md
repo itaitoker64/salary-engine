@@ -112,13 +112,18 @@ month):**
 | 12/2016 | 90 | 90 | **6** |
 | 12/2017 | 83 | 83 | **4** |
 | 12/2018 | 226 | 226 | **48** (₪405 total) |
+| 12/2019 | 213 | 213 | **47** |
+| 12/2020 | 205 | 205 | 202 ← band error |
+| 12/2021 | 190 | 190 | 190 ← band error |
+| 12/2022 | 180 | 180 | **42** |
+| 12/2023 | 166 | 166 | **10** |
 
 **Two independent confirmations fall out of the table itself**, from a source I
 did not write: it lands exactly on `code = (year−2008)×12 + month` (61 = 1.2013,
 181 = 1.2023, 228 = 12.2026), and ₪904.99 — which §21 had flagged as a *guessed*
 2024 value — sits in the 1.2024–12.2024 band.
 
-**Two defects remain, both in §21:**
+**Four defects remain, all in §21:**
 
 1. **Circular reference across all of 2024.** Rows 199–210 hold `=+$CW$3` and
    `=+$CX$3` in levels 1 and 2 — pointing at the VLOOKUP cells that read this
@@ -126,6 +131,18 @@ did not write: it lands exactly on `code = (year−2008)×12 + month` (61 = 1.20
    levels are broken in the workbook as shipped.
 2. **Codes 1–60 (1.2008–12.2012) are still empty** while 164 slips live there —
    83 in 12/2011 at ₪200, 81 in 12/2012 at ₪300. They report "לא ניתן לבדוק".
+3. **The 813 pulse is cut short and ₪817.88 was never paid.** The table puts 813
+   at codes 133–144, 817.88 at 145–167, 835.05 from 168. But 12/2020 (code 156)
+   and 12/2021 (code 168) both pay **813** — 152 and 138 full-timers — and
+   12/2022 (code 180) does pay 835.05. So 813 should run through code 168 and
+   835.05 should start at 169; 817.88 has no support in any slip. This alone is
+   392 of the 470 remaining gaps.
+4. **A ₪803 cohort with no tier.** From 12/2018 on, a stable group pays ₪803 —
+   40, 39, 37, 35, 34 workers — while everyone else pays that year's level 5.
+   ₪803 ≈ 2017's level 5 (803.4) and the group shrinks monotonically, which
+   reads as a frozen cohort eroding through retirement. That is interpretation,
+   not measurement: the data shows the group, not the reason. If frozen, it
+   needs a declared tier; if not, 34–40 workers are underpaid every month.
 
 **Rule change:** 5270 moved `reported` → `shekel`, 103 rules. Its `amounts` is
 the **flat union** of all pulses, so it catches gross errors but *cannot* catch a
