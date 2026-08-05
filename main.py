@@ -225,6 +225,10 @@ NON_PENSIONABLE = {
     # רכיבי שכר` row 380 declares הכנה לבחירות with משכורת קובעת = לא. It pairs
     # with 1622 (מנהל בחירות) — the elections family is now two codes.
     1631,   # הכנה לבחירות — משכורת קובעת = לא בחוברת
+    # 1623 added 5.8.2026, same checks, same backing: `מאפייני רכיבי שכר` row
+    # 376 declares סגן מנהל בחירות with משכורת קובעת = לא. Third of the
+    # elections family, after 1622 (מנהל בחירות) and 1631 (הכנה לבחירות).
+    1623,   # סגן מנהל בחירות — משכורת קובעת = לא בחוברת
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה

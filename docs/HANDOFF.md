@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bz. **✅ 1623 out of scope + engineers unified** — 50 codes; the elections family is complete
 0by. **12/2012 engineers + correction** — the pay-agreement stall is retro, not a 4550-style bug
 0bx. **607 extended to 12/2012 + 12/2011 engineers** — the pay-agreement family stalls at 94-97%
 0bw. **✅ 1631 out of scope — workbook-backed** — 49 codes; the elections family is now two
@@ -100,6 +101,48 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bz. 1623 out of scope, and the engineers series consolidated
+
+On the user's instruction. Clean on all three checks, and the workbook states it
+outright: `מאפייני רכיבי שכר` row 376 declares **סגן מנהל בחירות** with
+משכורת קובעת = לא. `NON_PENSIONABLE` = **50**, py/js element-wise equal.
+
+**The elections family is complete** — 1622 (row 375), 1631 (row 380), 1623 (row
+376). These are **the only three of fifteen batches with an explicit declaration
+in the workbook**, and they are all one family; the other 47 codes rest on the
+workbook's silence. The workbook clearly *can* declare pensionability — it just
+does so for 3 of the 50 codes we have had to place out of scope. When
+`sminimum` carries a filled `פנסיוני` column for all 295 codes, all fifteen
+batches collapse into one lookup. That is §15's whole argument, now with a
+concrete ratio behind it.
+
+### Engineers unified — 6 files, 7,462 slips
+
+**7,462 slips · 7,158 valid · 20 true errors (0.27%) · ₪5,659 exposure** (₪506
+under, ₪5,154 over). Partition closes on every row and in the total.
+
+| month | workers | true errors | valid |
+|---|---|---|---|
+| 01/2008 | 1,275 | 0 | 1,230 |
+| 12/2008 | 1,260 | 14 | 1,181 |
+| 12/2009 | 1,243 | 1 | 1,203 |
+| 12/2010 | 1,225 | 0 | 1,182 |
+| 12/2011 | 1,226 | 4 | 1,176 |
+| 12/2012 | 1,233 | 1 | 1,186 |
+
+**Coverage gap across the whole series: 0 codes / ₪0** (plus 3 codes / ₪75,422
+fed from the file as the workbook intends). First track where the workbook
+covers 100% of the pensionable components.
+
+**The caveat still governs:** 20 errors over 7,462 slips reads well, but in all
+six files the gate mutes the pay-agreement family (4544, 4550, 4934, 4994) —
+the components carried by nearly every worker. The number describes what was
+checked, not the files.
+
+The user asked for "a unified control report" without naming a series; both were
+produced, since the phrase had meant the 16 December files up to now but the
+recent work is all engineers.
 
 ## 0by. 12/2012 engineers — and a correction to my own read of the stall
 
