@@ -1,4 +1,4 @@
-<!-- head: 06bdec5 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0az. **5340 was never checked** — fixed amount, now validated; a fifth misclassified component
 0ay. **The 12/2020 file checked** — the converted rules already find errors; two costly new gaps
 0ax. **737, 5251, 5253 converted to pulse tables** — two were never checked at all
 0aw. **‼ 738 correction** — the workbook was right, our extractor was wrong; rule added
@@ -74,6 +75,39 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0az. 5340 — a fixed amount that was never checked at all
+
+The user stated 5340 is a fixed amount and that this is how the workbook defines
+it. Verified: **`tosafot!AP3` = 480.1, a plain literal**, and its retirement-month
+table is filled 228/228 with that single value.
+
+**Our rule had it as `reported`** — accepted as reported and **never validated** —
+carrying an auto-generated note claiming the extraction "could not resolve a
+VLOOKUP / eligibility condition chain". There is no VLOOKUP and no chain; there
+is a number. Corrected to `shekel` with amount 480.1.
+
+**Verification:** 480.10 full-time in every file where it appears, from 12/2014
+onward — 98.5% of 7,936 carriers in 12/2014, 97.8% of 7,902 in 12/2016, 98.4% of
+9,512 in 12/2018, 98.7% of 9,504 in 12/2019 and 98.7% of 9,474 in 12/2020.
+Trusted in all five. **Between 7,900 and 9,500 slips a month passed unchecked
+until now.**
+
+**The effect is large and it is the point.** True errors: 12/2014 **14 → 34**
+(₪1,090 → ₪5,691), 12/2016 **20 → 34** (₪9,187 → ₪12,416), 12/2018 **33 → 44**
+(₪3,004 → ₪6,683), 12/2019 **20 → 27** (₪3,377 → ₪9,289), 12/2020 unchanged at 16.
+**5340 is now the single largest error source** in the two files examined in
+detail: 17 workers / ₪4,898 in 12/2014 (50% of true errors) and 16 / ₪6,006 in
+12/2019 (59%). Not a regression — a component with ~10,000 monthly carriers moved
+from "accepted as-is" to "checked at 98%", and the non-matching remainder
+surfaced. Report it that way.
+
+**The pattern, now five deep.** 738, 737, 5251, 5253 and 5340 were all properly
+defined in the workbook and all went unvalidated here. **Three of them (5251,
+5253, 5340) carried the same wrong auto-note about a failed extraction.**
+**Next step worth taking: audit every remaining `reported` rule** — each one is a
+population passing without a check, and today suggests several are misclassified
+rather than genuinely unresolvable.
 
 ## 0ay. The 12/2020 file — the conversions pay off immediately
 
