@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bt. **12/2008 engineers checked + 669 traced** — the anomaly is one month, not the track
 0bs. **✅ 1622 out of scope — backed by the workbook** — 48 codes; clears the biggest 12/2023 hole
 0br. **🔧 Engineers track opened + 4550 corrected** — the gate hides 14 of 22 rules on a small file
 0bq. **✅ 5270 fixed by the user** — five-tier pulse table; gaps collapse, two defects left
@@ -94,6 +95,41 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bt. The 12/2008 engineers file — and a 669 finding I had to narrow twice
+
+**Run:** 1,260 workers, all דירוג 12 · 1,181 valid · **14 true errors** (1.11%) ·
+exposure ₪3,407. Partition closes (37 no-base + 5 two-משולב + 9 ותק קטוע + 1
+base + 7 gmul + 6 תוספת 1999 + 14 real + 1,181 valid). Largest gaps: 4544 (31
+gaps / ₪2,727) and 897 (10 / ₪3,919). Coverage gap 1 code / ₪3,886.
+
+**4550 after §22's fix reads 95.2% here** on 1,055 carriers — against the 42.1%
+measured pre-fix on the 01/2008 engineers file. Still under the gate, but the
+correction is holding.
+
+**Trust gate:** 11 of 25 components checked; 9 silenced for n < 20 and 5 for
+match — 669 (1.2%), 4624 (84.2%), 798 (89.6%), 741 (93.1%), 4550 (95.2%).
+
+**669 — narrowed twice, so read the final version only.** I first saw 1.2% on
+engineers and took it for a track-specific tariff. Measuring the full population
+killed that: it is not דירוג-dependent. I then took it for a period-varying
+component needing a pulse table like 5270. The full sixteen-file sweep killed
+that too. The actual result:
+
+- `tosafot!X7:X234` is a flat ₪51.09 across all 228 codes, and **that value is
+  correct in fifteen of sixteen files** — 12/2009 through 12/2023 all show 51.09
+  as the modal full-time amount at 96–99%.
+- **12/2008 alone** pays ₪2,596.31 to 2,875 full-timers out of 8,053 carriers,
+  50× the חוקה value, with ₪1,947.28 (75%) and ₪1,298.28 (50%) alongside.
+
+A 98% drop between 12/2008 and 12/2009 does not read as a tariff update; a
+one-off arbitration settlement paid that December is the likelier story, **but
+that is a hypothesis, not a measurement** — `PROGIM_FIXES` §23 states it as
+such and gives the user both branches. Either way, 8,053 workers currently fail
+669 in that file and only the trust gate keeps them out of the report.
+
+Noted, unexamined: 669's carrier count collapses from 5,630 (12/2013) to 199
+(12/2014), a 96% drop in one year, and stays at 200–360 after.
 
 ## 0bs. 1622 out of scope — the first batch the workbook explicitly backs
 
