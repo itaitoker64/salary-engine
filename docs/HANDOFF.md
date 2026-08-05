@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bu. **607 added to the workbook + 12/2009 engineers** — first file with a zero coverage gap
 0bt. **12/2008 engineers checked + 669 traced** — the anomaly is one month, not the track
 0bs. **✅ 1622 out of scope — backed by the workbook** — 48 codes; clears the biggest 12/2023 hole
 0br. **🔧 Engineers track opened + 4550 corrected** — the gate hides 14 of 22 rules on a small file
@@ -95,6 +96,43 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bu. 607 gets a workbook column, and the 12/2009 engineers file
+
+The user added a `tosafot!AS` column for **607 טיסה פעילה** —
+`AS3 = VLOOKUP(C4,AR7:AT234,2,0)` over a pulse table. Until now 607 existed only
+as a *deduction* inside 4550 and had no rule of its own. Added as `shekel`;
+`component_rules.json` is now **104** rules. **The table covers ₪1,943.23 for
+codes 1–24 (1.2008–12.2009) and is empty from code 25 on**, so slips from 2010
+onward cannot be checked against it — continue the table if 607 is still paid,
+declare it discontinued if not.
+
+**12/2009 engineers run:** 1,243 workers, all דירוג 12 · 1,203 valid · **1 true
+error** (0.08%) · ₪1,802 exposure, all overpayment. Partition closes (21 no-base
++ 1 ותק קטוע + 4 base + 13 gmul + 1 real + 1,203 valid).
+
+**Coverage gap: 0 codes / ₪0 — the first file in the entire series with none.**
+
+**Independent corroboration for §23:** 669 reads **98.9%** here (86 of 87),
+exactly as the sweep concluded — ₪51.09 is right from 12/2009 on and 12/2008 is
+the sole anomaly. This is a second, track-scoped confirmation.
+
+**4550 after §22's fix:** 93.4% on 1,058 carriers, still under the gate.
+
+**Trust gate: 9 of 26 checked.** Silenced above n=20: 4544 (1,221 carriers,
+95.4%), 4550 93.4%, 4651 96.7%, 756 93.4%, 798 92.2%, 697 95.3%, 4624 86.8%.
+The file's two most-carried components are muted again, so "1 true error" is not
+a clean bill of health — same caveat as 0br.
+
+**Maintenance:** the new column moved 74 components in `tosafot`. A sweep
+compared every `tosafot!<col>` citation in the rules' prose against the
+workbook's actual column and repointed **44 fields**; several had been stale
+since earlier versions (681 pointed at `AV` where the column is `AZ`). These
+citations are documentation only and do not affect computation, but they are
+what a human uses to verify a rule against the workbook.
+
+**Verified how:** `pytest tests/ -q` → 34 passed; `node --check engine.js` →
+clean.
 
 ## 0bt. The 12/2008 engineers file — and a 669 finding I had to narrow twice
 
