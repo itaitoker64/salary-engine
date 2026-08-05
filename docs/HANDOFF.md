@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bj. **The 12/2023 file checked** — the trust gate silences 805 and 738; 80% of "true errors" are day-proration
 0bi. **4438 out of scope** — 47 codes; the "ימי X" family is now six of them
 0bh. **657 filled and now checked** — 90%, and one missing tier explains the rest; 12/2022 run
 0bg. **4538 out of scope (2nd contradiction) + 657 reclassified** — 657's table is empty
@@ -84,6 +85,49 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bj. The 12/2023 file — the trust gate is the story, not the error count
+
+**Run:** `18,289` workers · `17,380` valid · `40` true errors (`0.22%`) ·
+exposure `₪10,967`. Partition verified — the seventeen buckets plus `תקין`
+sum to exactly `18,289`.
+
+**The workbook update that came with it.** The user shipped a workbook adding
+two 657 bands (`181–192 = 907.76`, `193–204 = 934.63`) — a 24-cell diff, all in
+`tosafot!AV`. Installed; `component_rules.json` 657 now carries six amounts.
+Verified: **389 of 446 carriers pay exactly ₪907.76.**
+
+**Three findings, all measured on this file:**
+
+1. **805 is 100% right and was silenced anyway.** It sits at 93.3%, below
+   `TRUST_MIN_MATCH`, so it was not checked at all. Every one of its 7 failures
+   is a **negative** amount (a retro reversal); all 98 positive rows are
+   correct. Written up as `PROGIM_FIXES` §20 — the workbook has no declaration
+   that a negative amount is a reversal rather than a payment.
+2. **738 slid under the gate.** 97.0% (12/2021) → 96.4% (12/2022) → 94.8%
+   (12/2023). Its neutralization column reads **0 in 12/2023 while 2,007
+   workers carry the code** — the rule is muted, not clean. **A zero in a
+   neutralization column is not evidence of correctness.** This is the exact
+   hazard the gate was flagged for when it was introduced.
+3. **5524 is the biggest gap in the file and none of it is a wrong tariff.**
+   17,641 carriers, 279 gaps, ₪73,146, and the source of **32 of the 40 true
+   errors**. 14,623 of 14,816 full-timers pay exactly ₪400 — the חוקה value.
+   Of the 279: 77 negative (retro), **131 exact multiples of ₪400/30**, 71
+   combinations. It is day-proration, which the workbook never defines for a
+   fixed shekel component. `PROGIM_FIXES` §19.
+
+So the honest reading of this file is **~8 real errors, not 40**. Say that
+before anyone quotes the headline.
+
+**657 still does not pass.** The two new bands lifted it 89.2% → 92.2%. The
+blocker is unchanged: the missing **60.02%** tier, now measured across **six
+consecutive years** (₪500.00 / ₪504.00 / ₪507.02 / ₪507.02 / ₪517.60 / ₪544.83),
+and in 12/2023 **all 21 carriers of ₪544.83 are full-timers** — so it is a
+declared partial entitlement, not a job-percentage artifact. §18 has the table.
+
+**Verified how:** `python3 -m pytest tests/ -q` → 34 passed; `node --check
+engine.js` → clean; `NON_PENSIONABLE` py/js element-wise equal at 47/47; the two
+front-ends' embedded scripts hash identically (`85f0ba73…`).
 
 ## 0bi. 4438 ימי אבל out of scope — and the family argument is now overwhelming
 
