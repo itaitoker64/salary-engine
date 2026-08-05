@@ -1,4 +1,4 @@
-<!-- head: 59cc0b2 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ap. **The 12/2018 file checked** — coverage gap explodes to ₪1.06M; third 5402 anchor
 0ao. **The 12/2017 file checked** — a second 5402 anchor; the component ramps
 0an. **The 12/2016 file checked** — 5402 measured on 18,578 slips; the dating narrows
 0am. **The 12/2015 file checked** — 4140 recurs for the sixth time
@@ -64,6 +65,61 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ap. The 12/2018 file — the coverage gap explodes to ₪1.06M
+
+Twelfth file: **December 2018**, **20,387 workers**. **97.89% · 19 true errors ·
+₪2,541**; partition closes. Docs only.
+
+**Coverage gap: 12 codes / ₪1,059,174** — against ₪5,128 in 12/2017, and by far
+the largest of any December file. Four codes carry almost all of it:
+
+| code | name | rows | ₪ |
+|---|---|---|---|
+| **738** | ת. אחוז-יום | 2,566 | **₪472,663** |
+| **1622** | 15% ש.ממושך | 35 | **₪261,436** |
+| **1631** | 10% פקח עיר | 46 | **₪207,244** |
+| **1623** | מאמץ-עוז גנ | 9 | **₪74,629** |
+| 4140 | משכ.בסיסית | 9 | ₪26,309 |
+| 1703 | פרטי/משא/קל | 1 | ₪10,630 |
+
+Note the density: 1622 is ₪261k over **35 rows**, about ₪7,470 each. These are
+not marginal components.
+
+**This also corrects something I wrote earlier.** I said 738 was "entirely inside
+`golmi.xlsx`". True of the files I had then, but **738 appears here too — 2,566
+rows** — while being absent from 12/2016, 12/2017 and the 0108 reference. So it
+is a later-period component, not a quirk of one sample. At ₪472k in a single
+month it is the most expensive item in any coverage list so far and deserves a
+decision.
+
+**5402 gets a third anchor, and the growth rate is itself consistent:**
+
+| month | ratio | measured full-time | growth |
+|---|---|---|---|
+| 12/2016 | 0.19905 | **₪66.88** | — |
+| 12/2017 | 0.30571 | **₪102.72** | ×1.536 |
+| 12/2018 | 0.47054 | **₪158.10** | ×1.539 |
+
+Again 0 of 19,779 match, ₪3,337,209 silenced, ratio constant across tiers. Two
+successive growth factors within 0.003 of each other is not noise; it looks like
+a defined schedule. **I did not try to reverse-engineer the formula** — that is
+the mistake I made with the dating — but three measured points with a uniform
+rate is a strong basis for whoever holds the agreement text. §7 gets a third row.
+
+**⚠ Second consecutive month where 805's only true error is an exact multiple.**
+805 is trusted (98.1%); one carrier was flagged at ₪224.94 against a 112.47 tier,
+and **224.94 ÷ 112.47 = exactly 2.0000**. In 12/2017 it was exactly ×3. Two in a
+row is a pattern: **worth considering a check that marks an exact integer
+multiple on a trusted component as "retro — manual review" rather than an
+error.** Not implemented; it changes flagging rules and needs the user's
+decision.
+
+Other: the 875 bucket fired a third time (97.9%, trusted) catching **24
+workers** — 3 of 12 files. 805 pays 112.47 (codes 126-139); c+120 ∈ [126,139]
+gives c ∈ [6,19], adding nothing to c ∈ [7,11]. **"שתי שורות שכר משולב" jumped to
+67** from the usual 12-20 — worth watching if it recurs. Calibration silenced 30
+of 49 rules, ₪5,764,123, led by 5402 (₪3.34M) and 4550 (₪1.49M).
 
 ## 0ao. The 12/2017 file — a second 5402 anchor, and it ramps
 
