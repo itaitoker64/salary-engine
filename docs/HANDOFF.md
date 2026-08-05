@@ -1,4 +1,4 @@
-<!-- head: 37f7a22 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bf. **Four more codes out of scope** — 45 now, and three are backed by the workbook
 0be. **Fourth neutralization column: 738** — clean, swallows nothing
 0bd. **The 12/2021 file checked** — both new buckets fire together; 738 is 52% of errors
 0bc. **New 14-file unified report** — 288,640 slips, 212 true errors, all fixes in
@@ -80,6 +81,36 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bf. 4192, 1152, 1153, 651 out of scope — three backed by the workbook
+
+On the user's instruction, off the 12/2020 and 12/2021 coverage lists. All four
+pass the checks, and **three are explicitly supported by the workbook** — the
+opposite of the 4140 case:
+
+| code | workbook name | `משכורת קובעת` |
+|---|---|---|
+| **4192** | ביטוח מקיף - ידני | **לא** ✓ |
+| **1152** | ש.נ. 125% | **לא** ✓ |
+| **1153** | ש.נ. 150% | **לא** ✓ |
+| 651 | not listed | no declaration |
+
+None of the four has a column in `tosafot`, `SACHAR` or `SACHAR4643`, and none
+appears in `component_rules.json`. `NON_PENSIONABLE` is now **45 codes**; Python
+and JS in sync, 34 tests pass.
+
+**Checking `מאפייני רכיבי שכר` is now part of the routine** for every scope
+request — it is what caught the 4140 contradiction and what confirms these three.
+Do it before adding any code.
+
+**Note on 4192:** the workbook calls it **"ביטוח מקיף - ידני"** while the גולמי
+shows **"ימים סגורים"**. Two different names for one code, possibly repurposed
+over the years. It does not change the decision but is worth knowing.
+
+Coverage gaps: 12/2020 **11 codes / ₪619,292 → 7 / ₪494,107**; 12/2021 **14 /
+₪41,199 → 10 / ₪21,122**. Partitions close, true errors unchanged at 15 and 11.
+**What is left in 12/2020 is essentially one code** — 633 ת.מפ. בזק ב at
+₪478,579, 97% of the remainder.
 
 ## 0be. A neutralization column for 738 — the clean kind
 

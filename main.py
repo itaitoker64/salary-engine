@@ -278,6 +278,14 @@ NON_PENSIONABLE = {
     # from the coverage gap and from any check. The user was shown that flag
     # and chose to proceed. See docs/PROGIM_FIXES.md §17.
     4140,   # משכ. בסיסית — מוצהר פנסיוני בחוברת; הוצא בהוראת המשתמש
+    # Added 5.8.2026 on the user's instruction. Unlike 4140 these AGREE with the
+    # workbook: `מאפייני רכיבי שכר` declares 4192, 1152 and 1153 with
+    # **משכורת קובעת = לא**. 651 has no entry there at all. None has a tosafot
+    # or SACHAR column, and none appears in component_rules.json.
+    4192,   # ביטוח מקיף - ידני (בגולמי: "ימים סגורים") — משכורת קובעת: לא
+    1152,   # ש.נ. 125% — מוצהר משכורת קובעת: לא
+    1153,   # ש.נ. 150% — מוצהר משכורת קובעת: לא
+    651,    # מקדמה 93-96
 }
 
 
