@@ -1,4 +1,4 @@
-<!-- head: 4128a99 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bh. **657 filled and now checked** — 90%, and one missing tier explains the rest; 12/2022 run
 0bg. **4538 out of scope (2nd contradiction) + 657 reclassified** — 657's table is empty
 0bf. **Four more codes out of scope** — 45 now, and three are backed by the workbook
 0be. **Fourth neutralization column: 738** — clean, swallows nothing
@@ -82,6 +83,36 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bh. 657's table filled — and the 12/2022 file
+
+**The workbook update (283 cells) closes 657, partially.** `AV3` moved from the
+literal 0 to **`VLOOKUP(C4,AR7:AV234,5,0)`** and the table was filled **exactly
+with the values reported from the slips**: 121-132 = 833.33, 133-144 = 839.66,
+145-168 = 844.70, 169-180 = 862.40. The rule is converted to `shekel`.
+
+**Result: from not checked at all to 89-92%** — 423/466, 422/459, 372/417 and
+391/428 across 12/2018-12/2021.
+
+**‼ It still sits below the 97% gate and is silenced**, and nearly the whole gap
+is **the second tier I flagged when reclassifying it**: ₪500.00 / ₪504.00 /
+₪507.02, exactly 60% of the main amount, 32-35 carriers a month. **Adding the 60%
+step is the difference between 90% and 100%** and is what would push 657 over the
+gate into actually being checked. §18 carries the instruction.
+
+**Structural change to watch:** a column was inserted in `MISRAD` (code 5268,
+"ליווי אח"מים"), shifting every eligibility reference — 88 cells in `tosafot`,
+184 in `MISRAD`. **I verified §11 survived:** `BC2` and `BR2` still point at
+`BC1`/`BR1` and 738's `BZ3` is still a `VLOOKUP`. This is exactly the hazard
+§11's prevention rule exists for — moving columns breaks hardcoded indices — and
+nothing broke precisely because they now reference index cells.
+
+**The 12/2022 file:** **18,775 workers · 97.53% · 24 true errors · ₪11,261**;
+partition closes. Leading codes 697 (12, ₪1,703), **5253 (4, ₪5,283)**, 736 (3),
+737 (2, ₪722), 805 (1, ₪1,164). Buckets: בית משפט 21, בית חולים מאוחדת 16,
+אחוז יום 0. Coverage gap **9 codes / ₪19,669**, led by 4221 (₪9,069) and 4220
+(₪3,216) — **the first time those two appear in a December file**; previously
+they were only in `golmi.xlsx`.
 
 ## 0bg. 4538 out of scope against the workbook, and 657 reclassified
 
