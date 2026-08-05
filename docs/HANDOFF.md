@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0bm. **‼✅ The pulse dating is SOLVED** — it was in the workbook all along; §14 reversed
+0bl. **✅ 1063 was never checked — ₪10.1M** — the biggest one yet, now at 98.6%
 0bk. **Fifth neutralization column: 5524** — justified, and it swallows 1096 whole
 0bj. **The 12/2023 file checked** — the trust gate silences 805 and 738; 80% of "true errors" are day-proration
 0bi. **4438 out of scope** — 47 codes; the "ימי X" family is now six of them
@@ -86,6 +88,69 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0bm. ‼ The pulse-table dating is solved — and my earlier "refutation" was wrong
+
+**Read this before touching any `shekel` rule with an `amounts` list.**
+
+Twice this session I claimed the code→date mapping could not be derived, and
+wrote it into `PROGIM_FIXES` §14 as a refutation with a proof. **The proof was
+built on a mislabelled cell.** Every pulse `VLOOKUP` reads `tosafot!C4`, and
+`tosafot!C4 = 'Netunei Gimlai'!$B$6`. But in `Netunei Gimlai`:
+
+- `B5` is labelled **חודש פרישה** (= 1)
+- **`B6`** is labelled **חודש לחישוב רטרו תלוש הגמלה** (= 168)
+
+`tosafot!B4` labels `C4` "חודש פרישה" — the name of a *different cell*. I read
+the label, concluded the tables were indexed by retirement cohort, and built a
+refutation on it instead of opening `C4`. Same failure mode as the 738 mistake:
+**open the cell, do not trust the label next to it.**
+
+**The mapping is in the workbook, explicit and contiguous** — `MANMASH 2022!A5:B232`:
+code 1 = 1.2008, 169 = 1.2022, 181 = 1.2023, 228 = 12.2026. So
+
+> **code = (year − 2008) × 12 + month**
+
+`Netunei Gimlai` confirms itself: `B6=168` → 12.2021, `B7=228` → 12.2026.
+
+**Verified against 12 independent measurements** — 805 in 12/2013, 12/2016,
+12/2018, 12/2019, 12/2023; 657's six bands 12/2018→12/2023; 1063 in 12/2022 and
+12/2023. Every one predicted the amount actually paid.
+
+**One point disagrees, and it is a table error, not a model error.** 12/2009 is
+code 24; 805's table opens 100.59 there but 89 carriers pay 95.80, while
+12/2010 (code 36) does pay 100.59. The hand-filled band boundary is off by one
+row: 95.80 should cover codes 1–24, 100.59 codes 25–36. One cell in `tosafot!BC`.
+
+**What is NOT done:** the engine still accepts *any* pulse in a rule's `amounts`
+list. With this mapping it could check only the band in force for the slip's
+month, which would tighten every `shekel` rule with a pulse table — 805, 808,
+657, 737, 5251, 5253, 1063. That is the highest-value open item on this branch.
+It needs a payslip-month input threaded into `check_worker_components`, which
+today only has `job_pct`, `ministry_code`, `darga_label`, `droog`.
+
+## 0bl. 1063 ת. מנמ"ש 2022 — the largest unchecked component, now checked
+
+The user said 1063 is a variable amount taken from the Progim. Checked, and
+they are right: `MANMASH 2022!E1 = INDEX(D5:G232, B1, B2)` — row by month code,
+column by דירוג — with a fully populated table (codes 1–168 = 0; 169–180 =
+450/450/200/200; 181–228 = 720/420/320/320).
+
+It had been `reported`, i.e. **accepted as-is and never validated** — **₪10.13M
+across 19,009 rows** in the sixteen files, the single biggest line in the "not
+checked" list. Converted to `shekel` with `amounts [200, 320, 420, 450, 720]`;
+`component_rules.json` is now **103** rules.
+
+**Verified before converting:** 6,848 full-timers pay exactly 450 in 12/2022 and
+6,849 pay exactly 720 in 12/2023 — the workbook's values for those month codes.
+After converting: **98.6% match in 12/2023, 98.8% in 12/2022**, comfortably over
+the trust gate, on 9,439 and 9,380 carriers.
+
+This is the **sixth** component that was properly defined in the workbook yet
+never validated (after 738, 737, 5251, 5253, 5340) and by far the most
+expensive. The standing conclusion holds: **every remaining `reported` rule is
+suspect until someone opens its sheet by hand.** Its residual deviations are the
+same day-proration pattern as 5524 — exact multiples of ₪720/30 = ₪24.
 
 ## 0bk. Fifth neutralization column — 5524, and what it costs
 

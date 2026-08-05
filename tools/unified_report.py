@@ -738,6 +738,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "inv_h1999",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_mikzoit",
               "inv_ahuz_yom", "inv_bhol", "inv_bmeuhedet", "inv_bmish",
+              "inv_shk2023",
               "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
@@ -767,7 +768,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # (עובדים) — presentable without reconciliation notes.
     # "תקין" sits LAST, after the %, so the problem columns read as one block.
     # The partition is unchanged — it is simply no longer contiguous: the
-    # categories are D..O plus Q.
+    # categories are the 17 bucket columns (E..V) plus תקין (Y).
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
               "שתי שורות שכר משולב", "שגויי משכ. בסיסית 4140",
               "שגויי ותק סטודנט", "שגויי ותק קטוע",
@@ -854,7 +855,10 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
 
     # ---- פערים לפי סמל שכר (a second table, to the right of the per-file one) ---
     if code_gaps:
-        cbase = 25   # column Y (leaves a gap after the 23-column per-file table)
+        # Anchored to the per-file table's real width, NOT a hard-coded letter:
+        # adding a neutralization column used to slide the per-file table under
+        # this one and silently overwrite its last column (תקין).
+        cbase = len(labels) + 1
         heads = ["סמל", "שם רכיב", "כמות פערים", "שווי ₪", "הסיבה לפער"]
         widths = [9, 22, 12, 13, 40]
         for j, (h, w) in enumerate(zip(heads, widths)):
