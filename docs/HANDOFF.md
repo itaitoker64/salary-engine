@@ -146,6 +146,13 @@ checked" list. Converted to `shekel` with `amounts [200, 320, 420, 450, 720]`;
 After converting: **98.6% match in 12/2023, 98.8% in 12/2022**, comfortably over
 the trust gate, on 9,439 and 9,380 carriers.
 
+**Effect on the 16-file unified report, measured before and after:** the
+"מוזן מהקובץ" line drops from 15 codes / ₪24,469,420 to 14 codes / ₪14,335,789
+— exactly 1063's ₪10,133,631 — while true errors stay at 231 and valid stays at
+304,119. All 133 of 1063's 12/2023 mismatches land on workers already invalid
+for another reason (the same partial-month workers 5524 catches), so coverage
+grew without adding a single new flag. That is the outcome to want.
+
 This is the **sixth** component that was properly defined in the workbook yet
 never validated (after 738, 737, 5251, 5253, 5340) and by far the most
 expensive. The standing conclusion holds: **every remaining `reported` rule is
