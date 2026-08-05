@@ -1,4 +1,4 @@
-<!-- head: 6fe7410 -->
+<!-- head: PENDING -->
 # Handoff — branch `claude/update-id4fvu`
 
 Last written 4.8.2026. Read `CLAUDE.md` first; it carries the standing rules.
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0av. **738 analysed** — the workbook has everything but the formula; two conflicting rates
 0au. **The full 13-file unified report** — the series is complete; 12/2013+12/2014 recovered
 0at. **Unified report over 11 files** — 229,426 slips; 94% of the coverage gap is 4 codes
 0as. **The 12/2019 file checked** — my dating model is refuted outright; fourth 5402 anchor
@@ -70,6 +71,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0av. What the 738 gap actually is — new `PROGIM_FIXES.md` §16
+
+The user asked what the gaps are on code 738, the largest coverage item. Answer:
+**it is not a measured discrepancy at all** — the engine cannot compute 738, so
+₪1,202,498 is **unvalidated, not wrong**. Distinguish those two when reporting.
+
+**Where it appears:** only **12/2018 (2,566 rows, ₪472,663) and 12/2019 (2,475
+rows, ₪729,835)**, zero in the other eleven files. All 5,041 rows belong to
+**נציבות מס הכנסה (2,872)** and **מכס ומע"מ (2,169)**.
+
+**The workbook is not silent on it — that was my earlier framing and it was too
+strong.** 738 appears in eight sheets with full metadata: `רכיבים` gives type
+**אחוז** and a note "מיום 01/01/2017: 0.94%"; `מאפייני רכיבי שכר` names it
+"רשות חדשה אחוזית **3.94%**" and marks **משכורת קובעת: כן**; `Netunei Gimlai`
+lists the eligible bodies — which the data confirms exactly; `simlei sachar` and
+`המרת סמלי שכר` carry its indices. **The only missing piece is the formula** —
+no `tosafot` column, no `SACHAR` calculation — so the extractor never produced a
+rule and the engine classifies it as neither computable nor referenced.
+
+**Two contradictions, both recorded in §16:**
+1. The workbook states **two different rates**, 3.94% and 0.94%-from-2017.
+2. **Neither reproduces the slips.** Ratio to the combined salary: median
+   **4.275%** in 12/2018 (2.9% of carriers match 3.94%, none match 0.94%) and
+   **6.903%** in 12/2019 (none match either). The ratio itself moves 4.28% →
+   6.90% in one year, so 738 is **not a fixed percentage of the combined
+   salary**. The name "אחוז-**יום**" suggests a day-based base the גולמי does
+   not carry. **I did not try to reverse-engineer the rule** — that is the
+   mistake made twice today on the dating, and §16 says so explicitly.
+
+**⚠ Do not declare 738 out of scope.** `מאפייני רכיבי שכר` sets **משכורת
+קובעת: כן** — it is pensionable. Removing it would close the coverage gap on
+paper while leaving ₪1.2M of pensionable pay silently unchecked. Given how many
+codes have been declared out of scope today, this one needs the explicit "no".
 
 ## 0au. The complete 13-file unified report
 
