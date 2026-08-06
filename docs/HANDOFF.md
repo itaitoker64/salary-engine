@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cb. **✅ 5274 out of scope — a new kind of declaration** — 51 codes; "ימי X" is now eight
 0ca. **‼ Framing correction: the 16 December files are דירוג מנהלי** — not "the full population"
 0bz. **✅ 1623 out of scope + engineers unified** — 50 codes; the elections family is complete
 0by. **12/2012 engineers + correction** — the pay-agreement stall is retro, not a 4550-style bug
@@ -102,6 +103,37 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cb. 5274 out of scope — and the first declaration that distinguishes gross from pensionable
+
+On the user's instruction. Clean on all three checks, and declared in
+`מאפייני רכיבי שכר` row 648. `NON_PENSIONABLE` = **51**, py/js equal.
+
+**The declaration differs from every previous one, and it is the better shape:**
+
+| code | name | tier 1 | tier 2 | משכורת קובעת | ברוטו תקציבית | ברוטו צוברת |
+|---|---|---|---|---|---|---|
+| 1622 | מנהל בחירות | לא | לא | **לא** | לא | לא |
+| 1631 | הכנה לבחירות | לא | לא | **לא** | לא | לא |
+| 1623 | סגן מנהל בחירות | לא | לא | **לא** | לא | לא |
+| **5274** | **ימי השתלמות בשכר** | לא | לא | **לא** | **כן** | **כן** |
+
+The elections codes are לא everywhere — outside every computation. 5274 is the
+first to say something sharper: **it does count in gross, and is excluded only
+from the pensionable base.** That is exactly what `NON_PENSIONABLE` encodes, and
+it is the cleanest evidence yet that **`משכורת קובעת` is the right field to lean
+on** rather than the workbook's silence — silence cannot distinguish "not
+present" from "present but not pensionable".
+
+**The "ימי X" family is now eight codes** — 5271, 5272, 4123, 5273, 4436, 4437,
+4438, 5274 — added one at a time across sixteen batches. 5274 appears in **none**
+of the files checked (0 rows in 12/2023 and in the engineers files), so it was
+declared ahead of a gap rather than in response to one, which is the better
+order.
+
+§15 again: there is no way to know the family has ended. A `פנסיוני` column over
+the 295 codes in `sminimum`, populated from `משכורת קובעת`, retires all sixteen
+batches at once.
 
 ## 0ca. ‼ The 16 December files are the מנהלי track, not "the full population"
 

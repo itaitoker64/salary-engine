@@ -204,7 +204,10 @@
     // Pairs with 1622 — the elections family is now two codes.
     // 1623 added 5.8.2026: `מאפייני רכיבי שכר` row 376, משכורת קובעת = לא.
     // Third of the elections family (1622, 1631, 1623).
-    1622, 1623, 1631, 1927, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
+    // 5274 added 5.8.2026: `מאפייני רכיבי שכר` row 648 — משכורת קובעת = לא,
+    // but ברוטו תקציבית/צוברת = כן, so it counts in gross and is excluded only
+    // from the pensionable base. Seventh member of the "ימי X" family.
+    1622, 1623, 1631, 1927, 5274, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
     // Added 4.8.2026 on the user's instruction (see main.py for the checks):
     // מענק חד-פעמי, שווי חופשה, הפרש ברוטו, נסיעות, שווי זכאות שבתון, ימי חג, דמי הבראה.
     4962, 4122, 4264, 4443, 4121, 5271, 1269,

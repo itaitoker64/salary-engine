@@ -229,6 +229,12 @@ NON_PENSIONABLE = {
     # 376 declares סגן מנהל בחירות with משכורת קובעת = לא. Third of the
     # elections family, after 1622 (מנהל בחירות) and 1631 (הכנה לבחירות).
     1623,   # סגן מנהל בחירות — משכורת קובעת = לא בחוברת
+    # 5274 added 5.8.2026. `מאפייני רכיבי שכר` row 648 declares ימי השתלמות
+    # בשכר with משכורת קובעת = לא — but, unlike the elections codes, with
+    # ברוטו תקציבית = כן and ברוטו צוברת = כן. So it IS part of gross pay and
+    # only excluded from the pensionable base, which is exactly the semantics
+    # NON_PENSIONABLE encodes. Seventh member of the "ימי X" family.
+    5274,   # ימי השתלמות בשכר — משכורת קובעת = לא, אך נכלל בברוטו
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה
