@@ -252,6 +252,24 @@ NON_PENSIONABLE = {
     # reads the component off the slip directly and is unaffected by this list.
     4536,   # אינו מוצהר בחוברת
     5527,   # ותק סטודנט — משכורת קובעת = לא, אך נכלל בברוטו
+    # Added 6.8.2026 (second batch). 1044 and 1027 are declared in
+    # `מאפייני רכיבי שכר` with משכורת קובעת = לא and ברוטו = כן — the 5274
+    # shape, and both are absence components whose amounts are mostly
+    # NEGATIVE (deductions for hours/days not worked). 1904 is not declared.
+    # ‼ 0 appears exactly ONCE in the 35 files: מהנדסים 12/2025, one row,
+    # NO name, amount ₪0, on a slip whose status is already `no_base`. It was
+    # reaching the coverage-gap list as a nameless ₪0 code — which is what it
+    # is: a junk row, not a pay component. Suppressing it is right.
+    # Note `המרת סמלי שכר` row 2 maps סמל מלמ 0 to 'יסוד\משולב' (the BASE).
+    # This list only suppresses coverage-gap reporting — it feeds no rule and
+    # no base computation (the base is CODE_YESOD=1 / CODE_COMBINED_BASE=10002)
+    # — so the entry cannot corrupt a calculation. But if a future file ever
+    # carries code 0 as a real base row, this line would silence a hole that
+    # should be loud. Flagged to the user.
+    0,      # שורת אשפה: שורה אחת, ללא שם, ₪0, במהנדסים 12/2025
+    1027,   # ימי היעדרות — משכורת קובעת = לא, ברוטו = כן
+    1044,   # שעות היעדרות — משכורת קובעת = לא, ברוטו = כן
+    1904,   # השלמ.למשתלם — אינו מוצהר בחוברת
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה

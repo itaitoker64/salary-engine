@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ct. **1027, 1044, 1904, 0 out of scope** — 60 codes; code 0 is a nameless ₪0 junk row
+0cs2. **633/634 traced + the missing 2024-2026 explained** — both codes start in 12/2020; no מנהלי files past 12/2023
 0cs. **Engineers series extended to 12/2025** — 19 files; 12/2025 is the first file with zero true errors
 0cr. **4651 neutralization column** — 14 workers; the rate table is filled for 2008 only (§29)
 0cq. **‼ 5253 neutralization column** — 42 true errors and ₪20,914 leave the headline
@@ -120,6 +122,72 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ct. 1027, 1044, 1904, 0 out of scope — 60 codes, and code 0 is a junk row
+
+User instruction. `NON_PENSIONABLE` 56 -> **60**, py/js element-wise equal.
+
+| code | name | workbook declaration | where it appears |
+|---|---|---|---|
+| **1027** | ימי היעדרות | **משכורת קובעת = לא, ברוטו = כן** | engineers 12/2024, 12/2025 |
+| **1044** | שעות היעדרות | **משכורת קובעת = לא, ברוטו = כן** | engineers 12/2024, 12/2025 |
+| 1904 | השלמ.למשתלם | not declared | engineers 12/2020 (3 rows, ₪19,369) |
+| **0** | — | not declared | **engineers 12/2025 — one row** |
+
+1027/1044 are the 5274/5527 shape — in the gross, outside משכורת קובעת — so
+workbook-backed. Both are absence components whose amounts are mostly
+negative (−₪10,256 and −₪4,889). 1904 rests on silence.
+
+**Code 0 is not a pay code.** Scanned all 35 files: it appears exactly once
+— engineers 12/2025, one row, **no name, ₪0**, on a slip already flagged
+`no_base`. It was reaching the coverage-gap list as a nameless zero-value
+code. Suppressing it is cleanup, not a scope decision.
+
+Caveat recorded in the code: `המרת סמלי שכר` row 2 maps סמל מלמ 0 to
+'יסוד\משולב' — the base. This list only suppresses coverage-gap reporting
+and feeds no rule or base computation (base is 1 / 10002), so it cannot
+corrupt a calculation — but if a future file carries code 0 as a real base
+row, this entry would silence a hole that should be loud.
+
+**Measured on the 19 engineers files:** coverage gap **13 codes / ₪181,725
+-> 9 / ₪143,935** (−₪37,790). True errors 53 -> 53, valid 17,688 -> 17,688 —
+nothing on the dashboard moved. No effect at all on the מנהלי files; none of
+the four appears there.
+
+## 0cs2. Two questions answered — 633/634, and the missing 2024-2026
+
+**Where 633 and 634 appear** (scanned all 35 files; the earlier 631 scan was
+the wrong code and is superseded):
+
+| code | name | files | rows | ₪ |
+|---|---|---|---|---|
+| **633** ת.מפ. בזק ב | מנהלי 12/2020 | 249 rows / 249 workers | | **₪447,500** |
+| | מנהלי 12/2021 | 14 | | ₪4,769 |
+| | מנהלי 12/2022 | 1 | | ₪2.37 |
+| | מנהלי 12/2023 | 1 | | ₪12.70 |
+| | מהנדסים 12/2020 | 4 | | ₪2,611 |
+| **634** ת.מפ. בזק ג | מנהלי 12/2020 | 4 | | ₪110.75 |
+| | מנהלי 12/2021 | 9 | | **−₪6,674.61** |
+
+**Both codes start in 12/2020 and appear in no earlier file.** 633 totals
+269 rows / ₪454,896, of which **98.4% is 12/2020 alone** — the shape of a
+one-off retro settlement, then a tail of 14 → 1 → 1. 634 is 13 rows and
+**net negative**, i.e. mostly reversals. Top ministries for 633: רשות
+האוכלוסין וההגירה ₪176,934, רשות האכיפה והגבייה ₪55,503, מכס ומע"מ ₪55,044.
+Neither code is declared in `מאפייני רכיבי שכר`, neither has a rule, and
+both carry ביט פנסיוני = כן on every row.
+
+Note on the scan: `golmi_1208e.xlsx` keeps its data on a third sheet named
+`גולמי` (sheets 1-2 are pivot leftovers), so a header-indexed scan skips it
+unless the sheet is named explicitly. Re-checked that file directly —
+**none of 633, 634, 0, 1027, 1044, 1904 appears in it.**
+
+**Why the מנהלי report has no 2024/2025/2026:** because those files do not
+exist here. Listed every staged file and read its pay date — the דירוג 1
+series runs **12/2008 through 12/2023 and stops**. 12/2024 and 12/2025 exist
+for **דירוג 12 only** (they arrived in the last upload). Nothing for 2026 in
+either track. Send the מנהלי files for 12/2024 and 12/2025 and they go
+straight in.
 
 ## 0cs. Engineers series extended to 12/2025 — 19 files, and the first zero
 
