@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ca. **‼ Framing correction: the 16 December files are דירוג מנהלי** — not "the full population"
 0bz. **✅ 1623 out of scope + engineers unified** — 50 codes; the elections family is complete
 0by. **12/2012 engineers + correction** — the pay-agreement stall is retro, not a 4550-style bug
 0bx. **607 extended to 12/2012 + 12/2011 engineers** — the pay-agreement family stalls at 94-97%
@@ -101,6 +102,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ca. ‼ The 16 December files are the מנהלי track, not "the full population"
+
+Checked when the user asked for a מנהלי unified report. **All sixteen December
+files — and the 22,422-slip 0108 file — are 100% דירוג 1 (מינהלי — עובדי
+מדינה).** Sampled 12/2008, 12/2015, 12/2020, 12/2023 and 0108: single track in
+every one.
+
+**I called them "the full population" all session, in chat and in the docs.
+That is wrong.** They are one track out of the 30+ in `DERUG`. Every number
+measured on them — coverage gaps, match rates, neutralization buckets, the 175
+true errors — **describes דירוג מנהלי**, not state employees at large.
+
+**What survived re-checking:**
+
+- **§23 (669) — the conclusion holds, the argument I gave for it did not.** I
+  wrote there that 669 "is not דירוג-dependent" on the strength of comparing the
+  engineers files against the December files — which is *precisely* a
+  cross-track comparison, so that reasoning was wrong. But the measurement
+  stands: מנהלי pays ₪2,596.31 in 12/2008 and ₪51.09 after; engineers pay
+  ₪2,596.31 in 12/2008 and 51.09 after (98.9%). **Both tracks move together**,
+  so 669 really is period-dependent and 12/2008 really is the sole anomaly.
+- **1063, 5524, 5270, 5340, 737, 5251, 5253 — measurements valid, scope
+  narrower than stated.** All were measured on מנהלי files. 1063's ₪10.1M is
+  ₪10.1M *in the מנהלי track*; whether other tracks add to it is **unmeasured**.
+
+**And it turns a stray fact into a finding:** the מנהלי coverage gap is 28
+codes / ₪608,076 while the engineers' is **0 / ₪0**. Those are two tracks, not a
+before and after. The workbook covers engineers completely and מנהלי not — which
+is invisible if you call one of them "the full file".
+
+**Deliverable:** the unified report produced under 0bz *is* the מנהלי report;
+it was re-delivered under a correctly named file rather than re-run, since it
+already includes every change through 1623.
 
 ## 0bz. 1623 out of scope, and the engineers series consolidated
 
