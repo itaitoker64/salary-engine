@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cn. **✅ New מנהלי unified report** — 175 → 743 true errors, 1699 is 80% of them
 0cm. **‼‼ 1699 minimum-wage check was broken — our bug, not the workbook's** — 4.6% → 96.7%
 0cl. **‼ 12/2020–12/2022 engineers — TWO of my findings were wrong** — 4453's completion broke, 602 is not flat
 0ck. **12/2019 engineers** — 602 confirmed at ₪557.24 for a third year, and it is growing
@@ -114,6 +115,32 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cn. New מנהלי unified report — the 1699 fix lands
+
+**16 files · 322,330 slips.** Partition closes on all 16 rows and the total.
+
+| | before | **after** |
+|---|---|---|
+| valid | 304,110 | 302,625 |
+| **true errors** | 175 | **743** |
+| exposure | ₪62,385 | **₪273,103** |
+| under / over | — | ₪138,867 / ₪134,235 |
+
+**568 new true errors and ₪210,762 of new exposure, all of it 1699.**
+
+**1699 is now 80% of all true errors** — 596 workers, ₪210,098 — ahead of 736
+(42), 5253 (42) and 756 (15). Of those 596, **388 underpaid and 208 overpaid**.
+That two-sided split matters: a residual engine bug would skew one way, so this
+reads as real gaps rather than another modelling error.
+
+**The rule still does not clear the gate everywhere.** It fires in 12/2011,
+12/2013–12/2017, 12/2019–12/2021 and 12/2023, and remains silenced in 12/2008–
+12/2010, 12/2012, 12/2018 and 12/2022. Those four still sit under 97% after the
+fix, so **a further model gap remains there** — the next open item on 1699.
+
+Coverage gap essentially unchanged: 27 codes / ₪607,938 against 28 / ₪608,076.
+The fix touched checking, not coverage.
 
 ## 0cm. ‼‼ The 1699 minimum-wage check was broken — and the bug was ours
 
