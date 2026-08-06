@@ -207,7 +207,10 @@
     // 5274 added 5.8.2026: `מאפייני רכיבי שכר` row 648 — משכורת קובעת = לא,
     // but ברוטו תקציבית/צוברת = כן, so it counts in gross and is excluded only
     // from the pensionable base. Seventh member of the "ימי X" family.
-    1622, 1623, 1631, 1927, 5274, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
+    // 954, 1170, 4540 added 5.8.2026 off 12/2013's coverage list. 954 and 4540
+    // are declared משכורת קובעת = לא (`מאפייני רכיבי שכר` rows 150 and 546);
+    // 1170 is not declared anywhere. See docs/PROGIM_FIXES.md §24.
+    954, 1170, 1622, 1623, 1631, 1927, 4540, 5274, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
     // Added 4.8.2026 on the user's instruction (see main.py for the checks):
     // מענק חד-פעמי, שווי חופשה, הפרש ברוטו, נסיעות, שווי זכאות שבתון, ימי חג, דמי הבראה.
     4962, 4122, 4264, 4443, 4121, 5271, 1269,

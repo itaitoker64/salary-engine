@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ce. **✅ 954, 1170, 4540 out of scope** — 54 codes; two of them were fake holes §24 predicted
 0cd. **‼ The workbook already declares pensionability for 841 codes** — and §17 undercounts the contradictions
 0cc. **Progim 06.08.2026 installed** — 607 extended to 12/2013; extractor un-pinned from a stale filename
 0cb. **✅ 5274 out of scope — a new kind of declaration** — 51 codes; "ימי X" is now eight
@@ -105,6 +106,31 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ce. 954, 1170, 4540 out of scope — §24's prediction, paid out
+
+On the user's instruction, taken straight off 12/2013's coverage list. All three
+pass the three checks. `NON_PENSIONABLE` = **54**, py/js equal.
+
+| code | name | workbook declaration |
+|---|---|---|
+| **954** | תוספת שעות גלובלית | row 150: `משכורת קובעת = לא`, **gross = כן** |
+| **4540** | ש. נ. 521% | row 546: `לא` in every column |
+| 1170 | תוספת שעות | **not declared at all** — rests on silence |
+
+**954 and 4540 are two of the three §24 measured** as counted in the coverage
+gap while the workbook already placed them out of scope. Re-running the same
+file: **8 codes / ₪11,138 → 5 codes / ₪6,955**. Of the ₪4,183 removed, **₪1,747
+should never have been there** had the engine read `משכורת קובעת`.
+
+**‼ One of that kind is left, and I did not remove it.** **1653 (תוס. כוננות,
+₪448) is declared `משכורת קובעת = לא`** and still counts as a hole. No
+instruction was given for it, and codes do not leave scope on my initiative. It
+waits, along with §24's other 464.
+
+This is the sharpest illustration of §24 yet: three codes were excluded by hand
+and two of them were already written in the workbook. Until the engine reads the
+sheet, each one costs a full round-trip of report → instruction → code → report.
 
 ## 0cd. 12/2013 engineers — and the sheet that makes §15 free
 

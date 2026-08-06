@@ -235,6 +235,16 @@ NON_PENSIONABLE = {
     # only excluded from the pensionable base, which is exactly the semantics
     # NON_PENSIONABLE encodes. Seventh member of the "ימי X" family.
     5274,   # ימי השתלמות בשכר — משכורת קובעת = לא, אך נכלל בברוטו
+    # Added 5.8.2026 off 12/2013's coverage list (see docs/PROGIM_FIXES.md §24).
+    # Two of the three are declared by the workbook, one rests on its silence:
+    #   954  — `מאפייני רכיבי שכר` row 150: משכורת קובעת = לא, ברוטו = כן
+    #   4540 — row 546: לא in every column
+    #   1170 — NOT declared anywhere; passes only the silence tests
+    # 954 and 4540 were counted as coverage-gap holes while the workbook already
+    # placed them out of scope — the concrete cost §24 measures.
+    954,    # תוספת שעות גלובלית — משכורת קובעת = לא בחוברת
+    1170,   # תוספת שעות — אינו מוצהר בחוברת כלל
+    4540,   # ש. נ. 521% — משכורת קובעת = לא בחוברת
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה
