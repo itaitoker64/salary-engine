@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ch. **12/2015 engineers** — §25's completion passes its first test; no-base "trend" retracted
 0cg. **4453 converted + 1168 declared file-fed** — 105 rules; the 4453 table is 3 cells of 228
 0cf. **12/2014 engineers** — 607's table end confirmed correct; no-base is climbing
 0ce. **✅ 954, 1170, 4540 out of scope** — 54 codes; two of them were fake holes §24 predicted
@@ -108,6 +109,33 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ch. 12/2015 engineers — our 4453 completion survives its first test
+
+**Run:** 1,102 workers, all דירוג 12 · 1,048 valid · **1 true error** (0.09%) ·
+₪5 exposure. Partition closes.
+
+**✅ First independent test of §25's completion.** We filled codes 13–192 with
+533 on measurements that stopped at code 84, and flagged that codes 85–192 had
+no support at all. **12/2015 is code 96 — the first point inside the guessed
+range** — and it pays **₪533 to 11 full-timers.** The completion holds there.
+
+Confirmed range extends from code 84 to **code 96**. **Codes 97–192 remain
+unverified**, so it is still our number and §25's instruction to fill
+`BR19:BR192` stands.
+
+**Pay-agreement family, ninth consecutive file:** 4544 95.6%, 4550 93.4%, 4934
+94.6%, 4994 94.5%, each on 913–1,067 of 1,102 workers. **The gate checks 5 of
+29** — a new low for the series, and another reminder that "1 true error" here
+measures what was checked, not how the payroll behaved.
+
+**Coverage gap unchanged:** the same 4 codes / ₪4,838 as 12/2014 — 4623
+(₪3,117), 1169 (₪637), 4447 (₪637), 1653 (₪448). Third file running where 1653
+is a hole while the workbook declares it `לא`.
+
+**‼ Retraction from 0cf.** I flagged the no-base bucket as climbing (24 → 39 →
+46). **12/2015 comes in at 33.** That is fluctuation, not a trend — the
+observation is withdrawn.
 
 ## 0cg. 4453 converted, 1168 marked file-fed — and one completion is ours, not the workbook's
 
