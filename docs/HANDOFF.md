@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ck. **12/2019 engineers** — 602 confirmed at ₪557.24 for a third year, and it is growing
 0cj. **12/2018 engineers + 602 traced** — the biggest engineers hole, and it is nowhere in the workbook
 0ci. **‼ 12/2016 + 12/2017 — the gate caught in the act** — 4544 crosses 97% for one file and the headline x15
 0ch. **12/2015 engineers** — §25's completion passes its first test; no-base "trend" retracted
@@ -111,6 +112,28 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ck. 12/2019 engineers — 602 firms up, 4453's range reaches 12/2019
+
+**Run:** 945 workers, all דירוג 12 · 897 valid · **5 true errors** (0.53%) ·
+₪1,221 exposure. Partition closes. Gate checks 11 of 32. Pay-agreement family
+silenced for an **eleventh** consecutive file (4544 95.5%, 4550 93.8%, 4934
+95.3%, 4994 93.0%).
+
+**602 gets its third and cleanest data point.** 26 carriers, and **all 26 pay
+exactly ₪557.24** — no outlier at all, where 12/2017 and 12/2018 each had one.
+The value is now confirmed at codes 120, 132 and 144. §26 updated: a flat
+`=+$<col>$3` from code 109 is a faithful description of what was measured, while
+codes 1–108 should stay empty (12/2016 has 0 carriers) and anything past code 144
+is the user's call rather than our measurement.
+
+**It is also the file's whole coverage gap and it is growing:** ₪12,222 →
+₪10,480 → **₪14,488**. The gap is down to 3 codes / ₪15,762, of which 602 is
+₪14,488 — 4623 and 1653 dropped out entirely this month, leaving only 1169 and
+4447 beside it.
+
+**✅ 4453 completion holds again:** ₪533 at code 144. Confirmed range is now
+code 12 → **code 144** (12.2008–12.2019) continuous. Codes 145–192 remain ours.
 
 ## 0cj. 12/2018 engineers, and 602 chased down
 
