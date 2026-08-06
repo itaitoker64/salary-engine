@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cd. **‼ The workbook already declares pensionability for 841 codes** — and §17 undercounts the contradictions
 0cc. **Progim 06.08.2026 installed** — 607 extended to 12/2013; extractor un-pinned from a stale filename
 0cb. **✅ 5274 out of scope — a new kind of declaration** — 51 codes; "ימי X" is now eight
 0ca. **‼ Framing correction: the 16 December files are דירוג מנהלי** — not "the full population"
@@ -104,6 +105,54 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cd. 12/2013 engineers — and the sheet that makes §15 free
+
+**Run:** 1,193 workers, all דירוג 12 · 1,133 valid · **3 true errors** (0.25%) ·
+₪211 exposure, all overpayment. Partition closes. 669 reads 99.0% (sixth §23
+confirmation). The pay-agreement family stalls again for the seventh straight
+file: 4544 95.2%, 4550 94.3%, 4934 93.9%, 4994 93.9%. Trust gate: 10 of 31.
+
+**Coverage gap returns: 8 codes / ₪11,138**, after four consecutive clean files.
+Chasing what was in it produced the real finding.
+
+### `מאפייני רכיבי שכר` already contains what §15 asks for
+
+It declares **841 codes** — **486 with `משכורת קובעת = לא`**, 218 with `כן`.
+Our hand-grown `NON_PENSIONABLE` has 51.
+
+| | count |
+|---|---|
+| ours matching a `לא` declaration | 22 |
+| **ours that the workbook declares `כן`** | **12** |
+| ours not declared at all | 17 |
+| **declared `לא`, absent from ours** | **464** |
+
+**‼ §17 undercounts.** It records 4140 and 4538 as "the only entries that
+contradict the workbook". The real list is twelve: **1260, 1269, 1731, 4122,
+4123, 4140, 4437, 4457, 4538, 5272, 5374, 5438** — all added on the user's
+instruction. That does not make the user wrong; the declaration may be stale.
+It does mean twelve places where code and workbook say opposite things, only
+two of them documented. Each needs an explicit call.
+
+**Concrete cost, from this file's own gap list:** of the 8 codes, 1168 (₪2,713)
+and 4447 (₪637) are declared `כן` — genuine holes. But **4540 (₪1,216), 954
+(₪531) and 1653 (₪448) are declared `לא`** and should never have been counted.
+Three of eight are holes only because we do not read the sheet. The remaining
+three (4623, 1170, 1169) are not declared at all.
+
+**Scale of the 464:** small in money — 5 appear in 12/2023 (₪5,431), 3 in this
+file (₪2,195). But two of them, **739 (תוספת סיכון) and 883 (תוספת אבטחה), are
+actively validated by our rules** while the workbook says they are not part of
+the pensionable salary. That needs a decision.
+
+**The instruction, and it is free this time:** §15 asks for a declared
+`פנסיוני` column. It already exists — it is `משכורת קובעת`, populated for 841
+codes. The engine should read it instead of maintaining a 51-code list that
+grows one batch at a time. Doing so retires all sixteen batches, closes three of
+the eight gaps above, and forces the twelve contradictions into the open.
+**Not done — it changes behaviour on every file, so it is the user's call.**
+`PROGIM_FIXES` §24.
 
 ## 0cc. Progim 06.08.2026 installed, and a quietly broken tool fixed
 
