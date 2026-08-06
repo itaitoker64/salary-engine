@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cf. **12/2014 engineers** — 607's table end confirmed correct; no-base is climbing
 0ce. **✅ 954, 1170, 4540 out of scope** — 54 codes; two of them were fake holes §24 predicted
 0cd. **‼ The workbook already declares pensionability for 841 codes** — and §17 undercounts the contradictions
 0cc. **Progim 06.08.2026 installed** — 607 extended to 12/2013; extractor un-pinned from a stale filename
@@ -106,6 +107,34 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cf. 12/2014 engineers — and 607's table end is confirmed
+
+**Run:** 1,147 workers, all דירוג 12 · 1,088 valid · **3 true errors** (0.26%) ·
+₪728 exposure, all underpayment. Partition closes.
+
+**✅ 607 closed.** Its table stops at code 72 (12.2013) and 0bv recorded that we
+could not tell whether the component continued. **It did not: 0 carriers in
+12/2014.** The table ends in exactly the right place — no further extension
+needed.
+
+**669 disappears from engineers too** — 0 carriers after 99 in 12/2013. That
+matches the מנהלי track, where the population collapsed from 5,630 to 199 in the
+same year. Both tracks lost it together in 2014, which is one more argument that
+669 is period-driven rather than track-driven (§23).
+
+**Pay-agreement family, eighth consecutive file:** 4544 95.4% (1,101 carriers),
+4550 94.0% (954), 4934 94.2% (1,101), 4994 94.3% (1,100). The gate checks
+**7 of 29** components — the lowest ratio in the series.
+
+**‼ 1653 counted as a hole again.** The coverage gap is 5 codes / ₪8,392: 1168
+(₪3,554, declared `כן` — real), 4623 (₪3,117, undeclared), 4447 (₪637, declared
+`כן` — real), 1169 (₪637, undeclared), and **1653 (₪448, declared `לא`)**. Second
+file running where 1653 is a hole only because the engine does not read the
+declaration. Still not removed — no instruction covers it.
+
+**Trend worth watching:** the no-base bucket climbs 24 (12/2010) → 39 (12/2013)
+→ **46** (12/2014) while the population shrinks (1,225 → 1,147). Undiagnosed.
 
 ## 0ce. 954, 1170, 4540 out of scope — §24's prediction, paid out
 
