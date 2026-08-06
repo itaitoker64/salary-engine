@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0ci. **‼ 12/2016 + 12/2017 — the gate caught in the act** — 4544 crosses 97% for one file and the headline x15
 0ch. **12/2015 engineers** — §25's completion passes its first test; no-base "trend" retracted
 0cg. **4453 converted + 1168 declared file-fed** — 105 rules; the 4453 table is 3 cells of 228
 0cf. **12/2014 engineers** — 607's table end confirmed correct; no-base is climbing
@@ -109,6 +110,43 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0ci. 12/2016 and 12/2017 — the trust gate caught in the act
+
+| | 12/2016 | 12/2017 |
+|---|---|---|
+| workers | 1,035 | 1,016 |
+| valid | 971 | 973 |
+| **true errors** | **15 (1.45%)** | **4 (0.39%)** |
+| exposure | ₪3,166 | ₪1,490 |
+| components checked | 7 of 30 | 7 of 31 |
+
+**The cleanest demonstration yet that the gate is a switch.** True errors go 1
+(12/2015) → **15** (12/2016) → 4 (12/2017), and the cause is not the payroll:
+
+| file | 4544 match | checked? | true errors |
+|---|---|---|---|
+| 12/2015 | 95.6% | ❌ silenced | 1 |
+| **12/2016** | **97.1%** | **✅ checked** | **15** |
+| 12/2017 | 95.8% | ❌ silenced | 4 |
+
+**A 1.5-point move flipped a component carried by 1,006 of 1,035 workers from
+invisible to active, and multiplied the file's headline by fifteen.** Same
+component, same population, adjacent years. 12/2016's largest gap is indeed 4544
+— 29 gaps, ₪1,688.
+
+**Consequence for reading the series: true-error counts are not comparable
+across files**, because the number of components being checked changes from file
+to file. 12/2016 is not a bad year; it is the year one more rule was awake.
+
+**✅ 4453 completion holds at two more points:** ₪533 at code 108 (9 carriers)
+and code 120 (7). Confirmed range extends from code 96 to **code 120**; codes
+121–192 still unverified.
+
+**Two new coverage holes, both declared `כן`:** **602 ע"ח פריון at ₪12,222** in
+12/2017 — the largest hole on this track so far — and 978 תפקיד-מחקר at ₪395 in
+12/2016. **1653 counted as a hole for the fourth and fifth time** while declared
+`לא`.
 
 ## 0ch. 12/2015 engineers — our 4453 completion survives its first test
 
