@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cx. **New workbook installed** — 3 tables filled; it exposed a silent extractor bug (5401 lost)
+0cw. **Six more codes out of scope** — coverage gap ₪636,303 → ₪142,036
 0cv. **מנהלי extended to 02/2026** — 19 files; base mismatches jump 6× in 12/2024
 0cu. **‼‼ 633/634 out of scope** — 633 alone is 80.1% of the מנהלי coverage gap
 0ct. **1027, 1044, 1904, 0 out of scope** — 60 codes; code 0 is a nameless ₪0 junk row
@@ -124,6 +126,100 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cx. New workbook installed — three tables filled, and an extractor bug it exposed
+
+A later 06.08 revision arrived (same date, **7,614 cells different**). This is
+a **structural** change, not a values update, and it moves column letters.
+
+| sheet | cells | what happened |
+|---|---|---|
+| `tosafot` | 5,813 | **columns inserted** — 30 labels from `CW` on shifted |
+| `sminimum` | 672 | row inserted (`$A$7:$D$304` → `$D$305`) |
+| `simlei sachar` | 402 | row inserted for **1168 תוספת מבצעית** |
+| `SACHAR` | 298 | **column inserted for 5268 ליווי אח"מים** — 5401 moved `DV` → `DW` |
+| `Netunei Gimlai` | 292 | rows shifted |
+| others | 137 | references that followed |
+
+### ‼ The bug it exposed in our extractor
+
+`tools/extract_rules.py` pinned the end of the חוקה block to a **letter**:
+`BLOCK_LAST = "DV"`. The 5268 insertion pushed 5401 to `DW`, so the extractor
+**silently dropped the 5401 rule** — 25 percent-rules became 24, no error, no
+warning. Exactly the failure mode recorded in `0cc` for a pinned *filename*,
+now for a pinned *column*. Fixed: the block end is resolved at run time from
+the **code** 5401, scanning 24 columns past the old literal, with a stderr
+warning if the code is ever absent. Both workbooks now extract 25/25.
+
+### Three pulse tables filled — two of them answer our own findings
+
+- **4453 דריכות וכוננות** (`BR`): 14 → **218 of 228**. This retires the
+  hand-built completion of §25 — including the guessed 533/933 boundary that
+  turned out to be wrong. Now read from the workbook, no guessing.
+- **4651 תוספת שכר חקלאות** (`BS`): 12 → **192**. §29 fixed for codes 1–192
+  (1.2008–12.2023); **codes 193–228 (2024–2026) are still empty.**
+- **5254 תוספת שכר מיסים** (`DN`): a **new column**, 177 cells, 14 bands over
+  codes 52–228. Converted from `reported` (never validated) to a checkable
+  `shekel` rule — and **it passes on every row**: it left the "fed from the
+  file" list without entering the gap list.
+
+`sminimum` changed the minimum-wage base: **5539 out, 1168 in**, in both 1699
+and 5260.
+
+### ‼ A mistake I made and caught before it shipped
+
+My first merge refreshed the whole `counted` list for 1699 and 5260 from the
+new extraction. That was wrong: the stored lists carry **independent prior
+hand edits** (1699: +105/1040/1072/99998, −733/4544; 5260 is a curated 192
+against the extractor's 257). A wholesale refresh would have added 69 codes to
+the 5260 base and silently changed the 1699 check — **80% of all true errors**
+— as a side effect of a workbook install. Reverted from git and re-applied
+**only the workbook's own delta** (−5539 +1168). `counted_note` on both rules
+records this, and the stored-vs-extracted divergence is now an open question
+for the user, not something to resolve quietly.
+
+### Measured
+
+| | מנהלי (19 files) | engineers (19 files) |
+|---|---|---|
+| slips | 362,567 | 18,715 |
+| true errors | 742 → **742** | 53 → **53** |
+| valid | 339,476 → **339,476** | 17,688 → **17,688** |
+| partition | closes | closes |
+
+The workbook change is **headline-neutral on both tracks** — the only movement
+is ₪156,077 → ₪156,935 underpaid on מנהלי (+₪858). That is the right outcome:
+the filled tables replaced our guesses with the workbook's own numbers and
+agreed with them.
+
+## 0cw. Six more codes out of scope — 77.7% of the מנהלי coverage gap
+
+User instruction: 712, 1524, 1903, 4441, 6920, 7902. `NON_PENSIONABLE`
+62 → **68**, py/js element-wise equal.
+
+| code | name | ₪ in the 19-file gap | declared in the workbook? |
+|---|---|---|---|
+| **1524** | העדרות | **₪217,260** | no |
+| **6920** | הפרשי פנסיוני וקה"ש | **₪160,435** | no |
+| **7902** | הפרשי פנסיוני וקה"ש | **₪102,961** | no |
+| 712 | דרגת קידום | ₪10,289 | no |
+| **1903** | תגמ. מלואים | ₪3,292 | **yes — `לא` in every column** |
+| 4441 | חובת שעות שישי | ₪30 | no |
+
+**Coverage gap: 38 codes / ₪636,303 → 32 / ₪142,036.** True errors 742 → 742,
+valid unchanged, every bucket unchanged.
+
+Only **1903** is workbook-backed. The other five rest on silence — though
+6920/7902 are employer **pension and study-fund differentials**, not pay, so
+they are outside the Progim's scope by construction, and 1524 is the same
+absence family as 1027/1044.
+
+**Running total of what has been declared out of scope rather than fixed in
+the workbook:** across today's batches the מנהלי coverage gap went ₪636,303 →
+₪142,036 and, before that, ₪603,269 → ₪119,800 via 633. **Almost none of it
+was closed by the workbook computing more; nearly all of it was closed by
+declaring codes out of scope.** That is the honest reading of the number, and
+§24 remains the fix: the workbook should declare these itself.
 
 ## 0cv. מנהלי series extended to 02/2026 — 19 files, and the base breaks in 2024
 

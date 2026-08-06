@@ -281,6 +281,21 @@ NON_PENSIONABLE = {
     # net −₪6,564 (mostly reversals), 12/2020 and 12/2021 only. Also
     # undeclared in `מאפייני רכיבי שכר`.
     634,    # ת.מפ. בזק ג — אינו מוצהר בחוברת
+    # Added 6.8.2026, straight off the 19-file מנהלי coverage list. Together
+    # they are ₪494,267 of that list's ₪636,303 — 77.7% of it.
+    #   1524 ₪217,260 · 6920 ₪160,435 · 7902 ₪102,961 · 712 ₪10,289
+    #   1903 ₪3,292 · 4441 ₪30
+    # Only 1903 is declared in `מאפייני רכיבי שכר` (row: לא in every column —
+    # the cleanest kind of backing). The other five rest on the workbook's
+    # silence. 6920/7902 are employer PENSION and study-fund differentials,
+    # not pay, so they sit outside the Progim's scope by construction; 1524 is
+    # the same absence family as 1027 and 1044.
+    712,    # דרגת קידום — אינו מוצהר בחוברת
+    1524,   # העדרות — אינו מוצהר; משפחת ההיעדרות של 1027/1044
+    1903,   # תגמ. מלואים — מוצהר `לא` בכל העמודות
+    4441,   # חובת שעות שישי — אינו מוצהר בחוברת
+    6920,   # הפרשי פנסיוני וקה"ש — הפרשת מעסיק, לא שכר
+    7902,   # הפרשי פנסיוני וקה"ש — הפרשת מעסיק, לא שכר
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה

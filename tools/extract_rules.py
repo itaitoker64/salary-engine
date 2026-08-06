@@ -26,7 +26,14 @@ from pathlib import Path
 import openpyxl
 from openpyxl.utils import column_index_from_string, get_column_letter
 
-BLOCK_FIRST, BLOCK_LAST = "AA", "DV"
+# ‼ The block END is a COLUMN LETTER, so any column inserted into SACHAR
+# silently truncates it. That is not hypothetical: the 06.08 workbook
+# inserted 5268 ליווי אח"מים ahead of 5270, which pushed 5401 from DV to DW
+# and made this extractor drop the 5401 rule without any error. Resolved at
+# runtime now: find the column whose row-9 code is BLOCK_LAST_CODE and use
+# it, falling back to the literal letter only if the code is absent.
+BLOCK_FIRST, BLOCK_LAST_FALLBACK = "AA", "DV"
+BLOCK_LAST_CODE = 5401   # הסכם 2016 % — the last column of the חוקה block
 CODE_ROW, NAME_ROW, RATE_ROW, AMOUNT_ROW = 9, 10, 7, 11
 
 # Codes whose Netunei Gimlai H column says 'ידני' — manually reported, the
@@ -156,7 +163,22 @@ def extract(xlsm_path: str) -> dict:
                 tosafot_rate.setdefault(code, float(v))
 
     c0 = column_index_from_string(BLOCK_FIRST)
-    c1 = column_index_from_string(BLOCK_LAST)
+    # Resolve the block's last column from its CODE, not a fixed letter — see
+    # the note beside BLOCK_LAST_CODE. Scan generously past the old literal so
+    # further inserts keep working.
+    c1 = None
+    scan_to = column_index_from_string(BLOCK_LAST_FALLBACK) + 24
+    for c in range(c0, scan_to + 1):
+        if wsv.cell(row=CODE_ROW, column=c).value == BLOCK_LAST_CODE:
+            c1 = c
+            break
+    if c1 is None:
+        c1 = column_index_from_string(BLOCK_LAST_FALLBACK)
+        print(f"WARNING: code {BLOCK_LAST_CODE} not found in SACHAR row {CODE_ROW}; "
+              f"falling back to column {BLOCK_LAST_FALLBACK}", file=sys.stderr)
+    else:
+        print(f"block: {BLOCK_FIRST}..{get_column_letter(c1)} "
+              f"(last column resolved from code {BLOCK_LAST_CODE})", file=sys.stderr)
 
     # Map block column letter -> [codes], and read resolved rate values.
     sachar_vals = list(wsv.iter_rows(min_row=1, max_row=AMOUNT_ROW,

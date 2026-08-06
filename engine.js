@@ -218,7 +218,11 @@
     // slip in any file scanned — see main.py for the caveat about code 0.
     // 633 added 6.8.2026: ₪483,469 = 80.1% of the מנהלי coverage gap, 265 rows,
     // 98.4% of it in 12/2020 alone. Not declared in the workbook.
-    0, 633, 634, 954, 1027, 1044, 1170, 1622, 1623, 1631, 1904, 1927, 4536, 4540, 5274, 5527, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
+    // 712, 1524, 1903, 4441, 6920, 7902 added 6.8.2026 — ₪494,267, i.e. 77.7%
+    // of the 19-file מנהלי coverage list. Only 1903 is declared in the workbook;
+    // the rest rest on its silence. 6920/7902 are employer pension differentials.
+    0, 633, 634, 712, 954, 1027, 1044, 1170, 1524, 1622, 1623, 1631, 1903, 1904, 1927,
+    4441, 4536, 4540, 5274, 5527, 6920, 7902, 1936, 1934, 1901, 1266, 1260, 903, 889, 4457, 1088, 1711, 4120, 1375, 4133,
     // Added 4.8.2026 on the user's instruction (see main.py for the checks):
     // מענק חד-פעמי, שווי חופשה, הפרש ברוטו, נסיעות, שווי זכאות שבתון, ימי חג, דמי הבראה.
     4962, 4122, 4264, 4443, 4121, 5271, 1269,
