@@ -21,8 +21,8 @@ check; docs only), `5614bf0` (five more codes out of scope + the unified report)
 `f43b5a1` (unified report redone without 1.2008 + two month-parsing fixes). The
 rest are handoff stamps. `main` had nothing new for it at session start.
 
-The workbook in `data/progim` is **`Progim_05.08.2026.xlsm`** (04.08 deleted in
-the same commit) — 805 complete at 228/228, 808 split into 10 pulses, and both
+The workbook in `data/progim` is **`Progim_06.08.2026.xlsm`** (05.08 deleted in
+the same commit; 04.08 before it) — 805 complete at 228/228, 808 split into 10 pulses, and both
 §11 formulas fixed. `component_rules.json` holds **102** rules
 (unchanged count). Verify the deploy with `/api/progim/status` — it should
 report `rules: 102`, `source: bundled`, `runtime_data_present: false`, meaning
@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cc. **Progim 06.08.2026 installed** — 607 extended to 12/2013; extractor un-pinned from a stale filename
 0cb. **✅ 5274 out of scope — a new kind of declaration** — 51 codes; "ימי X" is now eight
 0ca. **‼ Framing correction: the 16 December files are דירוג מנהלי** — not "the full population"
 0bz. **✅ 1623 out of scope + engineers unified** — 50 codes; the elections family is complete
@@ -103,6 +104,25 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cc. Progim 06.08.2026 installed, and a quietly broken tool fixed
+
+A clean 12-cell diff: `tosafot!AS67:AS78`, codes 61-72 (1.2013-12.2013), all
+₪1,943.23. 607's table now covers **codes 1-72**, empty from code 73. Fourth
+extension: 1-24 → 1-36 → 1-60 → 1-72. Installed under the new name
+`Progim_06.08.2026.xlsm` with `Progim_05.08.2026.xlsm` deleted in the same
+commit, the same way 04.08 gave way to 05.08.
+
+**Found while installing:** `tools/classify_hukka_amounts.py` hard-coded
+`data/progim/Progim_04.08.2026.xlsm` as its default workbook — a file deleted
+two days ago. The tool has been **silently broken** since. It now picks the
+newest `Progim_*.xlsm` in the directory (verified: resolves to
+`Progim_06.08.2026.xlsm`).
+
+**General lesson worth acting on:** the workbook is re-issued under a new
+filename on almost every edit — eleven versions today alone. **Any code that
+pins a workbook filename goes stale within hours.** If there are other such
+pins, they are worth hunting down now rather than discovering broken later.
 
 ## 0cb. 5274 out of scope — and the first declaration that distinguishes gross from pensionable
 

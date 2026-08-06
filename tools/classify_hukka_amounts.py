@@ -167,9 +167,17 @@ def classify(wb_values, wb_formulas, code):
     return "unknown", f"גיליון '{sheet}' נמצא אך טבלת הסכומים ריקה"
 
 
+def _default_workbook():
+    """Newest Progim_*.xlsm in data/progim — the workbook is re-issued under a
+    new date on most edits, so pinning one filename goes stale immediately."""
+    import glob, os
+    hits = sorted(glob.glob("data/progim/Progim_*.xlsm"))
+    return hits[-1] if hits else "data/progim/Progim_04.08.2026.xlsm"
+
+
 def main():
     xlsm = Path(sys.argv[1] if len(sys.argv) > 1
-                else "data/progim/Progim_04.08.2026.xlsm")
+                else _default_workbook())
     rules_path = Path(sys.argv[2] if len(sys.argv) > 2 else "component_rules.json")
     wb_v = openpyxl.load_workbook(xlsm, data_only=True, keep_vba=True)
     wb_f = openpyxl.load_workbook(xlsm, data_only=False, keep_vba=True)
