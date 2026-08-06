@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cp. **‼ 5253 — three workbook bands nobody is paid** — and the first measured proof of the §14 month-agnostic gap
 0co. **"שגויי דירוג" column + 5527/4536 out of scope** — 5 slips / ₪927; true errors unchanged at 743
 0cn. **✅ New מנהלי unified report** — 175 → 743 true errors, 1699 is 80% of them
 0cm. **‼‼ 1699 minimum-wage check was broken — our bug, not the workbook's** — 4.6% → 96.7%
@@ -116,6 +117,55 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cp. 5253 — the user's question was right, and it exposed three bad bands
+
+**User asked:** "5253 is ₪492 in 2014 in both the file and the PROGIM — why
+does it come out as an error?" **It doesn't.** Measured on 12/2014: 2,554
+carriers, **2,456 pay exactly ₪492, and 0 of them are flagged.** The 52
+flagged slips pay something else entirely (₪501, ₪738, ₪510, ₪623.20,
+₪88.88…), and only 12 of the 52 are flagged on 5253 alone. The 411 in the
+dashboard's gap table is all 16 files, not 2014.
+
+### What the check found instead (new `docs/PROGIM_FIXES.md` §28)
+
+Swept all 16 files and compared the modal full-time amount against the
+workbook's pulse table. **8 bands match exactly; 3 do not:**
+
+| file | code | workbook | paid | carriers |
+|---|---|---|---|---|
+| 12/2013 | 72 | **483** | **475** | 2,625 |
+| 12/2020 | 156 | **493.74** | **490.8** | 2,047 |
+| 12/2021 | 168 | **493.74** | **490.8** | 2,007 |
+
+The years on both sides of each gap match to the agora, so the code→month
+mapping is right and the **bands** are wrong. Two workbook bands (₪483 for
+2013, ₪493.74 for 2020–2021) are paid by **zero** slips anywhere. Either
+they should be deleted (the previous band extends), or 2,625 workers were
+underpaid ₪8 and 4,054 underpaid ₪2.94.
+
+**Why the engine stayed quiet: `shekel` rules are month-agnostic** — they
+accept the closest of all 14 amounts, so ₪475 in 2013 passes because it is
+a valid amount *for another year*. First measured demonstration of the §14
+gap on a real code. Checked whether it hides anything else: in 12/2014,
+**0** full-time slips pay a valid-other-year amount.
+
+Also: **in 12/2023 the rule is silenced entirely** — 1,776/1,877 = 94.6%,
+under the 97% gate. 0 flagged there means unchecked, not clean.
+
+### Two corrections to `component_rules.json`
+
+1. **The source citation was wrong.** It said `tosafot!CM3` / range
+   `$CE$7:$CN$234`. Actual: **`CN3` = `VLOOKUP($C$4,$CF$7:$CO$234,9,0)`**.
+   `CM` is 5251 (ת.מבקר חשב') — a different component; `CE` holds 424 in
+   every row and is not the key column, `CF` (קוד חודש) is. The extracted
+   amounts were right (14/14 against column CN); only the reference was
+   wrong. `source_correction` records it.
+2. **Added the full `amounts_by_code`** — 14 bands, codes 52–228. The
+   engine does not use it yet; the moment month-aware checking lands, the
+   three rows above fire on their own.
+
+Rules still 105. `pytest` 34 passed.
 
 ## 0co. "שגויי דירוג" column + 5527/4536 out of scope — and the headline did not move
 
