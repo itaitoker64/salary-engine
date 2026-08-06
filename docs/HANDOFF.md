@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cg. **4453 converted + 1168 declared file-fed** — 105 rules; the 4453 table is 3 cells of 228
 0cf. **12/2014 engineers** — 607's table end confirmed correct; no-base is climbing
 0ce. **✅ 954, 1170, 4540 out of scope** — 54 codes; two of them were fake holes §24 predicted
 0cd. **‼ The workbook already declares pensionability for 841 codes** — and §17 undercounts the contradictions
@@ -107,6 +108,36 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cg. 4453 converted, 1168 marked file-fed — and one completion is ours, not the workbook's
+
+Both on the user's instruction. `component_rules.json` is now **105** rules.
+
+**1168 תוס. מבצעית → `reported`.** The user says it is taken from the file. The
+workbook declares it משכורת קובעת = כן, so it is pensionable but not computed;
+`reported` takes it off the coverage-hole list without claiming it is checked.
+
+**4453 דריכות וכוננות → `shekel`.** The workbook *does* define it —
+`tosafot!BR2 = IF('Netunei Gimlai'!G86=TRUE, VLOOKUP($C$4,$AR$7:$BR$234,BR1,0), 0)`
+— but **its table holds 3 filled cells out of 228**: code 1 = 383, code 12 =
+533, codes 193–204 = 933. Everything else is blank.
+
+Measured on eight engineers files (full-timers): 383 at code 1 and **533 at
+codes 12, 24, 36, 48, 60, 72 and 84** — 01/2008 through 12/2014. Both workbook
+values are exactly right; the rest of the table simply is not there.
+
+**‼ So we filled codes 13–192 with 533 in the rule's `amounts_by_code`. That
+is our completion, not the workbook's.** It rests on six consecutive
+measurements (codes 24–84) and has **no coverage at all from code 85 to 192** —
+there is no engineers file from 2015 onward. 4453 now reads 100% on both files
+checked, but that 100% leans on a number we supplied. `PROGIM_FIXES` §25 carries
+the instruction to fill `BR19:BR192`, locate where the 933 pulse begins, and
+delete `amounts_by_code` once the workbook is complete.
+
+**Effect on 12/2014's coverage gap:** 5 codes / ₪8,392 → **4 codes / ₪4,838**
+(4623 ₪3,117, 1169 ₪637, 4447 ₪637, 1653 ₪448). 4453 left the list entirely by
+becoming a validated rule; 1168 moved to the "fed from the file, as the Progim
+defines" line.
 
 ## 0cf. 12/2014 engineers — and 607's table end is confirmed
 
