@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cq. **‼ 5253 neutralization column** — 42 true errors and ₪20,914 leave the headline
 0cp. **‼ 5253 — three workbook bands nobody is paid** — and the first measured proof of the §14 month-agnostic gap
 0co. **"שגויי דירוג" column + 5527/4536 out of scope** — 5 slips / ₪927; true errors unchanged at 743
 0cn. **✅ New מנהלי unified report** — 175 → 743 true errors, 1699 is 80% of them
@@ -117,6 +118,47 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cq. ‼ 5253 neutralization column — it cost 42 true errors and ₪20,914
+
+User asked for a column for 5253 right after שגויי מקצועית מיסים. Built in
+all four places; dashboard is now **29 columns**, partition closes 16/16
+and on the total (322,330).
+
+**Unlike the דירוג column, this one moves the headline:**
+
+| | before | **after** |
+|---|---|---|
+| **true errors** | 743 | **701** |
+| % true errors | 0.2305% | 0.2175% |
+| שגויי 5253 | — | **42** |
+| every other bucket | — | **unchanged** |
+
+**All 42 came from "real".** The column does not re-attribute existing
+neutralizations — it takes 42 workers out of the count, carrying
+**₪20,914** of exposure with them, 20 of it material (≥₪100). Direction:
+27 underpaid / 15 overpaid.
+
+Composition of the 42: **35 flagged on 5253 alone**; 5 also carry 737 *and
+1699*; 1 also 737; 1 also 5251. **The five 1699 gaps are neutralized along
+with them** — small, but 1699 is 80% of all true errors, so this is the
+exact "bucket swallows unrelated errors" risk `CLAUDE.md` warns about. If
+it grows, narrow the bucket to slips whose *only* gap is 5253.
+
+By month: 12/2012 13 · 12/2014 12 · 12/2015 7 · 12/2020 4 · 12/2022 4 ·
+12/2016 1 · 12/2019 1 · **0 in the other nine.** A 0 is not evidence of
+correctness — 12/2013 is 0 because all 2,625 carriers pay ₪475, which is
+*not* the workbook's amount (§28), and 12/2023 is 0 because the rule is
+silenced there at 94.6%.
+
+**Naming, flagged to the user:** they wrote "שגויי בוררות מיסים 5253", but
+בוררות מיסים is **741** and already has its own column; 5253's workbook
+name is **תוספת שכר מיסים**. Built for the code they gave (5253), labelled
+"שגויי תוספת שכר מיסים (5253)" to avoid two identically-named columns.
+Rename on request.
+
+**Verified:** pytest 34 passed · `node --check` clean on engine.js and the
+extracted front-end script · front-ends byte-identical · full 16-file run.
 
 ## 0cp. 5253 — the user's question was right, and it exposed three bad bands
 
