@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cl. **‼ 12/2020–12/2022 engineers — TWO of my findings were wrong** — 4453's completion broke, 602 is not flat
 0ck. **12/2019 engineers** — 602 confirmed at ₪557.24 for a third year, and it is growing
 0cj. **12/2018 engineers + 602 traced** — the biggest engineers hole, and it is nowhere in the workbook
 0ci. **‼ 12/2016 + 12/2017 — the gate caught in the act** — 4544 crosses 97% for one file and the headline x15
@@ -112,6 +113,57 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cl. 12/2020, 12/2021, 12/2022 — and two of my own claims refuted
+
+| | 12/2020 | 12/2021 | 12/2022 |
+|---|---|---|---|
+| workers | 966 | 838 | 721 |
+| valid | 833 | 775 | 676 |
+| true errors | 1 | 1 | 3 |
+| exposure | ₪292 | ₪15 | ₪135 |
+| checked / components | 10/31 | 7/30 | 7/32 |
+| no-base | **111** | 53 | 30 |
+
+### ‼‼ 1. §25's completion was wrong — 4453 steps to ₪933 before code 193
+
+I filled codes 13–192 with 533 off measurements ending at code 84, and it then
+passed at codes 96, 108, 120, 132 and 144. **12/2022 (code 180) pays ₪933 to 9
+full-timers.** The full 16-file series: 383 at code 1, **533 continuously at
+codes 12–168** (12.2008–12.2021), **933 already at code 180.**
+
+So the step happens **between codes 169 and 180 — not at 193**, which is where
+the workbook's own 933 band starts. `amounts_by_code` corrected to 533≤168,
+933≥180, with 169–179 marked explicitly unknown.
+
+**The completion survived seven consecutive confirmations and then broke. Seven
+confirmations are not proof.**
+
+### ‼ 2. §26 was wrong — 602 is not flat, it pulses
+
+I wrote that a flat column "is a faithful description of what was measured".
+It was measured only to 12/2019. The three new files say otherwise:
+
+| codes | dates | amount | carriers |
+|---|---|---|---|
+| 1–108 | to 12.2016 | **0 carriers** | — |
+| 109–144 | 1.2017–12.2019 | **₪557.24** | 21, 18, 26 |
+| 145–180 | 1.2020–12.2022 | **₪567.35** | 24, 22, 28 |
+
+602 needs a pulse table, not a single value. §26 corrected.
+
+**602 remains the dominant hole** in all three files — ₪14,241, ₪12,482
+(the *entire* gap that month), ₪15,886.
+
+### New: 1904 השלמ.למשתלם — ₪19,369 in 12/2020
+
+Absent from tosafot, SACHAR and SACHAR4643. Unlike 602 its amounts vary widely
+(₪7,379, ₪6,219, ₪5,771 among full-timers), so it looks computed or
+individually set rather than a tariff — **not** a candidate for a flat column.
+Undiagnosed.
+
+**no-base spikes to 111 of 966 (11.5%) in 12/2020**, then falls to 53 and 30.
+Given 0ch's retraction, this is recorded as an observation, not a trend.
 
 ## 0ck. 12/2019 engineers — 602 firms up, 4453's range reaches 12/2019
 
