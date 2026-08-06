@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cj. **12/2018 engineers + 602 traced** — the biggest engineers hole, and it is nowhere in the workbook
 0ci. **‼ 12/2016 + 12/2017 — the gate caught in the act** — 4544 crosses 97% for one file and the headline x15
 0ch. **12/2015 engineers** — §25's completion passes its first test; no-base "trend" retracted
 0cg. **4453 converted + 1168 declared file-fed** — 105 rules; the 4453 table is 3 cells of 228
@@ -110,6 +111,28 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cj. 12/2018 engineers, and 602 chased down
+
+**Run:** 982 workers, all דירוג 12 · 919 valid · **1 true error** (0.10%) · ₪131
+exposure. Partition closes. Gate checks 9 of 34. Pay-agreement family silenced
+for the **tenth consecutive file** (4544 back to 95.1%, 4550 93.5%, 4934 94.9%,
+4994 93.1%) — 12/2016's crossing really was a one-file blip.
+
+**✅ 4453 completion holds again:** ₪533 at code 132. Confirmed range now runs
+code 12 → **code 132** (12.2008–12.2018) continuously. Codes 133–192 remain ours.
+
+**602 ע"ח פריון — written up as `PROGIM_FIXES` §26.** It is the largest hole on
+this track (₪12,222 in 12/2017, ₪10,480 in 12/2018) and it **appears nowhere in
+the workbook** — not in tosafot, SACHAR, SACHAR4643 or sminimum, and no rule
+references it. Yet `מאפייני רכיבי שכר` declares it `משכורת קובעת = כן`, so it
+belongs in the pensionable base. A real coverage hole, not a misclassification.
+
+Measured: **0 carriers in 12/2016**, then 22 carriers paying a flat **₪557.24**
+(21 of 22) in 12/2017 and 19 paying the same (18 of 19) in 12/2018. It starts in
+2017 and looks like a flat shekel tariff — one `tosafot` column would cover it.
+§26 carries the column template and an explicit warning **not** to fill all 228
+codes from two data points, which is the mistake 805 needed correcting for.
 
 ## 0ci. 12/2016 and 12/2017 — the trust gate caught in the act
 
