@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cs. **Engineers series extended to 12/2025** — 19 files; 12/2025 is the first file with zero true errors
+0cr. **4651 neutralization column** — 14 workers; the rate table is filled for 2008 only (§29)
 0cq. **‼ 5253 neutralization column** — 42 true errors and ₪20,914 leave the headline
 0cp. **‼ 5253 — three workbook bands nobody is paid** — and the first measured proof of the §14 month-agnostic gap
 0co. **"שגויי דירוג" column + 5527/4536 out of scope** — 5 slips / ₪927; true errors unchanged at 743
@@ -118,6 +120,74 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cs. Engineers series extended to 12/2025 — 19 files, and the first zero
+
+Three new דירוג 12 files arrived (12/2023, 12/2024, 12/2025) and were run
+with the 16 existing engineers files. **19 files · 18,715 slips ·
+partition closes on every row and the total.**
+
+| | workers | true errors | valid |
+|---|---|---|---|
+| 12/2022 (previous last) | 721 | 3 | 676 |
+| 12/2023 | 655 | 2 | 617 |
+| 12/2024 | 449 | 1 | 417 |
+| **12/2025** | **204** | **0** | **184** |
+
+**12/2025 is the first file in the whole project with zero true errors.**
+Read it with the population in mind: the cohort is shrinking fast (1,275
+in 01/2008 → 204), so "0" here is 0 out of 204, not 0 out of 20,000.
+
+Series totals: **53 true errors / 0.283%**, ₪3,094 underpaid + ₪9,747
+overpaid. Coverage gap 13 codes / ₪181,725 — still dominated by **602
+(₪113,860)**, the §26 hole.
+
+Watch item: **12/2025's שגויי בסיס is 7 of 204 (3.4%)**, against 11 of 449
+(2.4%) in 12/2024 and 2 of 721 (0.3%) in 12/2022. On 204 workers that is
+five slips of movement, so it may be noise — **not investigated.**
+
+Note on identifying the files: they arrived unlabelled and their column
+order differs from the מנהלי files (`רכיב שכר` before `קוד רכיב שכר`).
+Confirmed as דירוג 12 by reading the rating column: 7,274 / 5,727 / 2,825
+rows, all rating 12. Staged as `golmi_1223e/1224e/1225e.xlsx` — note the
+uploaded 1223 is the **engineers** 12/2023, not a new version of the
+22,000-row מנהלי file of the same name.
+
+## 0cr. 4651 neutralization column — 14 workers, placed last on purpose
+
+User asked for a "שגויי תוספת 4651" column with no position given.
+**Measured first, and the measurement decided the position.** 23 slips in
+the 16 מנהלי files carry a 4651 flag, but they are not all true errors
+today: **14 sit in "real", 8 in תוספת 1999, 1 in גמול**.
+
+So the column went **last in the chain**, immediately before שגיאות אמת.
+Anywhere earlier would have pulled in the 9 already neutralized by a
+better-understood cause, replacing a good explanation with a worse one.
+
+| | before | **after** |
+|---|---|---|
+| **true errors** | 701 | **687** |
+| שגויי 4651 | — | **14** |
+| all 21 other buckets | — | **unchanged** |
+
+Exactly the 14 predicted. By month: 12/2008 5 · 12/2011 3 · 12/2009 2 ·
+12/2017 2 · 12/2014 1 · 12/2020 1. Composition of all 23 flagged: 17 on
+4651 alone, 3 also 1699, 2 also 628, 1 also 628+667+4983; ₪11,105 total,
+14 material. The engineers series picks up 7 more.
+
+### Why it is a bucket and not an error (new §29)
+
+`tosafot!BS` — 4651's rate table — is filled for **12 of 228 codes**:
+1–12 (all of 2008) at 0.15, and **13–228 (1.2009–12.2026) empty**. The key
+column AR *is* complete, so `VLOOKUP` finds the row and **returns 0** — no
+`#N/A`, no error indicator. **The workbook computes 4651 = 0 for every
+month from 2009 on, silently.** The engine holds a flat 15% and keeps
+checking, which is why slips fail. Fix: fill BS for codes 13–228.
+
+**Correction to our own note:** `component_rules.json` claimed BS2 suffered
+the §11 hard-coded-index defect (index 26 → BQ instead of BR). **No longer
+true** — the 06.08 workbook has `$AR$7:$BS$234` with `BS1=28`, which is
+correct. Citation fixed; `source_correction` records it.
 
 ## 0cq. ‼ 5253 neutralization column — it cost 42 true errors and ₪20,914
 

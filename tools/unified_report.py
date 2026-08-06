@@ -444,6 +444,17 @@ def collect(paths, pure=False):
                     # ראו PROGIM_FIXES.md §19 — מה שיבטל את הדלי הזה הוא
                     # הצהרת יחסיות ‎1/30‎ ליום בחוברת.
                     err_cat = "shk2023"
+                elif 4651 in flags:
+                    # תוספת שכר משרד החקלאות (4651): 15% × (10002 + 4624).
+                    # השער נלקח מ-tosafot!BR, טבלה שממולאת ב-12 קודי-חודש
+                    # מתוך 228, והנוסחה שקוראת אותה סובלת מפגם §11 (מדד
+                    # עמודה 26 מצביע על BQ ולא על BR). כלומר: פער כאן אינו
+                    # ראיה לשגיאת שכר אלא לטבלת שער חסרה.
+                    # ‼ ממוקם אחרון בשרשרת בכוונה — כך הוא תופס רק תלושים
+                    # שאף דלי אחר לא הסביר. נמדד לפני הבנייה: 23 תלושים
+                    # נושאים דגל על 4651, מהם 8 כבר בדלי תוספת 1999 ואחד
+                    # בגמול; מיקום מוקדם יותר היה מושך גם אותם.
+                    err_cat = "t4651"
                 else:
                     err_cat = "real"
                 # Per-code gap tally for the exec dashboard: base (when off) plus
@@ -517,6 +528,7 @@ def collect(paths, pure=False):
                          ("mnmsh22", "inv_mnmsh22"),
                          ("bmish", "inv_bmish"),
                          ("shk2023", "inv_shk2023"),
+                         ("t4651", "inv_t4651"),
                          ("real", "inv_real")):
             s[key] = sum(1 for x in rows_f
                          if x["status"] == "invalid" and x["err_cat"] == cat)
@@ -609,7 +621,7 @@ DERUG_CODES = frozenset({981, 839, 1565, 4640, 752})
 CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← שגויי דירוג ← ותק סטודנט ← ותק קטוע ← בסיס '
             '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← תוספת מיוחדת ← דריכות ← גמול מנהל '
             '← בוררות מיסים ← מקצועית מיסים ← תוספת שכר מיסים (5253) ← תוספת אחוז יום ← תוספת בית חולים '
-            '← בית חולים מאוחדת ← מנמ"ש 2022 ← תוספת בית משפט ← תוספת שקלית 2023 ← שגיאה אמיתית ← תקין')
+            '← בית חולים מאוחדת ← מנמ"ש 2022 ← תוספת בית משפט ← תוספת שקלית 2023 ← תוספת 4651 ← שגיאה אמיתית ← תקין')
 
 NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "derug": "דירוג", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
@@ -621,7 +633,7 @@ NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "derug": "דירוג", "stud
               "bmeuhedet": "בית חולים מאוחדת",
               "mnmsh22": "מנמ\"ש 2022",
               "bmish": "תוספת בית משפט",
-              "shk2023": "תוספת שקלית 2023",
+              "shk2023": "תוספת שקלית 2023", "t4651": "תוספת 4651",
               "h1999": "תוספת 1999", "meyuhedet": "תוספת מיוחדת", "real": ""}
 
 # A gap below this is real but not worth opening a case for — the report keeps
@@ -784,7 +796,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "inv_h1999", "inv_meyuhedet",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_mikzoit",
               "inv_shmisim", "inv_ahuz_yom", "inv_bhol", "inv_bmeuhedet", "inv_mnmsh22", "inv_bmish",
-              "inv_shk2023",
+              "inv_shk2023", "inv_t4651",
               "inv_real"):
         tot[k] = sum(r.get(k, 0) for r in summary)
     _real_pct = (tot["inv_real"] / tot["workers"]) if tot["workers"] else 0.0
@@ -814,7 +826,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # (עובדים) — presentable without reconciliation notes.
     # "תקין" sits LAST, after the %, so the problem columns read as one block.
     # The partition is unchanged — it is simply no longer contiguous: the
-    # categories are the 21 bucket columns (E..Z) plus תקין (AC).
+    # categories are the 22 bucket columns (E..AA) plus תקין (AD).
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
               "שתי שורות שכר משולב", "שגויי משכ. בסיסית 4140", "שגויי דירוג",
               "שגויי ותק סטודנט", "שגויי ותק קטוע",
@@ -827,10 +839,10 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "שגויי תוספת בית חולים",
               "שגויי בית חולים מאוחדת", "שגויי מנמ\"ש 2022",
               "שגויי תוספת בית משפט",
-              "שגויי תוספת שקלית 2023",
+              "שגויי תוספת שקלית 2023", "שגויי תוספת 4651",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 14, 12, 11, 11, 10, 10, 13, 11, 13, 10, 11, 11, 13, 15, 14, 13, 14, 13, 13, 15, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 14, 12, 11, 11, 10, 10, 13, 11, 13, 10, 11, 11, 13, 15, 14, 13, 14, 13, 13, 15, 13, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
@@ -845,21 +857,21 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
                 r.get("inv_bmeuhedet", 0),
                 r.get("inv_mnmsh22", 0),
                 r.get("inv_bmish", 0),
-                r.get("inv_shk2023", 0),
+                r.get("inv_shk2023", 0), r.get("inv_t4651", 0),
                 r.get("inv_real", 0),
                 r.get("real_pct", 0.0) / 100, r.get("valid", 0)]
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 27 or c_i == 29:
+            if 3 <= c_i <= 28 or c_i == 30:
                 cell.number_format = INT
-            if c_i == 29:
+            if c_i == 30:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in tuple(range(7, 27)) and v:
+            if c_i in tuple(range(7, 28)) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 27 and v:
+            if c_i == 28 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 28:
+            if c_i == 29:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
@@ -876,20 +888,20 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
              tot["inv_bmeuhedet"],
              tot["inv_mnmsh22"],
              tot["inv_bmish"],
-             tot["inv_shk2023"],
+             tot["inv_shk2023"], tot["inv_t4651"],
              tot["inv_real"],
              real_pct_tot, tot["valid"]]
     for c_i, v in enumerate(tvals, start=1):
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 27 or c_i == 29:
+        if 3 <= c_i <= 28 or c_i == 30:
             cell.number_format = INT
-        if c_i == 28:
+        if c_i == 29:
             cell.number_format = "0.00%"
-        if c_i == 27:
+        if c_i == 28:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"AB{head_r + 1}:AB{last}"    # % שגויים אמיתיים
+    rng = f"AC{head_r + 1}:AC{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
