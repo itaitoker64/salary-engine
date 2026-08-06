@@ -270,6 +270,17 @@ NON_PENSIONABLE = {
     1027,   # ימי היעדרות — משכורת קובעת = לא, ברוטו = כן
     1044,   # שעות היעדרות — משכורת קובעת = לא, ברוטו = כן
     1904,   # השלמ.למשתלם — אינו מוצהר בחוברת
+    # Added 6.8.2026 on the user's instruction. ‼ This one is BIG: 633 is
+    # ₪483,469 of the מנהלי coverage gap's ₪603,269 — 80.1% of it — across
+    # 265 rows, and 98.4% of that sits in 12/2020 alone (the shape of a
+    # one-off retro settlement, then a tail of 14 → 1 → 1). It appears in no
+    # file before 12/2020. Not declared in `מאפייני רכיבי שכר`, so this rests
+    # on the workbook's silence, not on a workbook statement.
+    633,    # ת.מפ. בזק ב — אינו מוצהר בחוברת
+    # 634 added in the same turn. Same family, tiny beside 633: 13 rows,
+    # net −₪6,564 (mostly reversals), 12/2020 and 12/2021 only. Also
+    # undeclared in `מאפייני רכיבי שכר`.
+    634,    # ת.מפ. בזק ג — אינו מוצהר בחוברת
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה

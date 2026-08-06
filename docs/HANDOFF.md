@@ -35,6 +35,8 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cv. **מנהלי extended to 02/2026** — 19 files; base mismatches jump 6× in 12/2024
+0cu. **‼‼ 633/634 out of scope** — 633 alone is 80.1% of the מנהלי coverage gap
 0ct. **1027, 1044, 1904, 0 out of scope** — 60 codes; code 0 is a nameless ₪0 junk row
 0cs2. **633/634 traced + the missing 2024-2026 explained** — both codes start in 12/2020; no מנהלי files past 12/2023
 0cs. **Engineers series extended to 12/2025** — 19 files; 12/2025 is the first file with zero true errors
@@ -122,6 +124,99 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cv. מנהלי series extended to 02/2026 — 19 files, and the base breaks in 2024
+
+The missing מנהלי files arrived: **12/2024, 12/2025 and 02/2026**, all
+דירוג 1, on the `גולמי` sheet (each file also carries a `גולמי מעודכן`
+sheet — that one is a **pivot**, one row per worker with codes across
+columns; `load_golmi` picks `גולמי` by exact name, so the right sheet is
+read in all three, including 0226 where the pivot sits first).
+
+**19 files · 362,567 slips · partition closes on every row and the total.**
+742 true errors / 0.205%; ₪156,077 underpaid, ₪130,849 overpaid.
+
+| file | workers | שגויי בסיס | % | true errors |
+|---|---|---|---|---|
+| 12/2023 | 18,289 | 90 | 0.5% | 50 |
+| **12/2024** | 17,389 | **543** | **3.1%** | 37 |
+| **12/2025** | 11,311 | **481** | **4.3%** | 6 |
+| **02/2026** | 11,537 | **385** | **3.3%** | 12 |
+
+### ‼ The base-mismatch rate jumps 6× in 12/2024 and stays there
+
+0.5% → 3.1% → 4.3% → 3.3%. That is not drift; it is a step. The likely
+cause is a pay agreement effective in 2024 whose base tables the חוקה does
+not carry — but **this is not yet traced.** It is the first thing to look
+at next: pick a handful of 12/2024 slips with a base gap and diff the
+recomputed base against DARGA.
+
+**שגויי דריכות also appears for the first time** in these files — 50 / 49 /
+59, against 0 in every earlier מנהלי file.
+
+### 15 new coverage-gap codes, ₪499,210
+
+The three files bring codes never seen in 12/2008–12/2023:
+
+| code | name | rows | ₪ |
+|---|---|---|---|
+| **1524** | העדרות | 410 | **₪217,260** |
+| **6920** | הפרשי פנסיוני וקה"ש | 74 | **₪160,435** |
+| **7902** | הפרשי פנסיוני וקה"ש | 57 | **₪102,961** |
+| 712 | דרגת קידום | 2 | ₪10,289 |
+| 5283 | תוספת שקלית | 2 | ₪4,061 |
+| 1903 | תגמ. מלואים | 1 | ₪3,292 |
+| (9 more) | | | ₪912 |
+
+**6920 / 7902 / 6902 are a new numbering family** (pension and study-fund
+differentials) that appears in no earlier file. **1524 העדרות is the same
+absence family as 1027 and 1044**, both of which the user has just put out
+of scope — so 1524 is very likely the same call, but it has not been
+instructed and I have not made it.
+
+Total coverage gap for the series: **38 codes / ₪636,303**.
+
+## 0cu. ‼‼ 633 and 634 out of scope — one code erases 80% of the coverage gap
+
+User instruction. `NON_PENSIONABLE` 60 -> **62**, py/js element-wise equal.
+**By impact this is by far the largest batch so far.**
+
+| | before | **after** |
+|---|---|---|
+| **coverage gap — מנהלי (16 files)** | **25 codes / ₪603,269** | **24 / ₪119,800** |
+| coverage gap — engineers | 9 / ₪143,935 | 8 / ₪141,324 |
+| true errors | 687 | 687 |
+| valid | 302,625 | 302,625 |
+
+**633 alone is ₪483,469 — 80.1% of the entire מנהלי coverage gap.** One
+declaration cut the product's own scorecard by a factor of five, **without
+the workbook changing by one character.**
+
+That cuts both ways and must stay on the record: if 633 really is out of
+scope, the old number was inflated and this is a correction. If it is not,
+we have just hidden the largest hole we ever found.
+
+| | 633 ת.מפ. בזק ב | 634 ת.מפ. בזק ג |
+|---|---|---|
+| declared in `מאפייני רכיבי שכר` | **no** | **no** |
+| rule in the חוקה | none | none |
+| rows | 269 | 13 |
+| ₪ | ₪454,896 (₪483,469 absolute) | **−₪6,564** |
+| first file | **12/2020** | **12/2020** |
+| concentration | **98.4% in 12/2020 alone**, then 14 → 1 → 1 | 12/2020 and 12/2021 only |
+
+**Both rest on the workbook's silence, not on a workbook statement** — like
+1170, 4536 and 1904, but at a completely different scale. §24 established
+that the workbook declares 841 codes; **633 and 634 are not among them**,
+so there is no way to verify the call from the product itself. The fix is
+to add both to `מאפייני רכיבי שכר` with `משכורת קובעת = לא`.
+
+**633's shape supports the decision:** 98.4% in one month, a decaying tail,
+and a sudden start in 12/2020 — the signature of a one-off retro settlement,
+not a recurring supplement the חוקה is meant to compute.
+
+After removing it the gap is far more evenly spread: the largest remaining
+item (4221, ₪19,639 over 16 files) is 16% of it, not 80%.
 
 ## 0ct. 1027, 1044, 1904, 0 out of scope — 60 codes, and code 0 is a junk row
 
