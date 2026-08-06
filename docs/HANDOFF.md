@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0co. **"שגויי דירוג" column + 5527/4536 out of scope** — 5 slips / ₪927; true errors unchanged at 743
 0cn. **✅ New מנהלי unified report** — 175 → 743 true errors, 1699 is 80% of them
 0cm. **‼‼ 1699 minimum-wage check was broken — our bug, not the workbook's** — 4.6% → 96.7%
 0cl. **‼ 12/2020–12/2022 engineers — TWO of my findings were wrong** — 4453's completion broke, 602 is not flat
@@ -115,6 +116,73 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0co. "שגויי דירוג" column + 5527/4536 out of scope — and the headline did not move
+
+Two user instructions, both landed, both measured on the full 16-file
+מנהלי series (322,330 slips). **Neither changed the true-error count.**
+
+### The דירוג bucket — measure first, build second
+
+Asked for a "שגויי דירוג" column covering 981, 839, 1565, 4640, 752. **I
+scanned all 32 files before building it.** The five codes appear **five
+times, on four slips, ₪927** — 0.0012% of the population:
+
+| code | ₪ | file | slip status |
+|---|---|---|---|
+| 981 תגבור 94 | 74.10 | מנהלי 12/2010 | invalid |
+| 839 תמריץ משפטנים | 31.06 | מנהלי 12/2021 | invalid — **same worker as 1565** |
+| 1565 תוס.משפטנים | 9.53 | מנהלי 12/2021 | invalid — **same worker as 839** |
+| 4640 הסכם אח 97 | **−150.48** | מנהלי 12/2008 | invalid (17% job, negative retro row) |
+| 752 הופעה 20% | 661.57 | מנהלי 12/2020 | **valid** |
+
+Run result: **bucket = 3.** It took 2 from שגויי בסיס (1,334→1,332) and 1
+from שגויי תוספת 1999 (3,116→3,115). **True errors 743 → 743. תקין
+302,625 → 302,625.** Partition closes 16/16 and on the total.
+
+The bucket is keyed on **carrying** the code (the 4140 shape), not on
+failing a rule — none of the five has a rule to fail. So it neutralizes a
+slip whose error may be somewhere else entirely. At 3 slips that is
+noise; if a דירוג 21 (legal service) or nursing file ever arrives, this
+becomes a wide bucket that swallows unrelated errors and must be narrowed
+to a per-component gap. **Flagged to the user in the same turn.**
+
+**Why they have no rule (new `docs/PROGIM_FIXES.md` §27):** all five are
+declared `משכורת קובעת = כן` in `מאפייני רכיבי שכר`, four of them
+`בסיס למינימום רובד 1 = כן` — and **none has a formula anywhere.** 1565's
+only substantive mention is a cell reading **"מחכה לאישור"**
+(`רכיבים דלוייט!L55`); 981 appears only as an *input* to another
+component's base; 839 is absent entirely; 4640 appears in four sheets as a
+name with no value. Same shape as §26 (602), five times over.
+
+### 5527 + 4536 non-pensionable — 56 codes
+
+`NON_PENSIONABLE` 54 → **56**, py/js element-wise equal (56/56, no
+symmetric difference). 5527 is workbook-backed (`משכורת קובעת = לא`,
+`ברוטו = כן` — the 5274 shape); 4536 is not declared at all and rests on
+the workbook's silence.
+
+**Trap checked before shipping:** 5527 also keys the "ותק סטודנט"
+neutralization bucket. That bucket reads `cp.code == 5527` off the slip
+directly and does **not** go through `NON_PENSIONABLE`, so the list change
+leaves it alone — verified, bucket stayed 0.
+
+Coverage gap **27 codes / ₪607,938 → 25 / ₪603,269** (−₪4,669). No bucket
+and no headline number moved.
+
+### Front-end bugs found and fixed while wiring this
+
+The earlier front-end edit had shipped `DERUG_CODES` **referenced but never
+declared** — a ReferenceError that would have broken every bulk run in the
+browser. Declared it above `runBulk` in both files. The Excel-export column
+indices in `downloadUnified` were also still on the 27-column layout
+(number formats, the warn-colour list, אמיתיים/%/תקין, and the `Z`/`Y`
+conditional-formatting ranges); all shifted to 28. `index.html` and
+`salary_frontend.html` verified byte-identical in their script block.
+
+**Verified:** `python3 -m pytest tests/ -q` → 34 passed · `node --check`
+clean on `engine.js` and on the extracted front-end script · full 16-file
+run, partition 322,330 = 322,330.
 
 ## 0cn. New מנהלי unified report — the 1699 fix lands
 

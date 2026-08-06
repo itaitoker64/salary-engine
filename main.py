@@ -245,6 +245,13 @@ NON_PENSIONABLE = {
     954,    # תוספת שעות גלובלית — משכורת קובעת = לא בחוברת
     1170,   # תוספת שעות — אינו מוצהר בחוברת כלל
     4540,   # ש. נ. 521% — משכורת קובעת = לא בחוברת
+    # Added 6.8.2026. 5527 is declared in `מאפייני רכיבי שכר` with
+    # משכורת קובעת = לא and ברוטו = כן (the 5274 shape); 4536 is not declared
+    # anywhere and rests on the workbook's silence.
+    # NOTE: 5527 also drives the "ותק סטודנט" neutralization bucket, which
+    # reads the component off the slip directly and is unaffected by this list.
+    4536,   # אינו מוצהר בחוברת
+    5527,   # ותק סטודנט — משכורת קובעת = לא, אך נכלל בברוטו
     1927,   # ד. פגיעה בעבודה
     1936,   # תאונת עבודה
     1934,   # השלמה לפגיעה בעבודה

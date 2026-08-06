@@ -315,6 +315,16 @@ def collect(paths, pure=False):
             # does not move; it only re-attributes.
             has_4140 = any(cp.code == 4140 and (cp.amount or 0) != 0
                            for cp in r.components)
+            # שגויי דירוג (981 תגבור 94, 839 תמריץ משפטנים, 1565 תוס.משפטנים,
+            # 4640 הסכם אח 97, 752 הופעה 20%): rating-specific supplements. None
+            # of the five has a formula in the workbook or a rule here, so a slip
+            # carrying one sits on a rating the חוקה cannot reproduce. Keyed on
+            # CARRYING the code — the 4140 shape — since a code with no rule
+            # never produces a flag to key on. Added 6.8.2026 on request.
+            # ‼ Measured across all 32 files first: the five appear on exactly
+            # FIVE slips in total, ₪927. See docs/PROGIM_IMPROVEMENTS.md.
+            has_derug = any(cp.code in DERUG_CODES and (cp.amount or 0) != 0
+                            for cp in r.components)
             # ותק קטוע: the file's 2-decimal ותק is not on the quarter grid, so
             # the base recompute rests on a restored (+0.005) value — when the
             # slip still mismatches, the truncated source data is the known
@@ -328,6 +338,8 @@ def collect(paths, pure=False):
             if r.status == "invalid":
                 if has_4140:
                     err_cat = "b4140"
+                elif has_derug:
+                    err_cat = "derug"
                 elif has_student:
                     err_cat = "student"
                 elif vatek_trunc:
@@ -480,7 +492,7 @@ def collect(paths, pure=False):
         # column swallowed them. Now: no-base + retro + the buckets + valid =
         # the worker total, and משרה חלקית is a descriptive "of which" column
         # standing OUTSIDE the partition.
-        for cat, key in (("b4140", "inv_b4140"),
+        for cat, key in (("b4140", "inv_b4140"), ("derug", "inv_derug"),
                          ("student", "inv_student"), ("vatek", "inv_vatek"),
                          ("base", "inv_base"), ("gmul", "inv_gmul"),
                          ("d1711", "inv_d1711"),
@@ -580,12 +592,15 @@ def collect(paths, pure=False):
 # The neutralization chain in display order — must match the err_cat priority
 # in collect() and the dashboard column order. Stated on the report itself so
 # a reader can see which bucket claimed a worker first.
-CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← ותק סטודנט ← ותק קטוע ← בסיס '
+# The five rating supplements behind the "שגויי דירוג" bucket.
+DERUG_CODES = frozenset({981, 839, 1565, 4640, 752})
+
+CHAIN_HE = ('ללא בסיס ← שתי שורות שכר משולב ← משכ. בסיסית (4140) ← שגויי דירוג ← ותק סטודנט ← ותק קטוע ← בסיס '
             '← גמול ← ניכוי 6% א"ע ← תוספת 1999 ← תוספת מיוחדת ← דריכות ← גמול מנהל '
             '← בוררות מיסים ← מקצועית מיסים ← תוספת אחוז יום ← תוספת בית חולים '
             '← בית חולים מאוחדת ← מנמ"ש 2022 ← תוספת בית משפט ← תוספת שקלית 2023 ← שגיאה אמיתית ← תקין')
 
-NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
+NEUTRAL_HE = {"b4140": "משכ. בסיסית 4140", "derug": "דירוג", "student": "ותק סטודנט", "vatek": "ותק קטוע", "base": "שכר בסיס",
               "gmul": "גמול השתלמות", "d1711": "ניכוי 6% א\"ע",
               "brich": "דריכות בי\"ח",
               "mnhal": "גמול מנהל", "borerut": "בוררות מיסים",
@@ -754,7 +769,7 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     _kpi(ws, 4, 1, 1, "סה\"כ עובדים", tot["workers"], fmt=INT)
     _kpi(ws, 4, 2, 1, "תקינים", tot["valid"], GOOD_TXT, INT)
     for k in ("part_time", "ft", "ft_valid", "ft_no_base", "ft_multi",
-              "inv_b4140", "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
+              "inv_b4140", "inv_derug", "inv_student", "inv_vatek", "inv_base", "inv_gmul", "inv_d1711",
               "inv_h1999", "inv_meyuhedet",
               "inv_brich", "inv_mnhal", "inv_borerut", "inv_mikzoit",
               "inv_ahuz_yom", "inv_bhol", "inv_bmeuhedet", "inv_mnmsh22", "inv_bmish",
@@ -788,9 +803,9 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
     # (עובדים) — presentable without reconciliation notes.
     # "תקין" sits LAST, after the %, so the problem columns read as one block.
     # The partition is unchanged — it is simply no longer contiguous: the
-    # categories are the 19 bucket columns (E..X) plus תקין (AA).
+    # categories are the 20 bucket columns (E..Y) plus תקין (AB).
     labels = ["חודש שכר", "קובץ", "עובדים", "משרה חלקית (מתוכם)", "ללא בסיס",
-              "שתי שורות שכר משולב", "שגויי משכ. בסיסית 4140",
+              "שתי שורות שכר משולב", "שגויי משכ. בסיסית 4140", "שגויי דירוג",
               "שגויי ותק סטודנט", "שגויי ותק קטוע",
               "שגויי בסיס", "שגויי גמול", "שגויי ניכוי 6% א\"ע",
               "שגויי תוספת 1999", "שגויי תוספת מיוחדת",
@@ -803,11 +818,11 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
               "שגויי תוספת שקלית 2023",
               "שגויים אמיתיים", "% שגויים אמיתיים", "תקין"]
     _header_row(ws, head_r, labels,
-                [11, 18, 10, 10, 10, 13, 14, 11, 11, 10, 10, 13, 11, 13, 10, 11, 11, 13, 14, 13, 14, 13, 13, 15, 12, 13, 11])
+                [11, 18, 10, 10, 10, 13, 14, 12, 11, 11, 10, 10, 13, 11, 13, 10, 11, 11, 13, 14, 13, 14, 13, 13, 15, 12, 13, 11])
     for i, r in enumerate(summary, start=head_r + 1):
         vals = [r["month"], r["file"], r["workers"], r.get("part_time", 0),
                 r.get("no_base", 0), r.get("multi", 0),
-                r.get("inv_b4140", 0), r.get("inv_student", 0), r.get("inv_vatek", 0),
+                r.get("inv_b4140", 0), r.get("inv_derug", 0), r.get("inv_student", 0), r.get("inv_vatek", 0),
                 r.get("inv_base", 0), r.get("inv_gmul", 0),
                 r.get("inv_d1711", 0), r.get("inv_h1999", 0),
                 r.get("inv_meyuhedet", 0),
@@ -823,22 +838,22 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         for c_i, v in enumerate(vals, start=1):
             cell = ws.cell(row=i, column=c_i, value=v)
             cell.border = THIN_BOX
-            if 3 <= c_i <= 25 or c_i == 27:
+            if 3 <= c_i <= 26 or c_i == 28:
                 cell.number_format = INT
-            if c_i == 27:
+            if c_i == 28:
                 cell.font = Font(color=GOOD_TXT)
-            if c_i in (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24) and v:
+            if c_i in tuple(range(7, 26)) and v:
                 cell.font = Font(color=WARN_TXT)
-            if c_i == 25 and v:
+            if c_i == 26 and v:
                 cell.font = Font(color=BAD_TXT, bold=True)
-            if c_i == 26:
+            if c_i == 27:
                 cell.number_format = "0.00%"
     last = head_r + len(summary)
     trow = last + 1
     real_pct_tot = _real_pct
     # Same order as `labels`: תקין is the LAST column, % second to last.
     tvals = ["סה\"כ", "", tot["workers"], tot["part_time"], tot["no_base"],
-             tot["multi"], tot["inv_b4140"], tot["inv_student"], tot["inv_vatek"],
+             tot["multi"], tot["inv_b4140"], tot["inv_derug"], tot["inv_student"], tot["inv_vatek"],
              tot["inv_base"], tot["inv_gmul"], tot["inv_d1711"],
              tot["inv_h1999"],
              tot["inv_meyuhedet"],
@@ -854,13 +869,13 @@ def write_workbook(summary, per_emp, out_path, code_gaps=None, recs=None,
         cell = ws.cell(row=trow, column=c_i, value=v)
         cell.font = Font(bold=True)
         cell.border = Border(top=Side(style="double", color=NAVY))
-        if 3 <= c_i <= 25 or c_i == 27:
+        if 3 <= c_i <= 26 or c_i == 28:
             cell.number_format = INT
-        if c_i == 26:
+        if c_i == 27:
             cell.number_format = "0.00%"
-        if c_i == 25:
+        if c_i == 26:
             cell.font = Font(bold=True, color=BAD_TXT)
-    rng = f"Z{head_r + 1}:Z{last}"    # % שגויים אמיתיים
+    rng = f"AA{head_r + 1}:AA{last}"    # % שגויים אמיתיים
     ws.conditional_formatting.add(rng, CellIsRule(
         operator="lessThanOrEqual", formula=["0.01"],
         font=Font(color=GOOD_TXT), fill=PatternFill("solid", fgColor=GOOD_BG)))
