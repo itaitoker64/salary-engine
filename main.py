@@ -583,17 +583,21 @@ def check_minimum_population(entries, rules) -> dict:
             if v <= 0.01:
                 continue
             job = r.job_pct or 1.0
-            # Paid base for the minimum-wage sum: the slip reports it either as
-            # יסוד משולב (1) or as the combined שכר משולב (10002). Use whichever
-            # the slip actually carries — falling straight through to the grade
-            # table would substitute the TABLE base for the PAID one and inflate
-            # the implied target wherever the two differ (e.g. קוד-דרגה groups
-            # whose label collides with a much higher מינהלי grade).
-            yesod = amt.get(CODE_YESOD, 0.0) or amt.get(CODE_COMBINED_BASE, 0.0)
+            # ‼ Corrected 6.8.2026. The counted base is the grade base at
+            # SENIORITY ZERO (grade_base × job%), not the paid base. The paid
+            # base carries the seniority multiplier, so summing it made the
+            # counted total too large and the expected completion too small —
+            # every slip then looked overpaid. Measured on four מנהלי files:
+            #   paid base      → 4.6% / 7.1% / 7.7% / 4.5%
+            #   seniority-zero → 96.7% / 96.4% / 95.8% / 97.0%
+            # The user reported independently that the Progim is accurate on
+            # 1699, and this is why: the workbook was right and the engine was
+            # summing the wrong base. See docs/PROGIM_IMPROVEMENTS.md.
+            yesod = (r.grade_base or 0.0) * job
             if yesod <= 0:
-                if r.grade_base is None:
+                yesod = amt.get(CODE_YESOD, 0.0) or amt.get(CODE_COMBINED_BASE, 0.0)
+                if yesod <= 0:
                     continue
-                yesod = r.grade_base * job
             csum = yesod + sum(amt.get(c, 0.0) for c in counted)
             tog = sum(amt.get(c, 0.0) for c in toggles)
             data[i] = (v, csum, tog, job)

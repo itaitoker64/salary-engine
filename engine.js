@@ -345,14 +345,14 @@
         const v = amt.get(code) || 0;
         if (v <= 0.01) continue;
         const job = r.job_pct || 1.0;
-        // Paid base for the minimum-wage sum: the slip reports it either as
-        // יסוד משולב (1) or as the combined שכר משולב (10002). Use whichever the
-        // slip actually carries — falling straight through to the grade table
-        // would substitute the TABLE base for the PAID one. (Mirror of main.py.)
-        let yesod = (amt.get(CODE_YESOD) || 0) || (amt.get(CODE_COMBINED_BASE) || 0);
+        // ‼ Corrected 6.8.2026 (mirror of main.py): the counted base is the
+        // grade base at SENIORITY ZERO, not the paid base. Using the paid base
+        // included the seniority multiplier, inflating the counted sum and
+        // shrinking the expected completion — 4.6% match instead of 96.7%.
+        let yesod = (r.grade_base || 0) * job;
         if (yesod <= 0) {
-          if (r.grade_base === null || r.grade_base === undefined) continue;
-          yesod = r.grade_base * job;
+          yesod = (amt.get(CODE_YESOD) || 0) || (amt.get(CODE_COMBINED_BASE) || 0);
+          if (yesod <= 0) continue;
         }
         let csum = yesod;
         for (const c of counted) csum += (amt.get(c) || 0);

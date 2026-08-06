@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cm. **‼‼ 1699 minimum-wage check was broken — our bug, not the workbook's** — 4.6% → 96.7%
 0cl. **‼ 12/2020–12/2022 engineers — TWO of my findings were wrong** — 4453's completion broke, 602 is not flat
 0ck. **12/2019 engineers** — 602 confirmed at ₪557.24 for a third year, and it is growing
 0cj. **12/2018 engineers + 602 traced** — the biggest engineers hole, and it is nowhere in the workbook
@@ -113,6 +114,46 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cm. ‼‼ The 1699 minimum-wage check was broken — and the bug was ours
+
+**The user said their own checks show the Progim is accurate on 1699. They were
+right, and here is why.**
+
+The rule is `completion = MAX(0, target × job% − Σ counted)`. The engine summed
+the **paid base** as its base term — which carries the seniority multiplier.
+**The counted base must be the grade base at seniority zero**
+(`grade_base × job%`), exactly as the comment directly above that code had said
+all along. The implementation contradicted its own comment.
+
+Because the paid base exceeds the seniority-zero base, the counted sum came out
+inflated, the expected completion came out too small, and essentially every slip
+looked overpaid.
+
+| file | 1699 carriers | paid base (bug) | **seniority-zero (fixed)** |
+|---|---|---|---|
+| מנהלי 12/2008 | 7,924 | 7.1% | **96.4%** |
+| מנהלי 12/2014 | 10,358 | 4.6% | **96.7%** |
+| מנהלי 12/2018 | 12,784 | 7.7% | **95.8%** |
+| מנהלי 12/2023 | 14,671 | 4.5% | **97.0%** |
+
+**The inferred target was correct all along** — ₪3,850.20 (2008), ₪4,300 (2014),
+₪4,656 (2018), ₪5,571.80 (2023), i.e. the statutory minimum wage of each era. I
+had told the user the target was the prime suspect; it was not, and that guess
+is retracted.
+
+**Consequence.** The gate had silenced 1699 in *every* file, so 8,000–14,700
+slips a month were never checked for minimum-wage completion at all. With the
+fix the rule passes and fires: **342 workers flagged in 12/2014, 441 in
+12/2023.** These are genuine new findings and they will move headline numbers in
+every report — correctly.
+
+Fixed in `main.py` and `engine.js` together; 34 tests pass, `node --check`
+clean.
+
+**Standing lesson:** a 5% match rate is not "a difficult component", it is an
+error message. The comment described the right rule and the code did something
+else, and the trust gate hid the discrepancy instead of surfacing it.
 
 ## 0cl. 12/2020, 12/2021, 12/2022 — and two of my own claims refuted
 
