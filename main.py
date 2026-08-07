@@ -613,8 +613,13 @@ def check_gmul_population(entries) -> dict:
 MIN_TOLERANCE = 8.0
 
 
-def check_minimum_population(entries, rules) -> dict:
-    """Self-calibrated minimum-completion checks. {entry_index: {code: flag}}."""
+def check_minimum_population(entries, rules, gated: bool = True) -> dict:
+    """Self-calibrated minimum-completion checks. {entry_index: {code: flag}}.
+
+    gated=False keeps the target inference but drops the match-rate gate, so
+    the check fires on every file that has enough carriers to infer a target.
+    Used by check_all mode; see the note there before reading the output.
+    """
     out = {}
     for code in (1699, 5260):
         rule = rules.get(code)
@@ -671,7 +676,8 @@ def check_minimum_population(entries, rules) -> dict:
             if entries[i]["result"].status == STATUS_VALID:
                 n_valid += 1
                 ok_valid += good
-        if n_valid < TRUST_MIN_N or ok_valid / n_valid < TRUST_MIN_MATCH:
+        if gated and (n_valid < TRUST_MIN_N
+                      or ok_valid / n_valid < TRUST_MIN_MATCH):
             continue  # era/model gap the file doesn't support — suppress
         for i, (good, v, exp) in evals.items():
             if good:
@@ -996,7 +1002,8 @@ def resolve_plus_grades(workers_raw: dict, lookups: dict) -> dict:
     return remap
 
 
-def run_engine_full(workers_raw: dict, lookups: dict, pure: bool = False) -> list:
+def run_engine_full(workers_raw: dict, lookups: dict, pure: bool = False,
+                    check_all: bool = False) -> list:
     """Run the full engine over grouped גולמי rows: base validation per worker,
     then חוקה component checks with per-file self-calibration.
 
@@ -1047,6 +1054,19 @@ def run_engine_full(workers_raw: dict, lookups: dict, pure: bool = False) -> lis
     if pure:
         trusted = set(e_code for e in entries for e_code in e["comp_checks"])
         gmul_flags, min_flags = {}, {}
+    elif check_all:
+        # ‼ check_all: EVERY rule is applied and the minimum-wage completion
+        # (1699/5260) runs with its trust gate disabled. Added 7.8.2026 on the
+        # user's explicit instruction ("לבדוק את כל הסמלים בכל הדוחות כולל
+        # 1699"). This deliberately overrides the safeguard in CLAUDE.md
+        # ("never flag a legitimate worker"): the gate exists because a rule
+        # that matches only 88-96% of a file is usually meeting retro rows, not
+        # errors, so everything it was hiding now becomes a flag. The cost is
+        # measured in docs/PROGIM_IMPROVEMENTS.md — do not present a check_all
+        # report as an error count without that measurement beside it.
+        trusted = set(e_code for e in entries for e_code in e["comp_checks"])
+        gmul_flags = check_gmul_population(entries)
+        min_flags = check_minimum_population(entries, rules, gated=False)
     else:
         trusted = trusted_rule_codes([e["comp_checks"] for e in entries], rules)
         gmul_flags = check_gmul_population(entries)

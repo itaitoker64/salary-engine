@@ -29,6 +29,27 @@ Where each kind goes:
 When a check cannot be sourced to a Progim cell, the default is to **not ship
 it as a silent rule**: report the gap as something to fix in the workbook.
 
+## Check every code — standing instruction, 7.8.2026
+
+The user's instruction, verbatim: **"תכניס בחוקה שלך שיש לבדוק את כל הסמלים
+בכל הדוחות כולל סמל 1699."**
+
+So: **every unified report is produced with `--check-all`.** That flag applies
+every rule with no trust gate and runs the minimum-wage completion (1699/5260)
+ungated. A report that silently checks a fifth of the codes is not what the
+user is buying.
+
+**This overrides the gate, not the rule below it.** `--check-all` is measured,
+not assumed: every time it runs, report *both* numbers — gated and ungated —
+so the user sees what the gate was hiding and what it was protecting against.
+Never hand over a `--check-all` error count on its own.
+
+Keep the plain (gated) mode working and keep producing it alongside. The two
+answer different questions: gated = "what do we believe is wrong", ungated =
+"everything the חוקה cannot reproduce".
+
+---
+
 ## Never flag a legitimate worker
 
 A false positive costs more than a miss. Do not reverse-engineer a rule from

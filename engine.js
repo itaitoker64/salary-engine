@@ -340,7 +340,10 @@
   // השלמות מינימום — mirror of check_minimum_population in main.py (keep in sync).
   const MIN_TOLERANCE = 8.0;
 
-  function checkMinimumPopulation(results, rules) {
+  // gated=false keeps the target inference but drops the match-rate gate, so
+  // the check fires wherever a target can be inferred. Used by checkAll mode.
+  function checkMinimumPopulation(results, rules, gated) {
+    if (gated === undefined) gated = true;
     const out = new Map();
     for (const code of [1699, 5260]) {
       const rule = rules && rules[code];
@@ -387,7 +390,7 @@
         evals.set(i, [good, v, exp]);
         if (results[i].status === STATUS.VALID) { nValid++; if (good) okValid++; }
       }
-      if (nValid < TRUST_MIN_N || okValid / nValid < TRUST_MIN_MATCH) continue;
+      if (gated && (nValid < TRUST_MIN_N || okValid / nValid < TRUST_MIN_MATCH)) continue;
       for (const [i, [good, v, exp]] of evals) {
         if (good) continue;
         if (!out.has(i)) out.set(i, {});
@@ -630,7 +633,7 @@
     };
   }
 
-  function runEngine(lk, workers, rules, pure) {
+  function runEngine(lk, workers, rules, pure, checkAll) {
     // pure=true runs the Progim workbook literally — no self-calibration trust
     // gate, no base-relative tolerance, no plus-grade voting, no ותק restore,
     // no gmul/minimum population. Every rule is applied as written; the add-ons
@@ -665,6 +668,16 @@
       trusted = new Set();
       for (const checks of allChecks) for (const code in checks) trusted.add(code);
       gmulFlags = new Map(); minFlags = new Map();
+    } else if (checkAll) {
+      // ‼ checkAll: every rule applied, and the minimum-wage completion runs
+      // with its gate disabled. Added 7.8.2026 on the user's instruction.
+      // Deliberately overrides "never flag a legitimate worker" — a rule that
+      // matches 88-96% of a file is usually meeting retro rows, so everything
+      // the gate was hiding becomes a flag. Mirror of main.py's check_all.
+      trusted = new Set();
+      for (const checks of allChecks) for (const code in checks) trusted.add(code);
+      gmulFlags = checkGmulPopulation(results);
+      minFlags = checkMinimumPopulation(results, rules, false);
     } else {
       trusted = trustedRuleCodes(allChecks, rules);
       gmulFlags = checkGmulPopulation(results);

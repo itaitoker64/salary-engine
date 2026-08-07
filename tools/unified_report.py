@@ -197,7 +197,7 @@ HUKKA_KIND = {"fixed": "סכום קבוע לכל התקופה",
               "group": "תוספת סכומית משתנה לפי בחירת קבוצה"}
 
 
-def collect(paths, pure=False):
+def collect(paths, pure=False, check_all=False):
     """Run the engine per file; return (summary, per_emp, code_gaps, recs,
     uncovered).
 
@@ -224,7 +224,8 @@ def collect(paths, pure=False):
         month = d.strftime("%m/%Y") if d else _month_from_name(Path(path).stem)
         short = Path(path).stem.split("-", 1)[-1][:20] or Path(path).stem[:20]
         workers = engine.load_golmi(path)
-        entries = engine.run_engine_full(workers, lookups, pure=pure)
+        entries = engine.run_engine_full(workers, lookups, pure=pure,
+                                         check_all=check_all)
         if pure:
             smart = engine.run_engine_full(workers, lookups, pure=False)
             for r in engine.build_progim_recommendations(entries, smart, rules):
@@ -1317,19 +1318,23 @@ def main_cli():
     ap.add_argument("--out", default="unified.xlsx")
     ap.add_argument("--no-per-employee", action="store_true",
                     help="לדלג על גיליון 'פר עובד' — מקטין דרמטית קובץ של ריצה רב-חודשית")
+    ap.add_argument("--check-all", action="store_true",
+                    help="בדוק כל סמל בלי שער אמון, כולל השלמת מינימום 1699/5260. "
+                         "‼ מסמן גם עובדים ששולמו נכון — ראו docs/PROGIM_IMPROVEMENTS.md")
     ap.add_argument("--pure", action="store_true",
                     help="הרצת ה-Progim כפי-שהוא (ללא תוספות התוכנה) + גיליון המלצות")
     args = ap.parse_args()
     t0 = time.time()
     summary, per_emp, code_gaps, recs, uncovered, codes_index = collect(
-        args.files, pure=args.pure)
+        args.files, pure=args.pure, check_all=args.check_all)
     print(f"עיבוד: {time.time() - t0:.0f}ש · כותב workbook ({len(per_emp):,} שורות)...")
     write_workbook(summary, per_emp, args.out, code_gaps,
                    recs=recs if args.pure else None, uncovered=uncovered,
                    codes_index=codes_index,
                    skip_per_employee=args.no_per_employee)
     inv = sum(1 for r in per_emp if r["status"] == "invalid")
-    mode = "Progim בלבד" if args.pure else "רגיל"
+    mode = ("Progim בלבד" if args.pure else
+            "כל הסמלים — ללא שער אמון" if args.check_all else "רגיל")
     print(f"נכתב: {args.out} · {len(per_emp):,} רשומות · {inv:,} שגויים · מצב {mode}")
     if args.pure:
         print(f"המלצות ל-Progim: {len(recs)} שורות")

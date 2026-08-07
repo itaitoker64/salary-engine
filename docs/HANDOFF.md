@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0db. **‼‼ `--check-all` mode added** — 0.205% → 52.6% on מנהלי; one code (5402) is 91% of it
 0da. **מח"ר complete — 20 files to 02/2026** — 1699 starts working in 12/2024; the 12/2024 base step appears on a second track
 0cz. **‼‼ The report does NOT check every code** — 24 of 132 on מח"ר, and 1699 never runs there
 0cy. **Third track opened — דירוג מח"ר (11)** — 11 files, 48 true errors, but two thirds of the חוקה never runs
@@ -129,6 +130,53 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0db. ‼‼ `--check-all` mode — every code, no gate, and what it costs
+
+User instruction, recorded as a standing rule in `CLAUDE.md`: **"תכניס בחוקה
+שלך שיש לבדוק את כל הסמלים בכל הדוחות כולל סמל 1699."**
+
+Implemented as `--check-all` in `tools/unified_report.py`, `check_all=` in
+`main.run_engine_full`, and `checkAll` in `engine.js` — every rule applied
+with no trust gate, and `check_minimum_population(..., gated=False)` so
+1699/5260 fire wherever a target can be inferred. Both engines, same shape.
+
+| track | slips | valid (gated) | **valid (all)** | errors (gated) | **errors (all)** |
+|---|---|---|---|---|---|
+| מנהלי | 362,567 | 339,476 | **141,684** | 742 (0.205%) | **190,822 (52.6%)** |
+| מח"ר | 140,176 | 130,109 | **46,763** | 168 (0.120%) | **69,280 (49.4%)** |
+| engineers | 18,715 | 17,688 | **9,668** | 53 (0.283%) | **6,702 (35.8%)** |
+
+מנהלי exposure goes ₪156,935/₪130,849 → **₪17,756,938 / ₪16,053,921**.
+Partition closes on every row and total in all three.
+
+### One code is 91% of it
+
+| code | gaps (מנהלי) | ₪ | what it is |
+|---|---|---|---|
+| **5402 תוספת שקלית 2016** | **172,917** | **₪15,458,240** | **§7: the workbook has no amounts table for it at all** |
+| 4550 | 28,250 | ₪5,737,728 | personal amounts — §2 |
+| 4544/4934/4994/5401 | 69,179 | ₪2,561,024 | pay-agreement family, known retro |
+| 669 | 8,513 | ₪15,243,139 | §23 — wrong value in some eras |
+| **1699** | **7,283** | **₪4,236,558** | the point of the instruction |
+
+**5402 alone is 91% of the new gaps** and is not computable from the workbook
+in the first place, so every carrier fails. That is a measurement of a hole
+already documented in §7, not a discovery about pay.
+
+### The honest framing, and it is in CLAUDE.md now
+
+52.6% of מנהלי slips carry at least one gap the חוקה cannot reproduce. That
+is a real and useful number **about the workbook**. It is **not** a list of
+mispaid workers. So both reports ship together from now on: gated answers
+"who do we believe is wrong", ungated answers "what can the חוקה not
+reproduce". `CLAUDE.md` now requires reporting both numbers whenever
+`--check-all` runs — never the ungated count alone.
+
+**What the instruction actually bought:** 1699 now produces 7,283 gaps /
+₪4,236,558 on מנהלי, 2,525 / ₪1,585,475 on מח"ר and 218 / ₪98,951 on the
+engineers — **10,026 slips and ₪5.92M that were previously not examined at
+all** in the files where the gate had silenced the rule.
 
 ## 0da. מח"ר complete — 20 files to 02/2026, and 1699 starts working in 2024
 
