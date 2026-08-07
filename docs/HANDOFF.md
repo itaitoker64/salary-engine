@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0da. **מח"ר complete — 20 files to 02/2026** — 1699 starts working in 12/2024; the 12/2024 base step appears on a second track
 0cz. **‼‼ The report does NOT check every code** — 24 of 132 on מח"ר, and 1699 never runs there
 0cy. **Third track opened — דירוג מח"ר (11)** — 11 files, 48 true errors, but two thirds of the חוקה never runs
 0cx. **New workbook installed** — 3 tables filled; it exposed a silent extractor bug (5401 lost)
@@ -128,6 +129,60 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0da. מח"ר complete — 20 files to 02/2026, and 1699 starts working in 2024
+
+The whole track landed: **01/2008 and 12/2008–12/2025 plus 02/2026, all
+דירוג 11. 20 files · 140,176 slips · partition closes everywhere.**
+**168 true errors / 0.120%**, ₪49,356 underpaid against ₪113,496 overpaid.
+
+### ‼ The 1699 silence is an ERA problem, not a track problem
+
+Instrumented the real gate on the three newest files. It changes the
+diagnosis recorded in 0cz:
+
+| file | carriers | inferred target | match | outcome |
+|---|---|---|---|---|
+| מח"ר 12/2009 | 1,027 | 3,850.20 | 88.2% | silenced |
+| מח"ר 12/2017 | 2,704 | 4,532.90 | 96.0% | silenced |
+| מח"ר 12/2023 | 4,514 | 5,571.80 | 95.9% | silenced |
+| **מח"ר 12/2024** | 4,704 | 5,880.00 | **97.3%** | **runs — 232 flagged** |
+| **מח"ר 12/2025** | 2,007 | 6,247.70 | **99.7%** | **runs — 97 flagged** |
+
+**99.7% on 12/2025.** The model is right for this track; what fails is the
+older periods. 0cz said "the base term is wrong for this track
+specifically" — **that reading was too narrow.** It is wrong for מח"ר *in
+the older era*, and it converges to near-perfect as the files approach the
+present. Same shape as the era-dependent gaps already recorded for מנהלי
+(0cn: silenced in 12/2008–12/2010, 12/2012, 12/2018, 12/2022).
+
+The corrected statement: **1699 is checked on מח"ר only in 12/2024, 12/2025
+and 02/2026 — 3 of 20 files.** In the other 17, its carriers are unchecked.
+
+### Where the errors concentrate — the last three files
+
+| file | workers | true errors | שגויי בסיס |
+|---|---|---|---|
+| 12/2022 | 9,292 | 4 | 52 |
+| 12/2023 | 9,049 | 2 | 68 |
+| **12/2024** | 8,530 | **24** | **153** |
+| **12/2025** | 2,576 | **22** | **140** |
+| **02/2026** | 2,646 | **33** | **116** |
+
+**79 of the track's 168 true errors sit in the last three files**, on 9.8%
+of the population — and שגויי בסיס jumps the same way. This is the **third
+independent sighting of the 12/2024 step**: מנהלי showed 0.5% → 3.1% base
+mismatches at exactly the same boundary (0cv), and now מח"ר does too. Two
+tracks, same month. **A 2024 pay agreement the חוקה does not carry is now
+the leading hypothesis, and it is still not traced.**
+
+Note the population collapses 9,049 → 2,576 between 12/2023 and 12/2025, so
+the per-file rates are on a much smaller base.
+
+### Coverage gap grew with the later files — 47 codes / ₪726,541
+
+Still led by **1616 פיצ אבדן מש**, and 4221 תוספת שעמ is now second. Also 20
+codes / ₪20,287,303 declared file-fed and therefore correct.
 
 ## 0cz. ‼‼ Answering "does the report check every code, including minimum wage?" — NO
 
