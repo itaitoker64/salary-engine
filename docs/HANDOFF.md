@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dj. **4550 maxima corrected** — we read column L, workbook reads K; מנהלי check-all 7.53% → 5.96%
 0di. **§10 SOLVED by one cell** — 1297 median 1.0594 → 1.0000; plus the 657 and 669 columns
 0dh. **§30 closed — 907.66 → 907.76** — 6/6 bands match; reports unchanged because ₪0.10 was inside tolerance
 0dg. **657 rebuilt — new MEONOT sheet** — tariff-2 band added, §11 closed, one 10-agora gap left
@@ -137,6 +138,66 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dj. 4550 ministry maxima corrected — and our rule had been reading the wrong column
+
+Fifth 07.08 revision, **one cell**: `4550!K10` (הנהלת בתי משפט, ministry 126)
+₪801 → **₪1,001.49**.
+
+### The bigger find: we were reading column L, the workbook reads K
+
+```
+4550!K4 = IF(K14=1, 0, IF(L3=J9, K9, IF(L3=J10, K10, IF(L3=J11, K11, IF(L3=J12, K12, K8)))))
+          L3 = the ministry's חילן code
+```
+
+Column **L is not referenced anywhere** — and it is exactly where our stored
+`801` for ministries 116 and 126 came from. The real value for 116
+(משרד המשפטים) is `K9 = ₪714.70`.
+
+| file | ministry 116: 801 → **714.70** | ministry 126: 801 → **1,001.49** |
+|---|---|---|
+| 12/2016 | 42% → **94%** | **94% → 0%** |
+| 12/2020 | 64% → **98%** | 0% → **94%** |
+| 12/2023 | 65% → **90%** | 0% → **95%** |
+
+**116 is fixed outright** — ₪714.70 is the value in every era, and the
+correction roughly doubles its match.
+
+**126 flips.** ₪801 is right for 12/2016 and dead from 12/2020; ₪1,001.49 is
+right from 12/2020 and dead in 12/2016. So the ministry maximum **changed
+between 12/2016 and 12/2020**, and the `4550` sheet has **no era dimension at
+all** — one value per ministry. New **§32**: turn `4550!I7:K12` into a
+month-code table like 5402 and 657, or at minimum add an effective-from date.
+
+### ‼ A contradiction I did not implement
+
+`4550!K15 = IF(L3=186,1,0)` with `D13 = IF(K14=1, 0, …)` means ministry **186
+(לשכת הקשר נתיב) is not entitled to 4550 at all** — the component should be 0.
+
+**Measured: 9 workers in ministry 186 do receive it** — 6 in 12/2016, 2 in
+12/2020, 1 in 12/2023 — and **four of them at exactly ₪714.70, the ordinary
+maximum.** Implementing the exclusion would flag all nine. That is the user's
+call, not mine: either the workbook's exclusion is wrong or nine workers were
+paid something they are not entitled to. Recorded on the rule as
+`excluded_ministries_not_implemented`.
+
+### Measured on all three tracks
+
+| | check-all before | **after** |
+|---|---|---|
+| מנהלי true errors | 27,317 (7.53%) | **21,622 (5.96%)** |
+| מח"ר true errors | 10,673 (7.61%) | **7,961 (5.68%)** |
+| engineers true errors | 1,707 (9.02%) | 1,713 (9.05%) |
+
+**8,407 slips across the two big tracks stop being flagged.** Gated mode does
+not move at all (מנהלי 803 → 803) — 4550 sits below the trust gate there, so
+the correction is invisible until check-all.
+
+Note the exposure split moves sharply on מנהלי: underpaid ₪3.23M → ₪4.47M
+while overpaid ₪1.00M → ₪0.20M. Raising 126's floor raises the expected value,
+so slips that read as overpaid now read as underpaid. Same slips, opposite
+sign — worth knowing before quoting either number.
 
 ## 0di. Two more columns (657, 669) + §10 solved by a one-cell workbook change
 
