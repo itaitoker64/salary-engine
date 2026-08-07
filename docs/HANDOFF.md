@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0df. **4544 neutralization column** — 14,975 on מנהלי; 2,739 of them came from other defined buckets
 0de. **Progim 07.08.2026 installed** — workbook filled 5402 for מהנדסים/הנדסאים; engineers check-all 35.8% → 10.7%
 0dd. **‼‼ 5402 was OUR bug** — 143,644 false positives; מנהלי check-all 52.63% → 13.01%
 0dc. **✅ Every neutralization column verified firing** — but 5402/4550/669 are 86% of what is left, and have none
@@ -133,6 +134,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0df. 4544 neutralization column — the largest yet, and it drains other buckets
+
+User instruction: a column for 4544 immediately after שגויי תוספת 1999, with
+those workers coming off the true-error count. That position is **early** in
+the chain, so the bucket pulls from every bucket defined *after* it, not only
+from "real". Measured both ways before and after.
+
+| track (check-all) | true errors before | **after** | 4544 column | underpaid |
+|---|---|---|---|---|
+| מנהלי | 47,178 (13.01%) | **34,942 (9.64%)** | **14,975** | ₪4,027,545 → ₪3,293,470 |
+| מח"ר | 24,510 (17.49%) | **11,303 (8.06%)** | **14,961** | ₪2,216,253 → ₪1,242,208 |
+| engineers | 2,035 (10.75%) | **1,766 (9.33%)** | 381 | ₪160,595 → ₪116,310 |
+
+Gated mode barely moves: מנהלי 826 → 818, column = 12, because 4544 clears the
+trust gate in only some files.
+
+### Where the 14,975 came from on מנהלי
+
+**12,236 from "real"** — and **2,739 from buckets the user had already
+defined**: דריכות 961, בוררות מיסים 654, תוספת בית משפט 608, תוספת מיוחדת
+222, גמול מנהל 149, שקלית 2023 41, 4651 41, and 63 across five more. Two
+columns emptied completely (5524 and 4651 → 0) and תוספת בית משפט fell from
+622 to 14.
+
+Partition closes on every row in all six reports — nobody double-counted,
+nobody lost — but the by-column picture changed materially, and that is worth
+the user seeing before this becomes the standing report.
+
+**The argument for the position:** 4544 is a base component of the
+pay-agreement family (4550/4934/4994 sit on it), so a retro difference in it
+rolls into everything above — the same reasoning that placed 4624 early.
+**The alternative** (last in the chain, just before "real") would leave every
+other column untouched and take only the 12,236. Offered to the user.
 
 ## 0de. Progim 07.08.2026 installed — the workbook answered §7 the same day
 
