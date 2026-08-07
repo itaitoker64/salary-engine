@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0di. **§10 SOLVED by one cell** — 1297 median 1.0594 → 1.0000; plus the 657 and 669 columns
 0dh. **§30 closed — 907.66 → 907.76** — 6/6 bands match; reports unchanged because ₪0.10 was inside tolerance
 0dg. **657 rebuilt — new MEONOT sheet** — tariff-2 band added, §11 closed, one 10-agora gap left
 0df. **4544 neutralization column** — 14,975 on מנהלי; 2,739 of them came from other defined buckets
@@ -136,6 +137,68 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0di. Two more columns (657, 669) + §10 solved by a one-cell workbook change
+
+### §10 solved — 1297 כוננות מיוחדת
+
+Fourth 07.08 revision, **one cell**: `SACHAR!CB11` gained four codes in its
+base — **756, 4934, 4983, 4994**.
+
+§10 had been open since 30.07: *"the formula reproduces none of the 55 slips;
+median paid÷formula 1.0594"*. Swapping the 5.33 constant for 5.331 had not
+helped (0.019% against a 5.94% gap). **The rate was never the problem — the
+base was.**
+
+| | before | **after** |
+|---|---|---|
+| **median paid ÷ formula** | **1.0594** | **1.0000** |
+| מנהלי 12/2008 | 0 of 45 | **38/45 (84%)** |
+| מנהלי 12/2010 | — | **10/11 (91%)** |
+| מנהלי 12/2012 | — | **5/5 (100%)** |
+| total | 0% | **53/62 (85.5%)** |
+
+A median of exactly 1.0000 — the formula now reproduces the median slip to the
+agora, and the 5.94% gap was precisely the weight of the four missing codes.
+**§10 closed** (new §31). Nine stragglers remain out of 62, including the one
+מח"ר 12/2012 case at ratio 1.60.
+
+Note for the next session: 1297 is **not** produced by `extract_rules.py` — it
+is hand-maintained in `component_rules.json` — so a workbook change to CB11
+has to be applied by hand. Also caught here: the 657/MEONOT revision had
+silently changed the *extracted* 738 rule, but the stored 738 is richer (3
+rates against 1), so it was **left alone** rather than overwritten.
+
+### Two neutralization columns
+
+657 immediately after הסכם 2001, and 669 immediately after בית חולים מאוחדת,
+per instruction. **Both take only from "real" — no other bucket moved.**
+
+| track · mode | 657 | 669 | true errors |
+|---|---|---|---|
+| מנהלי · gated | 32 | 2 | 833 → **803** |
+| מנהלי · check-all | 14 | **7,334** | 34,651 → **27,317** (9.56% → 7.53%) |
+| מח"ר · gated | 22 | 0 | **352** |
+| מח"ר · check-all | 10 | 429 | 11,102 → **10,673** |
+| engineers · gated | 0 | 0 | **57** |
+| engineers · check-all | 0 | 59 | 1,766 → **1,707** |
+
+657 is small — 59 flagged slips in total. It takes 32 in gated mode but only
+14 under check-all, because there 18 of them are already claimed by the 4544
+bucket upstream.
+
+**669 is the second of the three "big" leftovers.** 7,334 slips on מנהלי, 21%
+of the true errors that remained. Of the three codes measured at 86% of the
+residue (5402, 4550, 669), the first turned out to be our own bug and the
+third now has a column — **only 4550 is left**.
+
+The neutralization is documented rather than assumed: §23 records 669's
+workbook value as correct in 15 of 16 files and wrong in 12/2008, and on
+מח"ר 12/2008 it scores **1 of 556**. The rule is wrong for whole eras and
+tracks, not for individual workers — which is what makes it a bucket rather
+than an error. Retiring it means fixing 669's value per era and track.
+
+Partition closes on every row in all six reports.
 
 ## 0dh. §30 closed — 907.66 → 907.76, and the report does not move
 
