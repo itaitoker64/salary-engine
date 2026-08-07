@@ -35,7 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
-0cy. **Third track opened — דירוג מח"ר (11)** — 7 files, 30 true errors, but only 6 of 25 rules run on 12/2008
+0cy. **Third track opened — דירוג מח"ר (11)** — 11 files, 48 true errors, but two thirds of the חוקה never runs
 0cx. **New workbook installed** — 3 tables filled; it exposed a silent extractor bug (5401 lost)
 0cw. **Six more codes out of scope** — coverage gap ₪636,303 → ₪142,036
 0cv. **מנהלי extended to 02/2026** — 19 files; base mismatches jump 6× in 12/2024
@@ -128,30 +128,39 @@ Newest topic first:
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
 
-## 0cy. Third track opened — דירוג מח"ר (11), 7 files, and a caveat that outweighs the headline
+## 0cy. Third track opened — דירוג מח"ר (11), 11 files, and a caveat that outweighs the headline
 
 Files arrived for a rating never checked before: **דירוג 11 (מח"ר)**,
-01/2008 and 12/2008–12/2013 (12/2012 and 12/2013 came mid-run and were folded
-into the same report). Data sits on `Sheet1`, not `גולמי`; `load_golmi` falls
-back to the first sheet, so they read correctly.
+01/2008 and 12/2008–12/2017, delivered in three batches and folded into one
+report each time. Data sits on `Sheet1`, not `גולמי`; `load_golmi` falls back
+to the first sheet, so they read correctly.
 
-**7 files · 42,704 slips · partition closes on every row and the total.**
+**11 files · 72,804 slips · partition closes on every row and the total.**
 
-| file | workers | true errors | valid |
-|---|---|---|---|
-| 01/2008 | 5,495 | 1 | 5,211 |
-| 12/2008 | 5,719 | 9 | 5,300 |
-| 12/2009 | 5,890 | **0** | 5,605 |
-| 12/2010 | 6,154 | 6 | 5,803 |
-| 12/2011 | 6,277 | 3 | 5,943 |
-| 12/2012 | 6,472 | 8 | 6,139 |
-| 12/2013 | 6,697 | 3 | 6,269 |
-| **total** | **42,704** | **30** | **40,270** |
+| file | workers | true errors | valid | ללא בסיס |
+|---|---|---|---|---|
+| 01/2008 | 5,495 | 1 | 5,211 | 169 |
+| 12/2008 | 5,719 | 9 | 5,300 | 291 |
+| 12/2009 | 5,890 | **0** | 5,605 | 149 |
+| 12/2010 | 6,154 | 6 | 5,803 | 179 |
+| 12/2011 | 6,277 | 3 | 5,943 | 176 |
+| 12/2012 | 6,472 | 8 | 6,139 | 167 |
+| 12/2013 | 6,697 | 3 | 6,269 | 225 |
+| 12/2014 | 6,852 | 4 | 6,441 | 222 |
+| 12/2015 | 7,448 | 4 | 6,958 | 244 |
+| 12/2016 | 7,680 | 6 | 7,186 | 272 |
+| 12/2017 | 8,120 | 4 | 7,483 | **380** |
+| **total** | **72,804** | **48** | **68,338** | **2,474** |
 
-**30 true errors / 0.070%** — on paper the cleanest track by a wide margin
-(מנהלי 0.205%, engineers 0.283%). ₪3,656 underpaid against **₪67,599
+**48 true errors / 0.066%** — on paper the cleanest track by a wide margin
+(מנהלי 0.205%, engineers 0.283%). ₪4,025 underpaid against **₪75,940
 overpaid** — the only track that skews this hard toward overpayment, and the
-ratio holds as files are added (18:1 at five files, 18:1 at seven).
+ratio holds as files are added (18:1 at five files, 18:1 at seven, **19:1 at
+eleven**).
+
+The population **grows** across the series, 5,495 → 8,120, unlike the other
+two tracks which shrink. ללא בסיס grows faster still — 169 → 380, i.e. 3.1%
+→ 4.7% of the file. **Not investigated.**
 
 ### ‼ Do not report 0.064% as "מח"ר is cleaner". It is mostly the gate.
 
@@ -161,12 +170,19 @@ Counted how many rules with ≥20 carriers actually clear `TRUST_MIN_MATCH`:
 |---|---|---|---|
 | מח"ר 12/2008 | 25 | **6** | **19** |
 | מח"ר 12/2011 | 30 | **10** | 20 |
+| מח"ר 12/2014 | 31 | **11** | 20 |
+| מח"ר 12/2017 | 33 | **12** | 21 |
 | מנהלי 12/2011 | 39 | **21** | 18 |
 
-**On מח"ר 12/2008 only 6 of 25 rules run at all.** The silenced ones cluster
-at 93–97% — just under the gate: 741 at 96%, 875 at 94%, 798 at 93%, 705 at
-97%, 736 at 97%, 4544 at 95%. Same signature as the engineers track (0bx,
-0ci): retro, not a formula defect. This is the third measured instance of the
+**Roughly two thirds of the חוקה never runs on this track, in every file.**
+The silenced rules cluster just under the gate — 741 at 94–96%, 875 at 95%,
+798 at 95%, 858 at 92–93% — the same retro signature as the engineers track
+(0bx, 0ci), not a formula defect.
+
+But the later files are worse than a near-miss in places: on 12/2017
+**4550 scores 77%, 4544 79%, 920 80%, 630 and 853 81%**. Those are not
+rounding tails. 4550 and 4544 are the pay-agreement family already flagged on
+the engineers track; **on מח"ר they are further off, and unexamined.** This is the third measured instance of the
 rule recorded in 0ci — **true-error counts are not comparable across files or
 tracks** — and here it is the difference between "cleanest track we have" and
 "a track where two thirds of the חוקה never ran."
@@ -176,25 +192,26 @@ The one real exception worth a look: **669 בוררות scores 1/556 = 0%** on
 that month. §23 already records 669 being wrong for 12/2008 on another track;
 this is a second, much larger instance. **Not investigated.**
 
-### Coverage gap is genuinely small — 17 codes / ₪68,853
+### Coverage gap is genuinely small — 21 codes / ₪206,521
 
 Much smaller than either other track, and no single item dominates it. The
 bulk of מח"ר pay the workbook does not compute is **declared file-fed and
-therefore correct**: 15 codes / ₪5,495,748, led by 4147 תוס. רפורמה
-(₪2,485,838), 1961 רפורמה ב' and 4180. The real holes are all small — 1616
-פיצ אבדן מש ₪24,457, 1104 שכר עבודה ₪11,936, **5365 שכר יסוד ₪10,648 on one
-row** (a base code with no rule — worth a look), 4156 ₪5,144, 1132 ₪4,483,
-5315 ₪3,310, and eleven more under ₪1,800 each.
+therefore correct**: 15 codes / ₪10,182,580, led by 4147 תוס. רפורמה. The
+real holes are led by **1616 פיצ אבדן מש at ₪136,748 over 30 rows — 66% of
+the gap on its own**, and it grew from ₪24,457 at seven files, so it is
+concentrated in 12/2014–12/2017. Then 1104 ₪16,815, **5365 שכר יסוד ₪10,648
+on a single row** (a base code with no rule — worth a look), 4447 ₪6,315,
+1132 ₪6,114, 1605 ₪6,015, and fourteen more.
 
 ### Neutralization profile differs from the other tracks
 
-**גמול השתלמות is 582 of the 2,434 non-valid slips** — by far the largest
-bucket, where on מנהלי the leaders are תוספת 1999 and בסיס. ללא בסיס is 1,356
-(3.2%). Worth knowing before anyone compares bucket columns across tracks.
+**גמול השתלמות is 1,039 of the 4,466 non-valid slips** — by far the largest
+bucket, where on מנהלי the leaders are תוספת 1999 and בסיס. ללא בסיס is 2,474
+(3.4%). Worth knowing before anyone compares bucket columns across tracks.
 
-12/2012–12/2013 also produce the track's first **שגויי תוספת שכר מיסים
-(5253)** entry — 1 worker; 5253 itself is the top gap-by-code line at 20 gaps
-/ ₪5,672.
+The later files exercise columns the first seven did not: **5253 reaches 14**,
+**4651 reaches 2**, and 4140 and 1711 register 1 each — the first time either
+appears outside מנהלי.
 
 Note: **752 הופעה 20%** — one of the five שגויי דירוג codes — appears here on
 2 rows (₪1,432), on slips that are **valid**, so the דירוג column reads 0.
