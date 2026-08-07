@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dd. **‼‼ 5402 was OUR bug** — 143,644 false positives; מנהלי check-all 52.63% → 13.01%
 0dc. **✅ Every neutralization column verified firing** — but 5402/4550/669 are 86% of what is left, and have none
 0db. **‼‼ `--check-all` mode added** — 0.205% → 52.6% on מנהלי; one code (5402) is 91% of it
 0da. **מח"ר complete — 20 files to 02/2026** — 1699 starts working in 12/2024; the 12/2024 base step appears on a second track
@@ -131,6 +132,77 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dd. ‼‼ 5402 — the user was right again, and it was the biggest bug yet
+
+**User: "the amounts in the PROGIM are correct for מנהלי and מח"ר." They were
+right, and they named exactly the two ratings the workbook fills.**
+
+§7 said 5402 has no amounts table. **False in the current workbook.** The real
+chain, read out of the file:
+
+```
+SACHAR!DX11      = +U11
+SACHAR!U11       = 'heskem 2016'!B6
+'heskem 2016'!B6 = INDEX(D12:P239, B2, B3)
+                   B2 = month code (row)
+                   B3 = SACHAR!K11 = חילן rating code (column, D..P = 1..13)
+```
+
+A **month × RATING grid**. Column D = מינהלי, N = מח"ר, O = מהנדסים, P =
+הנדסאים. **Only D and N are filled** — 126 cells each — which is exactly the
+pair the user named.
+
+**Verified against payroll before changing anything, and it matches to the
+agora on all five checks:** מנהלי 12/2016 ₪66.88 ×15,537 · 12/2017 ₪102.72
+×16,218 · 12/2023 ₪326.34 ×14,397 · מח"ר 12/2016 ₪84.84 ×6,786 · 12/2023
+₪400.73 ×7,768.
+
+**Our bug:** the rule held `amounts: [336, 437.21]` — two numbers that appear
+in **no cell of the table** — with no month and no rating awareness. 0.0% of
+carriers matched.
+
+**Fix:** 26 amounts read from the workbook, plus `amounts_by_droog_code` so
+the check narrows to the worker's own rating (a מח"ר amount must not pass on a
+מנהלי slip). Both engines; an unlisted rating falls back to the union rather
+than failing the worker.
+
+| file | before | **after** |
+|---|---|---|
+| מנהלי 12/2016 | 0.0% | **98.4%** |
+| מנהלי 12/2023 | 0.0% | **98.4%** |
+| מח"ר 12/2016 | 0.0% | **97.5%** |
+| מח"ר 12/2023 | 0.0% | **96.7%** |
+
+### What it did to the reports
+
+| | check-all before | **after** |
+|---|---|---|
+| מנהלי true errors | 190,822 (52.63%) | **47,178 (13.01%)** |
+| מנהלי underpaid | ₪17,756,938 | **₪4,027,545** |
+| מח"ר true errors | 69,280 (49.42%) | **24,510 (17.49%)** |
+| מח"ר underpaid | ₪6,066,339 | **₪2,216,253** |
+
+**143,644 of the 190,822 were our own false positives**, and ₪13.7M of
+"underpaid" exposure was never real.
+
+In gated mode the fix *adds* flags rather than removing them — מנהלי 742 → 826,
+מח"ר 168 → 374 — because 5402 now clears the trust gate and its genuine
+outliers surface. Partition closes on every row in all four reports.
+
+### ‼ What is still a real workbook defect
+
+**Column O (מהנדסים) and everything past N is empty.** An engineers slip
+carrying 5402 gets `INDEX` → 0, so it is not computable. Instruction added to
+§7: fill `heskem 2016!D12:P239` for the remaining ratings, starting with O.
+
+### The lesson, written into §7
+
+The original §7 instruction — "add a shekel block to `heskem 2016`" — **had
+already been carried out in the workbook, and we never re-checked.** A fix
+list entry is not closed by writing it; it has to be re-measured after every
+workbook update. §7 now carries the correction at the top and keeps the old
+text below it, marked superseded.
 
 ## 0dc. Verified: every neutralization column the user defined does fire
 

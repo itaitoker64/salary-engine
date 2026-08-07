@@ -176,8 +176,19 @@
       } else {
         // shekel: one of a fixed set of flat amounts × job% (e.g. גמול מינהל
         // 4983 ∈ {105,210,315}). The closest admissible amount is the standard.
-        let best = rule.amounts[0];
-        for (const a of rule.amounts) if (Math.abs(a * jp - slip) < Math.abs(best * jp - slip)) best = a;
+        // Rating-scoped amounts (5402): the workbook resolves the amount with
+        // INDEX(heskem 2016!D12:P239, קוד-חודש, קוד-דרוג) — a month × RATING
+        // grid, so a מנהלי and a מח"ר worker in the same month get different
+        // amounts. Narrow to the worker's own rating when the table is present;
+        // an unlisted rating falls back to the union rather than failing.
+        // Mirror of main.py. See PROGIM_FIXES §7.
+        let pool = rule.amounts;
+        if (rule.amounts_by_droog_code && droog !== undefined && droog !== null) {
+          const scoped = rule.amounts_by_droog_code[String(droog)];
+          if (scoped && scoped.length) pool = scoped;
+        }
+        let best = pool[0];
+        for (const a of pool) if (Math.abs(a * jp - slip) < Math.abs(best * jp - slip)) best = a;
         expected = round2(best * jp);
       }
       checks[k] = {

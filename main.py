@@ -515,7 +515,22 @@ def check_worker_components(components, job_pct, rules, ministry_code=0,
             # shekel: the component is one of a fixed set of flat amounts, scaled
             # by job%. Expected = the closest admissible amount × job% (e.g.
             # גמול מינהל 4983 ∈ {105, 210, 315}). Wrong amounts still fail all.
-            best = min(rule["amounts"], key=lambda a: abs(a * jp - slip))
+            #
+            # Rating-scoped amounts (5402 תוספת שקלית 2016): the workbook resolves
+            # the amount with INDEX(heskem 2016!D12:P239, קוד-חודש, קוד-דרוג),
+            # i.e. a month × RATING grid — a מנהלי worker and a מח"ר worker in the
+            # same month get different amounts. Accepting the union across ratings
+            # would let a מח"ר amount pass on a מנהלי slip, so narrow the set to
+            # the worker's own rating when the rule carries the per-rating table.
+            # An unlisted rating falls back to the union rather than failing the
+            # worker on a rating the table does not cover.
+            pool = rule["amounts"]
+            abd = rule.get("amounts_by_droog_code")
+            if abd:
+                scoped = abd.get(str(droog if droog is not None else ""))
+                if scoped:
+                    pool = scoped
+            best = min(pool, key=lambda a: abs(a * jp - slip))
             expected = round(best * jp, 2)
         ok = abs(expected - slip) <= MATCH_THRESHOLD
         if not pure and rtype == "percent" and not ok and best > 0:
