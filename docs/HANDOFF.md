@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dc. **✅ Every neutralization column verified firing** — but 5402/4550/669 are 86% of what is left, and have none
 0db. **‼‼ `--check-all` mode added** — 0.205% → 52.6% on מנהלי; one code (5402) is 91% of it
 0da. **מח"ר complete — 20 files to 02/2026** — 1699 starts working in 12/2024; the 12/2024 base step appears on a second track
 0cz. **‼‼ The report does NOT check every code** — 24 of 132 on מח"ר, and 1699 never runs there
@@ -130,6 +131,45 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dc. Verified: every neutralization column the user defined does fire
+
+Asked directly whether the codes defined for neutralization are in fact
+neutralized. Measured on the 19 מנהלי files, gated vs `--check-all`.
+
+**Yes — all of them exist and fire**, and most absorbed *more* under
+check-all: 4624 3,210→5,705, 4983 1,089→2,875, 798 431→1,538, 1711 20→652,
+875 103→622, 741 297→762, 697 70→227, 738 26→82, 4140 16→62, 4651 14→41.
+Four shrank — 705 181→130, 5340 129→32, 5524 60→41, 5253 42→34 — **not
+because they stopped working** but because a higher-priority bucket claimed
+those workers first. Partition closes on every row, so nobody is
+double-counted and nobody vanishes.
+
+### But they cover different codes than the ones flooding the report
+
+Decomposed the 190,822 slips still landing in "real":
+
+| code | on a real-error slip | **sole failing code** | has a column? |
+|---|---|---|---|
+| **5402 תוספת שקלית 2016** | 164,295 | **143,645** | **no** |
+| **4550 הסכם 2001 אישי** | 24,678 | **12,823** | **no** |
+| **669 בוררות** | 7,337 | **7,326** | **no** |
+| 4544 | 12,236 | 147 | no |
+| 4934 | 12,042 | 133 | no |
+| 4994 | 11,627 | — | no |
+| 5401 | 3,331 | 220 | no |
+| 1699 | 762 | 79 | no |
+
+**5402, 4550 and 669 are 163,794 of the 190,822 as sole cause — 86%.** None
+has a neutralization column and none is among the codes the user nominated.
+
+**No columns opened on my own initiative.** A 5402 bucket would drop the
+headline from 190,822 to roughly 47,000 in one move, and it would swallow
+every unrelated error sharing those slips — exactly the decision `CLAUDE.md`
+forbids taking without an instruction. Left as the user's call.
+
+Note on 1699: it is the sole cause on only 79 slips, not because it is clean
+but because most of its carriers are already claimed earlier in the chain.
 
 ## 0db. ‼‼ `--check-all` mode — every code, no gate, and what it costs
 
