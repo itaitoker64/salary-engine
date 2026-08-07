@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0de. **Progim 07.08.2026 installed** — workbook filled 5402 for מהנדסים/הנדסאים; engineers check-all 35.8% → 10.7%
 0dd. **‼‼ 5402 was OUR bug** — 143,644 false positives; מנהלי check-all 52.63% → 13.01%
 0dc. **✅ Every neutralization column verified firing** — but 5402/4550/669 are 86% of what is left, and have none
 0db. **‼‼ `--check-all` mode added** — 0.205% → 52.6% on מנהלי; one code (5402) is 91% of it
@@ -132,6 +133,51 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0de. Progim 07.08.2026 installed — the workbook answered §7 the same day
+
+**303 cells, no structural change** — nothing moved, so no column letters
+shifted and no citation went stale.
+
+| sheet | cells | what |
+|---|---|---|
+| **`heskem 2016`** | **252** | **columns O (מהנדסים) and P (הנדסאים) filled** in the 5402 grid |
+| `Netunei Gimlai` | 43 | simulation scratch area cleared + input cells changed — not חוקה data |
+| `tos reforma 4147` | 8 | value updates (845→850, 964→970, 1084→1091, …) |
+
+**This is a direct answer to the §7 instruction written hours earlier.** The
+5402 grid now covers **four rating groups** (1 מינהלי, 11 מח"ר, 12 מהנדסים,
+13 הנדסאים) at 126 cells each, up from two.
+
+Verified against payroll before touching the rule: מהנדסים 12/2016 ₪108.27
+×963, 12/2020 ₪448.80 ×786, 12/2023 ₪482.33 ×565 — match, and the 5402 check
+on those files goes to **99.1% / 98.1% / 97.8%**.
+
+`component_rules.json`: 5402 goes 26 → **50 amounts**, 2 → **4 rating groups**.
+Extracted rules are otherwise **unchanged** (25 percent rules, 32 total); the
+only extractor delta was 4544 leaving 1699's `counted`, which the stored list
+never contained, so nothing was applied.
+
+### Engineers is where it lands
+
+| | before | **after** |
+|---|---|---|
+| check-all true errors | 6,702 (35.81%) | **2,035 (10.75%)** |
+| check-all underpaid | ₪558,885 | **₪160,595** |
+
+מנהלי and מח"ר are **byte-identical to the pre-0708 runs** (10,950 / 64,341
+and 4,678 / 36,011 invalid) — correct, since columns O and P do not touch
+ratings 1 and 11.
+
+### Engineers extended to 02/2026 — 20 files
+
+A 02/2026 engineers file arrived in the same turn. 20 files · **18,932
+slips** · partition closes. Gated: **81 true errors / 0.428%**. The last two
+files are clean — 12/2025 and 02/2026 both return **0 true errors**.
+
+Gated counts rose on this track (53 → 81) for the same reason as on מנהלי
+after the 5402 fix: the rule now clears the trust gate, so its genuine
+outliers surface instead of being suppressed wholesale.
 
 ## 0dd. ‼‼ 5402 — the user was right again, and it was the biggest bug yet
 
