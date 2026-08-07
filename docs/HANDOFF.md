@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0cz. **‼‼ The report does NOT check every code** — 24 of 132 on מח"ר, and 1699 never runs there
 0cy. **Third track opened — דירוג מח"ר (11)** — 11 files, 48 true errors, but two thirds of the חוקה never runs
 0cx. **New workbook installed** — 3 tables filled; it exposed a silent extractor bug (5401 lost)
 0cw. **Six more codes out of scope** — coverage gap ₪636,303 → ₪142,036
@@ -127,6 +128,65 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0cz. ‼‼ Answering "does the report check every code, including minimum wage?" — NO
+
+Asked directly. Measured on the 11-file מח"ר report rather than reasoned about.
+
+### The census: 24 of 132 codes are actually validated
+
+| | codes |
+|---|---|
+| distinct codes appearing on a מח"ר slip | **132** |
+| of them, have a rule in the חוקה | 76 |
+| of them, declared `reported` — fed from the file, **never validated by design** | 9 |
+| of them, declared non-pensionable — **out of scope by design** | 32 |
+| of them, no rule and no declaration — **the coverage gap** | 25 |
+| **of them, actually checked in at least one file** | **24** |
+
+Per file it is starker — codes present against rules that clear the trust gate:
+
+| file | codes on slips | **rules that ran** |
+|---|---|---|
+| 01/2008 | 63 | **8** |
+| 12/2008 | 72 | **7** |
+| 12/2013 | 101 | 14 |
+| 12/2017 | 106 | 13 |
+
+### ‼ Minimum wage (1699) is not checked on this track at all
+
+**18,209 carriers across the 11 files. Zero checked. Zero flagged.**
+
+| file | carriers | inferred target | match | gate |
+|---|---|---|---|---|
+| מח"ר 01/2008 | 775 | 3,710.20 | 91.8% | silenced |
+| מח"ר 12/2009 | 1,027 | 3,850.20 | **88.2%** | silenced |
+| מח"ר 12/2013 | 1,672 | 4,300.00 | 96.2% | silenced |
+| מח"ר 12/2017 | 2,704 | 4,532.90 | 96.0% | silenced |
+| **מנהלי 12/2017** | 12,171 | 4,532.90 | **97.5%** | **runs — 352 flagged** |
+| **מנהלי 12/2023** | 14,671 | 5,571.80 | **97.5%** | **runs — 441 flagged** |
+
+Every מח"ר file lands between 88.2% and 96.2%, under the 97% gate, so the
+check never fires. **The inferred targets are exactly the statutory minimum
+wages** and match מנהלי for the same month — so target inference is fine and
+the **base term is wrong for this track specifically**. That is the same shape
+as the bug fixed in 0cm, one track over, and it is **not yet diagnosed**.
+
+5260 is silenced too (only 123 carriers, all in 12/2017).
+
+### ‼ A measurement of mine was wrong and I caught it by cross-checking
+
+My first attempt replicated the gate in a standalone script and reported
+מח"ר 12/2013 at 97.1% and 12/2017 at 97.0% — i.e. **passing**. That
+contradicted the flag counts (0 everywhere), which is what made me re-check.
+
+The bug: `check_minimum_population` runs **before** flags flip slips to
+invalid, so it scores its match on the pre-flag VALID population. My script
+ran after `run_engine_full` had already flipped them, so it scored a cleaner
+subset and inflated every rate by ~1 point — enough to cross the gate on two
+files. Re-measured by instrumenting the real function; the numbers above are
+from the real call. **Lesson for the next session: never replicate a gate,
+instrument it.**
 
 ## 0cy. Third track opened — דירוג מח"ר (11), 11 files, and a caveat that outweighs the headline
 
