@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dg. **657 rebuilt — new MEONOT sheet** — tariff-2 band added, §11 closed, one 10-agora gap left
 0df. **4544 neutralization column** — 14,975 on מנהלי; 2,739 of them came from other defined buckets
 0de. **Progim 07.08.2026 installed** — workbook filled 5402 for מהנדסים/הנדסאים; engineers check-all 35.8% → 10.7%
 0dd. **‼‼ 5402 was OUR bug** — 143,644 false positives; מנהלי check-all 52.63% → 13.01%
@@ -134,6 +135,66 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dg. 657 rebuilt in the workbook — new MEONOT sheet, and §11's last instance closed
+
+Second 07.08 revision, **15 cells plus one new sheet**. 657 got its own sheet,
+`MEONOT`, and two long-standing items closed at once.
+
+```
+tosafot!AW2 = IF(MISRAD!AZ2=1, IF('Netunei Gimlai'!G59=TRUE, MEONOT!E1, 0), 0)
+MEONOT!E1   = INDEX(MEONOT!D5:E232, month-code, tariff)
+              tariff = 'Netunei Gimlai'!H59 ∈ {1, 2}
+```
+
+**The tariff-2 band now exists.** Our own note on 657 said in as many words
+that the second band was measured in the files (₪500 / ₪504 / ₪507.02, ~32-35
+carriers a month) and **was not in the workbook**, so those workers failed.
+It is now column E, filled for codes 121-204.
+
+**§11's last open instance is fixed.** `AW3` was
+`VLOOKUP(C4, AR7:AW234, 5, 0)` — index 5 points at AV, not AW — and is now
+`VLOOKUP(C4, AR7:AW234, AW1, 0)` with `AW1 = 6`, and AR..AW is exactly 6
+columns.
+
+### Verified — five bands exact, one off by 10 agorot
+
+| month | code | workbook (tariff 1) | paid | |
+|---|---|---|---|---|
+| 12/2018 | 132 | ₪833.33 | ₪833.33 × 396 | ✔ |
+| 12/2019 | 144 | ₪839.66 | ₪839.66 × 401 | ✔ |
+| 12/2020 | 156 | ₪844.70 | ₪844.70 × 359 | ✔ |
+| 12/2022 | 180 | ₪862.40 | ₪862.40 × 380 | ✔ |
+| **12/2023** | **192** | **₪907.66** | **₪907.76 × 389** | **✘ −₪0.10** |
+| 12/2024 | 204 | ₪934.63 | ₪934.63 × 398 | ✔ |
+
+`MEONOT!D` for codes 181-192 is 10 agorot below what 389 workers were paid.
+The tariff-2 value for the same period (₪544.83) *does* match, so the gap is
+in column D alone. New **§30** carries the instruction: 907.66 → 907.76.
+
+Our rule had 907.76 — the value the payroll actually uses — but recorded it as
+coming from the workbook while the workbook said otherwise. Both are now
+documented.
+
+### Engine and reports
+
+Rule rebuilt to 12 amounts (both tariffs) with `amounts_by_code` and separate
+`tariff_tables`. The tariff selector is a per-worker input **the גולמי does not
+carry**, so the check accepts either band — that is why 657 stays a plain
+`shekel` rule instead of becoming tariff-aware.
+
+657 match: **98.3%** (12/2018), **97.1%** (12/2020), **97.1%** (12/2023),
+**98.0%** (12/2024).
+
+| מנהלי, 19 files | before | after |
+|---|---|---|
+| check-all true errors | 34,942 | **34,747** (−195) |
+| check-all underpaid | ₪3,293,470 | ₪3,229,909 |
+| gated true errors | 818 | **833** (+15) |
+
+Same pattern as every other fix of this kind: check-all falls because real
+carriers now pass, gated rises because the rule clears the trust gate and its
+genuine outliers surface. Partition closes on every row in both.
 
 ## 0df. 4544 neutralization column — the largest yet, and it drains other buckets
 
