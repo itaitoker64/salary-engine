@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dh. **§30 closed — 907.66 → 907.76** — 6/6 bands match; reports unchanged because ₪0.10 was inside tolerance
 0dg. **657 rebuilt — new MEONOT sheet** — tariff-2 band added, §11 closed, one 10-agora gap left
 0df. **4544 neutralization column** — 14,975 on מנהלי; 2,739 of them came from other defined buckets
 0de. **Progim 07.08.2026 installed** — workbook filled 5402 for מהנדסים/הנדסאים; engineers check-all 35.8% → 10.7%
@@ -135,6 +136,38 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dh. §30 closed — 907.66 → 907.76, and the report does not move
+
+Third 07.08 revision: **12 cells, `MEONOT!D185:D196` (codes 181-192), 907.66 →
+907.76.** Exactly the §30 instruction, nothing else touched.
+
+657's table now matches payroll on **6 of 6 bands**:
+
+| month | code | workbook | paid | rule match |
+|---|---|---|---|---|
+| 12/2018 | 132 | ₪833.33 | ₪833.33 × 396 | 98.3% |
+| 12/2019 | 144 | ₪839.66 | ₪839.66 × 401 | **99.3%** |
+| 12/2020 | 156 | ₪844.70 | ₪844.70 × 359 | 97.1% |
+| 12/2022 | 180 | ₪862.40 | ₪862.40 × 380 | 97.9% |
+| **12/2023** | **192** | **₪907.76** | **₪907.76 × 389** | 97.1% |
+| 12/2024 | 204 | ₪934.63 | ₪934.63 × 398 | 98.0% |
+
+### ‼ The reports are byte-identical before and after — and that is correct
+
+מנהלי 19 files, both modes: valid 339,320 / 286,139, true errors 833 / 34,747,
+exposure unchanged, **no bucket moved at all**.
+
+`MATCH_THRESHOLD = 1.0`, so a ₪0.10 gap was **already inside tolerance** — the
+389 workers were passing on the old value too. The correction buys fidelity to
+the חוקה, not new flags. Worth saying plainly rather than implying the fix
+"improved" anything measurable: it removed a discrepancy that the tolerance had
+been absorbing, which is exactly the kind of thing that hides until the
+tolerance is tightened.
+
+**§30 is closed.** 657 is now among the best-specified components in the
+workbook: a dedicated sheet, two tariff bands, 84 cells each, a correct column
+index, and agreement with payroll on every band.
 
 ## 0dg. 657 rebuilt in the workbook — new MEONOT sheet, and §11's last instance closed
 
