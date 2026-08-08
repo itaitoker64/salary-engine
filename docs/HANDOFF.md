@@ -35,6 +35,7 @@ The coverage gap on the **0108 reference file (22,422 slips)** is **1 code /
 
 Newest topic first:
 
+0dk. **01/2008 restored — מנהלי is 20 files, 384,989 slips** · **branch MERGED to main** (ff, 193 commits)
 0dj. **4550 maxima corrected** — we read column L, workbook reads K; מנהלי check-all 7.53% → 5.96%
 0di. **§10 SOLVED by one cell** — 1297 median 1.0594 → 1.0000; plus the 657 and 669 columns
 0dh. **§30 closed — 907.66 → 907.76** — 6/6 bands match; reports unchanged because ₪0.10 was inside tolerance
@@ -138,6 +139,40 @@ Newest topic first:
 2. **1711 and 4120 out of scope**; 1711 also gets its own neutralization bucket
 3. **The dashboard partition covers the whole file**, not full-timers only
 4. **4319 / 4427 are in the Progim** and the engine now computes them
+
+## 0dk. 01/2008 restored to the מנהלי series — 20 files — and the branch is MERGED
+
+**The 1.2008 file was never broken; it was excluded and the reason had already
+been fixed.** `golmi_0108.xlsx` is the 22,422-slip reference file, rating 1,
+124,818 rows. It is the **only** file with no `תאריך שכר` column, so
+`pay_month_of()` returns None — but `_month_from_name()` resolves it to
+01/2008 correctly, and the two month-parsing fixes in `f43b5a1` are what made
+that work. Nobody re-tried it after those fixes. Re-tried now: it runs clean.
+
+**מנהלי is now 20 files · 384,989 slips**, partition closes on every row and
+the total.
+
+| | gated | check-all |
+|---|---|---|
+| valid | 360,336 | — |
+| true errors | **850** (0.221%) | **61,758 invalid** |
+| under / over | ₪172,378 / ₪142,668 | — |
+
+01/2008 itself: 22,422 workers, **47 true errors**, 21,016 valid, 856 no-base.
+Its dominant gap is **1699 at 5,117 gaps / ₪3,063,517** — by far the largest
+single-file 1699 exposure in the series, and worth a look on its own.
+
+**Lesson worth keeping:** an exclusion recorded as "redone without 1.2008" sat
+for days after the bug behind it was fixed in the same commit. When a file is
+dropped, the note has to say *why*, and it has to be re-tested after any fix
+that touches the reason.
+
+## 0dk2. Branch merged to main
+
+`claude/update-id4fvu` was 193 commits ahead of `origin/main` and **0 behind** —
+the other session had pushed nothing — so it went in as a clean fast-forward.
+`main` is now at `b82bbfc`. Verified before pushing: pytest 34 passed,
+`node --check` clean on engine.js.
 
 ## 0dj. 4550 ministry maxima corrected — and our rule had been reading the wrong column
 
